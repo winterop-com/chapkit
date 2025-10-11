@@ -47,6 +47,7 @@ coverage:
 	@echo ">>> Running tests with coverage"
 	@$(UV) run coverage run -m pytest -q
 	@$(UV) run coverage report
+	@$(UV) run coverage xml
 
 migrate:
 	@echo ">>> Generating migration: $(MSG)"

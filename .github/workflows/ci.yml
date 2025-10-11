@@ -32,9 +32,6 @@ jobs:
     - name: Run tests with coverage
       run: make coverage
 
-    - name: Generate coverage XML for Codecov
-      run: uv run coverage xml
-
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
