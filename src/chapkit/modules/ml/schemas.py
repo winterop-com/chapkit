@@ -1,0 +1,70 @@
+"""Pydantic schemas for ML train/predict operations."""
+
+from __future__ import annotations
+
+from typing import Any, Protocol
+
+import pandas as pd
+from geojson_pydantic import FeatureCollection
+from pydantic import BaseModel, Field
+from ulid import ULID
+
+from chapkit.modules.artifact.schemas import PandasDataFrame
+from chapkit.modules.config.schemas import BaseConfig
+
+
+class TrainRequest(BaseModel):
+    """Request schema for training a model."""
+
+    config_id: ULID = Field(description="ID of the config to use for training")
+    data: PandasDataFrame = Field(description="Training data as pandas DataFrame")
+    geo: FeatureCollection | None = Field(default=None, description="Optional geospatial data")
+
+
+class TrainResponse(BaseModel):
+    """Response schema for train operation submission."""
+
+    job_id: str = Field(description="ID of the training job in the scheduler")
+    model_artifact_id: str = Field(description="ID that will contain the trained model artifact")
+    message: str = Field(description="Human-readable message")
+
+
+class PredictRequest(BaseModel):
+    """Request schema for making predictions."""
+
+    model_artifact_id: ULID = Field(description="ID of the artifact containing the trained model")
+    future: PandasDataFrame = Field(description="Future/prediction data as pandas DataFrame")
+    historic: PandasDataFrame | None = Field(default=None, description="Optional historic data")
+    geo: FeatureCollection | None = Field(default=None, description="Optional geospatial data")
+
+
+class PredictResponse(BaseModel):
+    """Response schema for predict operation submission."""
+
+    job_id: str = Field(description="ID of the prediction job in the scheduler")
+    prediction_artifact_id: str = Field(description="ID that will contain the prediction artifact")
+    message: str = Field(description="Human-readable message")
+
+
+class ModelRunnerProtocol(Protocol):
+    """Protocol defining the interface for model runners."""
+
+    async def on_train(
+        self,
+        config: BaseConfig,
+        data: pd.DataFrame,
+        geo: FeatureCollection | None = None,
+    ) -> Any:
+        """Train a model and return the trained model object (must be pickleable)."""
+        ...
+
+    async def on_predict(
+        self,
+        config: BaseConfig,
+        model: Any,
+        historic: pd.DataFrame | None,
+        future: pd.DataFrame,
+        geo: FeatureCollection | None = None,
+    ) -> pd.DataFrame:
+        """Make predictions using a trained model and return predictions as DataFrame."""
+        ...

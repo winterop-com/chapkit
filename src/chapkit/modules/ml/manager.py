@@ -1,0 +1,183 @@
+"""Manager for ML train/predict operations with artifact-based storage."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from ulid import ULID
+
+from chapkit.core import Database
+from chapkit.core.scheduler import JobScheduler
+from chapkit.modules.artifact import ArtifactIn, ArtifactManager, ArtifactRepository
+from chapkit.modules.config import ConfigManager, ConfigRepository
+
+from .schemas import ModelRunnerProtocol, PredictRequest, PredictResponse, TrainRequest, TrainResponse
+
+
+class MLManager:
+    """Manager for ML train/predict operations with job scheduling and artifact storage."""
+
+    def __init__(
+        self,
+        runner: ModelRunnerProtocol,
+        scheduler: JobScheduler,
+        database: Database,
+    ) -> None:
+        """Initialize ML manager with runner, scheduler, and database."""
+        self.runner = runner
+        self.scheduler = scheduler
+        self.database = database
+
+    async def execute_train(self, request: TrainRequest) -> TrainResponse:
+        """Submit a training job to the scheduler and return job/artifact IDs."""
+        # Pre-allocate artifact ID for the trained model
+        model_artifact_id = ULID()
+
+        # Submit job to scheduler
+        job_id = await self.scheduler.add_job(
+            self._train_task,
+            request,
+            model_artifact_id,
+        )
+
+        return TrainResponse(
+            job_id=str(job_id),
+            model_artifact_id=str(model_artifact_id),
+            message=f"Training job submitted. Job ID: {job_id}",
+        )
+
+    async def execute_predict(self, request: PredictRequest) -> PredictResponse:
+        """Submit a prediction job to the scheduler and return job/artifact IDs."""
+        # Pre-allocate artifact ID for predictions
+        prediction_artifact_id = ULID()
+
+        # Submit job to scheduler
+        job_id = await self.scheduler.add_job(
+            self._predict_task,
+            request,
+            prediction_artifact_id,
+        )
+
+        return PredictResponse(
+            job_id=str(job_id),
+            prediction_artifact_id=str(prediction_artifact_id),
+            message=f"Prediction job submitted. Job ID: {job_id}",
+        )
+
+    async def _train_task(self, request: TrainRequest, model_artifact_id: ULID) -> ULID:
+        """Execute training task and store trained model in artifact."""
+        # Load config
+        async with self.database.session() as session:
+            config_repo = ConfigRepository(session)
+            from chapkit.modules.config.schemas import BaseConfig
+
+            config_manager: ConfigManager[BaseConfig] = ConfigManager(config_repo, BaseConfig)
+            config = await config_manager.find_by_id(request.config_id)
+
+            if config is None:
+                raise ValueError(f"Config {request.config_id} not found")
+
+        # Convert PandasDataFrame to pandas
+        data_df = request.data.to_dataframe()
+
+        # Train model
+        trained_model = await self.runner.on_train(
+            config=config.data,
+            data=data_df,
+            geo=request.geo,
+        )
+
+        # Store trained model in artifact with metadata
+        async with self.database.session() as session:
+            artifact_repo = ArtifactRepository(session)
+            artifact_manager = ArtifactManager(artifact_repo)
+            config_repo = ConfigRepository(session)
+
+            artifact_data: dict[str, Any] = {
+                "ml_type": "trained_model",
+                "config_id": str(request.config_id),
+                "model": trained_model,
+            }
+
+            await artifact_manager.save(
+                ArtifactIn(
+                    id=model_artifact_id,
+                    data=artifact_data,
+                    parent_id=None,
+                    level=0,
+                )
+            )
+
+            # Link config to root artifact for tree traversal
+            await config_repo.link_artifact(request.config_id, model_artifact_id)
+            await config_repo.commit()
+
+        return model_artifact_id
+
+    async def _predict_task(self, request: PredictRequest, prediction_artifact_id: ULID) -> ULID:
+        """Execute prediction task and store predictions in artifact."""
+        # Load model artifact
+        async with self.database.session() as session:
+            artifact_repo = ArtifactRepository(session)
+            artifact_manager = ArtifactManager(artifact_repo)
+            model_artifact = await artifact_manager.find_by_id(request.model_artifact_id)
+
+            if model_artifact is None:
+                raise ValueError(f"Model artifact {request.model_artifact_id} not found")
+
+        # Extract model and config_id from artifact
+        model_data = model_artifact.data
+        if not isinstance(model_data, dict) or model_data.get("ml_type") != "trained_model":
+            raise ValueError(f"Artifact {request.model_artifact_id} is not a trained model")
+
+        trained_model = model_data["model"]
+        config_id = ULID.from_str(model_data["config_id"])
+
+        # Load config
+        async with self.database.session() as session:
+            config_repo = ConfigRepository(session)
+            from chapkit.modules.config.schemas import BaseConfig
+
+            config_manager: ConfigManager[BaseConfig] = ConfigManager(config_repo, BaseConfig)
+            config = await config_manager.find_by_id(config_id)
+
+            if config is None:
+                raise ValueError(f"Config {config_id} not found")
+
+        # Convert PandasDataFrames to pandas
+        future_df = request.future.to_dataframe()
+        historic_df = request.historic.to_dataframe() if request.historic else None
+
+        # Make predictions
+        predictions_df = await self.runner.on_predict(
+            config=config.data,
+            model=trained_model,
+            historic=historic_df,
+            future=future_df,
+            geo=request.geo,
+        )
+
+        # Store predictions in artifact with parent linkage
+        async with self.database.session() as session:
+            artifact_repo = ArtifactRepository(session)
+            artifact_manager = ArtifactManager(artifact_repo)
+
+            from chapkit.modules.artifact.schemas import PandasDataFrame
+
+            artifact_data: dict[str, Any] = {
+                "ml_type": "prediction",
+                "model_artifact_id": str(request.model_artifact_id),
+                "config_id": str(config_id),
+                "predictions": PandasDataFrame.from_dataframe(predictions_df),
+            }
+
+            await artifact_manager.save(
+                ArtifactIn(
+                    id=prediction_artifact_id,
+                    data=artifact_data,
+                    parent_id=request.model_artifact_id,
+                    level=1,
+                )
+            )
+
+        return prediction_artifact_id

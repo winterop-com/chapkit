@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Service Info</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+        h1 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        .loading {
+            color: #666;
+            text-align: center;
+            padding: 2rem;
+        }
+        .info-grid {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .info-item {
+            display: grid;
+            gap: 0.25rem;
+        }
+        .info-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #666;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        .info-value {
+            color: #333;
+            font-size: 1rem;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="content" class="loading">Loading...</div>
+    </div>
+    <script>
+        fetch('/api/v1/info')
+            .then(r => r.json())
+            .then(data => {
+                const content = document.getElementById('content');
+                content.className = '';
+
+                // Standard fields to render first
+                const standardFields = ['display_name', 'version', 'summary', 'description', 'contact', 'license_info'];
+
+                // Build HTML for standard fields
+                let html = `<h1>${data.display_name}</h1><div class="info-grid">`;
+
+                html += `
+                    <div class="info-item">
+                        <div class="info-label">Version</div>
+                        <div class="info-value">${data.version}</div>
+                    </div>
+                `;
+
+                if (data.summary) {
+                    html += `
+                        <div class="info-item">
+                            <div class="info-label">Summary</div>
+                            <div class="info-value">${data.summary}</div>
+                        </div>
+                    `;
+                }
+
+                if (data.description) {
+                    html += `
+                        <div class="info-item">
+                            <div class="info-label">Description</div>
+                            <div class="info-value">${data.description}</div>
+                        </div>
+                    `;
+                }
+
+                if (data.contact) {
+                    html += `
+                        <div class="info-item">
+                            <div class="info-label">Contact</div>
+                            <div class="info-value"><pre>${JSON.stringify(data.contact, null, 2)}</pre></div>
+                        </div>
+                    `;
+                }
+
+                if (data.license_info) {
+                    html += `
+                        <div class="info-item">
+                            <div class="info-label">License</div>
+                            <div class="info-value"><pre>${JSON.stringify(data.license_info, null, 2)}</pre></div>
+                        </div>
+                    `;
+                }
+
+                // Render any additional custom fields
+                Object.keys(data).forEach(key => {
+                    if (!standardFields.includes(key) && data[key] != null) {
+                        const label = key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                        const value = data[key];
+
+                        html += `
+                            <div class="info-item">
+                                <div class="info-label">${label}</div>
+                                <div class="info-value">`;
+
+                        if (typeof value === 'object') {
+                            html += `<pre>${JSON.stringify(value, null, 2)}</pre>`;
+                        } else {
+                            html += value;
+                        }
+
+                        html += `</div></div>`;
+                    }
+                });
+
+                html += '</div>';
+                content.innerHTML = html;
+            })
+            .catch(err => {
+                document.getElementById('content').innerHTML =
+                    '<div style="color: #dc2626;">Failed to load service info</div>';
+            });
+    </script>
+</body>
+</html>
