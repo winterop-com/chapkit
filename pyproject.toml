@@ -27,12 +27,6 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Database",
 ]
-
-[project.urls]
-Homepage = "https://github.com/winterop-com/chapkit"
-Repository = "https://github.com/winterop-com/chapkit"
-Issues = "https://github.com/winterop-com/chapkit/issues"
-Documentation = "https://github.com/winterop-com/chapkit#readme"
 dependencies = [
     "aiosqlite>=0.21.0",
     "alembic>=1.15.1",
@@ -45,6 +39,12 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.43",
     "structlog>=24.4.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/winterop-com/chapkit"
+Repository = "https://github.com/winterop-com/chapkit"
+Issues = "https://github.com/winterop-com/chapkit/issues"
+Documentation = "https://github.com/winterop-com/chapkit#readme"
 
 [dependency-groups]
 dev = [
