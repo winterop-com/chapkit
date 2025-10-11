@@ -95,11 +95,53 @@ This document outlines the development phases for chapkit, tracking completed wo
   - Import/usage guide (`POSTMAN.md`)
   - Collection Runner compatible for automated testing
 
+### Phase 3: Documentation Infrastructure
+**Status:** Complete
+**Key PR:** [#2](https://github.com/winterop-com/chapkit/pull/2)
+
+**Delivered:**
+- **MkDocs with Material Theme:**
+  - Modern, responsive documentation site
+  - Instant search across all pages
+  - Navigation tabs for major sections
+  - Dark/light mode toggle
+  - Code copy buttons and syntax highlighting
+  - Mermaid diagram support
+  - Mobile responsive design
+- **Documentation Structure (9 Major Sections):**
+  - Getting Started (installation, quickstart, first service)
+  - Architecture (core/API layers, modules, dependency flow)
+  - Service Builders (BaseServiceBuilder, ServiceBuilder, MLServiceBuilder)
+  - Modules (config, artifacts, tasks, ML)
+  - ML Workflows (functional, class-based, shell-based runners)
+  - API Reference (endpoints, schemas, pagination, errors, operations)
+  - Guides (custom entities/routers, modules, migrations, testing, Docker)
+  - Advanced (logging, hooks, job scheduler, library usage)
+  - Contributing (development, code quality, git workflow)
+- **Infrastructure:**
+  - GitHub Actions workflow for deployment
+  - Makefile commands (`make docs`, `make docs-serve`, `make docs-build`)
+  - Custom CSS for API method badges
+  - Abbreviations and snippets support
+- **Content Strategy:**
+  - CLAUDE.md remains as comprehensive single-file reference for AI assistants
+  - MkDocs site provides browsable, searchable interface for human developers
+  - 50+ documentation pages (index pages + stubs for future expansion)
+
+**Next Steps:**
+- **Phase 3.1:** Expand Getting Started section with complete tutorials
+- **Phase 3.2:** Migrate ML workflow examples from `examples/docs/` to documentation site
+- **Phase 3.3:** Add architecture diagrams (Mermaid) to architecture section
+- **Phase 3.4:** Complete API Reference with detailed endpoint documentation
+- **Phase 3.5:** Migrate content from CLAUDE.md into organized documentation pages
+- **Phase 3.6:** Add video tutorials and interactive examples
+- **Phase 3.7:** Configure public documentation hosting (GitHub Pages, ReadTheDocs, or alternative)
+
 ---
 
 ## 🎯 Planned Phases
 
-### Phase 3: Enhanced Landing Page for ML Services
+### Phase 4: Enhanced Landing Page for ML Services
 **Status:** Proposed
 **Priority:** Medium
 
@@ -130,7 +172,7 @@ This document outlines the development phases for chapkit, tracking completed wo
 
 ---
 
-### Phase 4: Authentication & Authorization Module
+### Phase 5: Authentication & Authorization Module
 **Status:** Proposed
 **Priority:** High
 
@@ -174,7 +216,7 @@ app = (
 
 ---
 
-### Phase 5: Rate Limiting & Throttling
+### Phase 6: Rate Limiting & Throttling
 **Status:** Proposed
 **Priority:** Medium
 
@@ -219,7 +261,7 @@ app = (
 
 ---
 
-### Phase 6: Model Registry & Versioning
+### Phase 7: Model Registry & Versioning
 **Status:** Proposed
 **Priority:** High
 
@@ -255,7 +297,7 @@ app = (
 
 ---
 
-### Phase 7: Monitoring & Observability
+### Phase 8: Monitoring & Observability
 **Status:** Proposed
 **Priority:** Medium
 
@@ -294,7 +336,7 @@ app = (
 
 ---
 
-### Phase 8: Batch Processing
+### Phase 9: Batch Processing
 **Status:** Proposed
 **Priority:** Low
 
@@ -326,7 +368,7 @@ app = (
 
 ---
 
-### Phase 9: Model Serving Optimization
+### Phase 10: Model Serving Optimization
 **Status:** Proposed
 **Priority:** Medium
 
@@ -370,35 +412,35 @@ app = (
 
 ---
 
-### Phase 10: Documentation & Discovery
+### Phase 11: API Discovery & SDK Generation
 **Status:** Proposed
 **Priority:** Low
 
 **Goals:**
-- Developer experience
-- API discoverability
-- Client generation
+- Enhanced API discoverability
+- Client library generation
+- Developer experience improvements
 
 **Features:**
-- Auto-generated model cards
-- Enhanced OpenAPI schemas with examples
-- SDK generation (Python, TypeScript, R)
-- Interactive API explorer
-- GraphQL API option
-- Changelog generation
-- Migration guides
+- Auto-generated model cards from MLServiceInfo
+- Enhanced OpenAPI schemas with comprehensive examples
+- SDK generation (Python, TypeScript, R clients)
+- GraphQL API option as alternative to REST
+- Automated changelog generation from commits
+- Version-specific migration guides
 
 **Integration:**
-- CLI tools for documentation generation
-- Enhanced `/api/v1/info` endpoint
-- Model card templates
-- OpenAPI extension with ML-specific metadata
+- CLI tools for SDK generation: `chapkit generate-sdk --language python`
+- Enhanced `/api/v1/info` endpoint with rich metadata
+- Model card templates using Jinja2
+- OpenAPI extensions for ML-specific metadata (training data requirements, input/output schemas)
 
 **Technical Notes:**
-- Use pydantic for schema extraction
-- Jinja2 templates for model cards
-- Optional: Sphinx/MkDocs integration
-- OpenAPI generator for SDK creation
+- Use pydantic for automatic schema extraction
+- Jinja2 templates for model cards with markdown export
+- OpenAPI generator for multi-language SDK creation
+- GraphQL schema auto-generation from existing models
+- Separate from Phase 3 (MkDocs documentation) - focuses on programmatic API access
 
 ---
 
