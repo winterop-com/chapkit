@@ -1,0 +1,175 @@
+site_name: Chapkit
+site_description: Async SQLAlchemy database library for Python 3.13+ with FastAPI integration and ML workflow support
+site_author: Morten Hansen
+site_url: https://winterop-com.github.io/chapkit/
+repo_name: winterop-com/chapkit
+repo_url: https://github.com/winterop-com/chapkit
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant      # Single-page app behavior
+    - navigation.instant.prefetch
+    - navigation.tracking     # URL updates with scroll
+    - navigation.tabs         # Top-level sections as tabs
+    - navigation.tabs.sticky  # Keep tabs visible when scrolling
+    - navigation.sections     # Sections in sidebar
+    - navigation.expand       # Expand sections by default
+    - navigation.path         # Breadcrumb navigation
+    - navigation.top          # Back to top button
+    - navigation.indexes      # Index pages for sections
+    - toc.follow              # TOC follows scroll
+    - toc.integrate           # TOC integrated in nav (optional)
+    - search.suggest          # Search suggestions
+    - search.highlight        # Highlight search terms
+    - search.share            # Share search results
+    - content.code.copy       # Copy button for code blocks
+    - content.code.annotate   # Code annotations
+    - content.tabs.link       # Link content tabs
+
+  icon:
+    repo: fontawesome/brands/github
+    edit: material/pencil
+    view: material/eye
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/winterop-com/chapkit
+      name: GitHub Repository
+  version:
+    provider: mike
+
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+
+nav:
+  - Home: index.md
+
+  - Getting Started:
+    - getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Your First Service: getting-started/first-service.md
+
+  - Architecture:
+    - architecture/index.md
+    - Core Layer: architecture/core-layer.md
+    - API Layer: architecture/api-layer.md
+    - Modules: architecture/modules.md
+    - Dependency Flow: architecture/dependency-flow.md
+
+  - Service Builders:
+    - service-builders/index.md
+    - BaseServiceBuilder: service-builders/base-service-builder.md
+    - ServiceBuilder: service-builders/service-builder.md
+    - MLServiceBuilder: service-builders/ml-service-builder.md
+
+  - Modules:
+    - modules/index.md
+    - Config: modules/config.md
+    - Artifacts: modules/artifacts.md
+    - Tasks: modules/tasks.md
+    - ML: modules/ml.md
+
+  - ML Workflows:
+    - ml-workflows/index.md
+    - Functional Runner: ml-workflows/functional-runner.md
+    - Class-Based Runner: ml-workflows/class-runner.md
+    - Shell-Based Runner: ml-workflows/shell-runner.md
+    - Complete Examples: ml-workflows/examples.md
+
+  - API Reference:
+    - api-reference/index.md
+    - Endpoints: api-reference/endpoints.md
+    - Schemas: api-reference/schemas.md
+    - Pagination: api-reference/pagination.md
+    - Error Handling: api-reference/error-handling.md
+    - Operations: api-reference/operations.md
+
+  - Guides:
+    - guides/index.md
+    - Custom Entities: guides/custom-entities.md
+    - Custom Routers: guides/custom-routers.md
+    - Creating Modules: guides/creating-modules.md
+    - Migrations: guides/migrations.md
+    - Testing: guides/testing.md
+    - Docker: guides/docker.md
+
+  - Advanced:
+    - advanced/index.md
+    - Logging: advanced/logging.md
+    - Lifecycle Hooks: advanced/hooks.md
+    - Job Scheduler: advanced/job-scheduler.md
+    - Library Usage: advanced/library-usage.md
+
+  - Contributing:
+    - contributing/index.md
+    - Development: contributing/development.md
+    - Code Quality: contributing/code-quality.md
+    - Git Workflow: contributing/git-workflow.md
+
+extra_css:
+  - stylesheets/extra.css

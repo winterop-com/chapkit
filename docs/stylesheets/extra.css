@@ -1,0 +1,64 @@
+/* Custom styles for Chapkit documentation */
+
+:root {
+  --md-primary-fg-color: #5e6ad2;
+  --md-accent-fg-color: #5e6ad2;
+}
+
+/* Code block improvements */
+.highlight {
+  border-radius: 0.2rem;
+}
+
+/* Improve table styling */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+table th {
+  background-color: var(--md-primary-fg-color--light);
+  font-weight: 600;
+}
+
+/* Admonition improvements */
+.admonition {
+  border-left: 0.2rem solid;
+}
+
+/* Mermaid diagram improvements */
+.mermaid {
+  text-align: center;
+  margin: 1em 0;
+}
+
+/* API endpoint badges */
+.api-method {
+  display: inline-block;
+  padding: 0.1em 0.5em;
+  border-radius: 0.2em;
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-right: 0.5em;
+}
+
+.api-method-get {
+  background-color: #61affe;
+  color: white;
+}
+
+.api-method-post {
+  background-color: #49cc90;
+  color: white;
+}
+
+.api-method-put {
+  background-color: #fca130;
+  color: white;
+}
+
+.api-method-delete {
+  background-color: #f93e3e;
+  color: white;
+}
