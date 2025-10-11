@@ -4,7 +4,6 @@
 [![codecov](https://codecov.io/gh/winterop-com/chapkit/branch/main/graph/badge.svg)](https://codecov.io/gh/winterop-com/chapkit)
 [![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://winterop-com.github.io/chapkit/)
 
 **Async SQLAlchemy database library for Python 3.13+ with FastAPI integration and ML workflow support.**
 
@@ -40,12 +39,6 @@ app = (
 
 Run with: `fastapi dev your_file.py`
 
-## Documentation
-
-📚 **[Read the full documentation](https://winterop-com.github.io/chapkit/)**
-
-For Claude Code: See [CLAUDE.md](CLAUDE.md) for comprehensive reference.
-
 ## Installation
 
 ```bash
@@ -70,25 +63,17 @@ make coverage
 
 ## Links
 
-- **Documentation**: https://winterop-com.github.io/chapkit/
-- **Repository**: https://github.com/winterop-com/chapkit
-- **Issues**: https://github.com/winterop-com/chapkit/issues
+- **Repository**: [https://github.com/winterop-com/chapkit](https://github.com/winterop-com/chapkit)
+- **Issues**: [https://github.com/winterop-com/chapkit/issues](https://github.com/winterop-com/chapkit/issues)
+- **Documentation**: You're reading it!
 
 ## License
 
-This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU Affero General Public License v3.0 - see the [LICENSE](https://github.com/winterop-com/chapkit/blob/main/LICENSE) file for details.
 
-## Examples
+## Next Steps
 
-The `examples/` directory contains small, self-contained scripts that demonstrate how to use Chapkit’s managers.
-
-- `config_example.py` shows how to define a custom `BaseConfig` payload, persist it via `ConfigManager`, and fetch it back by name.
-- `artifact_example.py` builds a tiny artifact tree, passes an `ArtifactHierarchy` into `ArtifactManager`, and prints each artifact with its persisted level plus hierarchy-derived labels.
-
-To run an example, make sure dependencies are installed (e.g., `make install`), then execute:
-
-```bash
-uv run python examples/config_example.py
-# or
-uv run python examples/artifact_example.py
-```
+- [Installation Guide](getting-started/installation.md) - Install Chapkit and set up your environment
+- [Quick Start](getting-started/quickstart.md) - Build your first service in 5 minutes
+- [Architecture Overview](architecture/index.md) - Understand Chapkit's vertical slice architecture
+- [ML Workflows](ml-workflows/index.md) - Train and predict with machine learning models

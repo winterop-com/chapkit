@@ -1,4 +1,4 @@
-.PHONY: help install lint test coverage clean docker-build docker-run
+.PHONY: help install lint test coverage clean docker-build docker-run docs docs-serve docs-build
 
 # ==============================================================================
 # Venv
@@ -16,13 +16,16 @@ help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Targets:"
-	@echo "  install    Install dependencies"
-	@echo "  lint       Run linter and type checker"
-	@echo "  test       Run tests"
-	@echo "  coverage   Run tests with coverage reporting"
+	@echo "  install      Install dependencies"
+	@echo "  lint         Run linter and type checker"
+	@echo "  test         Run tests"
+	@echo "  coverage     Run tests with coverage reporting"
 	@echo "  migrate      Generate a new migration (use MSG='description')"
 	@echo "  upgrade      Apply pending migrations"
 	@echo "  downgrade    Revert last migration"
+	@echo "  docs-serve   Serve documentation locally with live reload"
+	@echo "  docs-build   Build documentation site"
+	@echo "  docs         Alias for docs-serve"
 	@echo "  docker-build Build Docker image for examples"
 	@echo "  docker-run   Run example in Docker (use EXAMPLE='config_api')"
 	@echo "  clean        Clean up temporary files"
@@ -62,6 +65,16 @@ upgrade:
 downgrade:
 	@echo ">>> Reverting last migration"
 	@$(UV) run alembic downgrade -1
+
+docs-serve:
+	@echo ">>> Serving documentation at http://127.0.0.1:8000"
+	@$(UV) run mkdocs serve
+
+docs-build:
+	@echo ">>> Building documentation site"
+	@$(UV) run mkdocs build
+
+docs: docs-serve
 
 docker-build:
 	@echo ">>> Building Docker image"

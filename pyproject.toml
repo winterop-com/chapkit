@@ -57,6 +57,7 @@ dev = [
     "ruff>=0.14.0",
     "pyright>=1.1.406",
     "scikit-learn>=1.7.2",
+    "mkdocs-material>=9.6.21",
 ]
 
 [build-system]
