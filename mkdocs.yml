@@ -104,6 +104,31 @@ markdown_extensions:
 plugins:
   - search:
       separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            group_by_category: true
+            show_category_heading: true
+            show_signature: true
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs: true
+            merge_init_into_class: true
+            docstring_section_style: table
+            show_if_no_docstring: false
+            inherited_members: false
+            filters:
+              - "!^_"  # Exclude private members
 
 nav:
   - Home: index.md
@@ -144,10 +169,35 @@ nav:
   - API Reference:
     - api-reference/index.md
     - Endpoints: api-reference/endpoints.md
-    - Schemas: api-reference/schemas.md
     - Pagination: api-reference/pagination.md
     - Error Handling: api-reference/error-handling.md
     - Operations: api-reference/operations.md
+    - Core Layer:
+      - Database: api-reference/core/database.md
+      - Repository: api-reference/core/repository.md
+      - Manager: api-reference/core/manager.md
+      - Models: api-reference/core/models.md
+      - Schemas: api-reference/core/schemas.md
+      - Exceptions: api-reference/core/exceptions.md
+      - Scheduler: api-reference/core/scheduler.md
+      - Logging: api-reference/core/logging.md
+      - Types: api-reference/core/types.md
+    - Core API Layer:
+      - Router: api-reference/core-api/router.md
+      - CRUD: api-reference/core-api/crud.md
+      - ServiceBuilder: api-reference/core-api/service-builder.md
+      - Middleware: api-reference/core-api/middleware.md
+      - Dependencies: api-reference/core-api/dependencies.md
+      - Pagination: api-reference/core-api/pagination.md
+      - Utilities: api-reference/core-api/utilities.md
+    - Modules:
+      - Config: api-reference/modules/config.md
+      - Artifact: api-reference/modules/artifact.md
+      - Task: api-reference/modules/task.md
+      - ML: api-reference/modules/ml.md
+    - Service Builders:
+      - ServiceBuilder: api-reference/service-builders/service-builder.md
+      - Dependencies: api-reference/service-builders/dependencies.md
 
   - Guides:
     - guides/index.md
