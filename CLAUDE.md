@@ -1102,3 +1102,36 @@ make lint      # Linting
 - aiosqlite >= 0.21
 - pydantic >= 2.11
 - fastapi, ulid-py
+
+## Git Workflow
+
+**All changes must go through the branch + PR workflow.**
+
+### Branch Naming
+- `feature/description` - New features
+- `fix/description` - Bug fixes
+- `chore/description` - Maintenance tasks
+- `docs/description` - Documentation updates
+- `github/description` - GitHub-specific changes
+
+### Process
+1. Create a new branch from `main`: `git checkout -b feature/my-feature`
+2. Make your changes and commit: `git commit -m "feat: add new feature"`
+3. Push to GitHub: `git push -u origin feature/my-feature`
+4. Create a PR via GitHub CLI: `gh pr create --title "..." --body "..."`
+5. Wait for manual review and merge
+
+### Commit Messages
+Follow conventional commits:
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `chore:` - Maintenance
+- `docs:` - Documentation
+- `test:` - Tests
+- `refactor:` - Code refactoring
+
+### PR Requirements
+- All tests must pass (`make test`)
+- All linting must pass (`make lint`)
+- Code coverage should not decrease
+- Descriptive PR title and body
