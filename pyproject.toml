@@ -1,10 +1,38 @@
 [project]
 name = "chapkit"
 version = "0.1.0"
-description = "Add your description here"
+description = "Async SQLAlchemy database library for Python 3.13+ with FastAPI integration and ML workflow support"
 readme = "README.md"
 authors = [{ name = "Morten Hansen", email = "morten@winterop.com" }]
+license = { text = "AGPL-3.0-or-later" }
 requires-python = ">=3.13"
+keywords = [
+    "fastapi",
+    "sqlalchemy",
+    "async",
+    "database",
+    "ml",
+    "machine-learning",
+    "rest-api",
+    "crud",
+    "vertical-slice",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: FastAPI",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Database",
+]
+
+[project.urls]
+Homepage = "https://github.com/winterop-com/chapkit"
+Repository = "https://github.com/winterop-com/chapkit"
+Issues = "https://github.com/winterop-com/chapkit/issues"
+Documentation = "https://github.com/winterop-com/chapkit#readme"
 dependencies = [
     "aiosqlite>=0.21.0",
     "alembic>=1.15.1",
