@@ -24,23 +24,17 @@ jobs:
         python-version: "3.13"
     
     - name: Install dependencies
-      run: uv sync --all-extras
-    
-    - name: Run ruff format check
-      run: uv run ruff format --check .
-    
-    - name: Run ruff lint
-      run: uv run ruff check .
-    
-    - name: Run mypy
-      run: uv run mypy --exclude 'examples/old' src tests examples alembic
-    
-    - name: Run pyright
-      run: uv run pyright
-    
+      run: make install
+
+    - name: Run linting
+      run: make lint
+
     - name: Run tests with coverage
-      run: uv run pytest --cov=chapkit --cov-report=xml --cov-report=term
-    
+      run: make coverage
+
+    - name: Generate coverage XML for Codecov
+      run: uv run coverage xml
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
