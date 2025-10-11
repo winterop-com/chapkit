@@ -69,14 +69,15 @@ Common endpoints across all services:
 - CRUD operations
 - Job management
 
-### [Schemas](schemas.md)
+### [Schemas](core/schemas.md)
 
-Request and response schemas:
+Request and response schemas (auto-generated from code):
 
-- Entity input/output
-- Pagination
-- Job records
-- Error responses
+- Entity input/output (EntityIn, EntityOut)
+- Pagination (PaginatedResponse)
+- Job records (JobRecord, JobStatus)
+- Error responses (ProblemDetail)
+- Bulk operations (BulkOperationResult)
 
 ### [Pagination](pagination.md)
 
@@ -180,7 +181,7 @@ All Chapkit services include Swagger UI:
 ## Next Steps
 
 - [Endpoints](endpoints.md) - Detailed endpoint reference
-- [Schemas](schemas.md) - Request/response schemas
+- [Schemas](core/schemas.md) - Request/response schemas
 - [Pagination](pagination.md) - Pagination guide
 - [Error Handling](error-handling.md) - Error formats
 - [Operations](operations.md) - Operation endpoints
