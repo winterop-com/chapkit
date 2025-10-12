@@ -1,21 +1,4 @@
-"""Example: API with API key authentication.
-
-This example demonstrates how to add simple API key authentication to a chapkit service.
-
-Run with environment variable:
-    export CHAPKIT_API_KEYS="sk_dev_abc123,sk_dev_xyz789"
-    fastapi dev examples/authenticated_api.py
-
-Test:
-    # Without API key (fails with 401)
-    curl http://localhost:8000/api/v1/config
-
-    # With valid API key (succeeds)
-    curl -H "X-API-Key: sk_dev_abc123" http://localhost:8000/api/v1/config
-
-    # Health check doesn't require auth
-    curl http://localhost:8000/api/v1/health
-"""
+"""Example API with API key authentication."""
 
 from chapkit import BaseConfig
 from chapkit.api import ServiceBuilder, ServiceInfo

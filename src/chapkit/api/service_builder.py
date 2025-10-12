@@ -375,7 +375,7 @@ class MLServiceBuilder(ServiceBuilder):
         include_error_handlers: bool = True,
         include_logging: bool = True,
     ) -> None:
-        """Initialize ML service builder with required ML components (config_schema, hierarchy, runner)."""
+        """Initialize ML service builder with required ML components."""
         super().__init__(
             info=info,
             database_url=database_url,

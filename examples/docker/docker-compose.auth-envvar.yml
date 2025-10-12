@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  api:
+    image: chapkit-auth-api:latest
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: chapkit-auth-envvar
+    ports:
+      - "8000:8000"
+    environment:
+      # API Keys from environment variable (recommended for production)
+      CHAPKIT_API_KEYS: ${CHAPKIT_API_KEYS}
+
+      # Logging
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+
+      # Service configuration
+      EXAMPLE_MODULE: examples.auth_envvar:app
+      PORT: ${PORT:-8000}
+      WORKERS: ${WORKERS:-auto}
+    volumes:
+      # Persist database
+      - api_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  api_data:
+    driver: local

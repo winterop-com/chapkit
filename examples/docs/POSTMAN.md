@@ -1,17 +1,29 @@
-# Postman Collections for Chapkit ML Examples
+# Postman Collections for Chapkit Examples
 
-This directory contains Postman Collection v2.1 JSON files that you can import directly into Postman to test the Chapkit ML API examples.
+This directory contains Postman Collection v2.1 JSON files that you can import directly into Postman to test Chapkit services.
 
 ## Available Collections
 
-### 1. ml_basic.postman_collection.json
+### Authentication Collections
+
+#### auth_basic.postman_collection.json
+**API Key Authentication - Complete Workflow**
+- Environment variable auth (CHAPKIT_API_KEYS)
+- Multiple API keys for rotation
+- Authentication failures (missing/invalid keys)
+- Full CRUD workflow with auth
+- RFC 9457 error responses
+
+### ML Collections
+
+#### ml_basic.postman_collection.json
 **Disease Prediction - Functional Runner**
 - Simple functional programming style
 - 2 features: rainfall, mean_temperature
 - LinearRegression model
 - Status: Yellow (ready for testing)
 
-### 2. ml_class.postman_collection.json
+#### ml_class.postman_collection.json
 **Weather Prediction - Class-Based Runner**
 - Object-oriented programming style
 - 3 features: rainfall, mean_temperature, humidity
@@ -19,7 +31,7 @@ This directory contains Postman Collection v2.1 JSON files that you can import d
 - Lifecycle hooks (on_init, on_cleanup)
 - Status: Green (production-ready)
 
-### 3. ml_shell.postman_collection.json
+#### ml_shell.postman_collection.json
 **Shell-Based - Language-Agnostic**
 - External script execution
 - 2 features: rainfall, mean_temperature
@@ -95,7 +107,39 @@ Each collection includes pre-configured variables:
 
 ## Usage Workflow
 
-### Basic Workflow (All Collections)
+### Authentication Workflow (auth_basic)
+
+1. **Start the service:**
+   ```bash
+   export CHAPKIT_API_KEYS="sk_dev_abc123,sk_dev_xyz789"
+   fastapi dev examples/authenticated_api.py
+   ```
+
+2. **Check service health (no auth):**
+   - Run: `1. Service Health & Info` → `Check Service Health`
+   - Verify: Status 200, `"status": "healthy"`
+
+3. **Test authentication failures:**
+   - Run: `2. Authentication Failures` → `Access Without Auth`
+   - Verify: Status 401, missing auth header error
+   - Run: `2. Authentication Failures` → `Access With Invalid Key`
+   - Verify: Status 401, invalid key error
+
+4. **Create configuration (with auth):**
+   - Run: `3. Configuration Management` → `Create Configuration`
+   - Auto-captured: `config_id` variable
+   - Uses: `X-API-Key: {{api_key}}` header
+
+5. **Perform CRUD operations:**
+   - Run other requests in `3. Configuration Management`
+   - All automatically use stored `config_id`
+
+6. **Test key rotation:**
+   - Run: `4. Key Rotation` → `Access With First Key`
+   - Run: `4. Key Rotation` → `Access With Second Key`
+   - Verify: Both keys work (zero-downtime rotation)
+
+### ML Workflow (All Collections)
 
 1. **Start the service:**
    ```bash

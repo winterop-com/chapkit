@@ -14,19 +14,19 @@ This roadmap outlines planned features and improvements for Chapkit, organized b
 
 ## 🔐 Authentication & Authorization
 
-### P0 - API Key Authentication
-- [ ] API key middleware with header validation (`X-API-Key`)
-- [ ] `.with_auth()` method on ServiceBuilder
-- [ ] Environment variable support (default: `CHAPKIT_API_KEYS`)
-- [ ] Docker secrets file support (`api_key_file` parameter)
-- [ ] Direct key list support (for examples/dev only)
-- [ ] Configurable unauthenticated paths (health checks, docs)
+### P0 - API Key Authentication ✅ COMPLETED
+- [x] API key middleware with header validation (`X-API-Key`)
+- [x] `.with_auth()` method on ServiceBuilder
+- [x] Environment variable support (default: `CHAPKIT_API_KEYS`)
+- [x] Docker secrets file support (`api_key_file` parameter)
+- [x] Direct key list support (for examples/dev only)
+- [x] Configurable unauthenticated paths (health checks, docs)
 
-### P1 - Enhanced API Key Features
-- [ ] Multiple keys support (comma-separated in env var)
-- [ ] Key prefix conventions and validation (`sk_env_random` format)
-- [ ] Secure key logging (mask all but prefix: `sk_prod_****`)
-- [ ] Key rotation support (multiple active keys during transition)
+### P1 - Enhanced API Key Features ✅ COMPLETED
+- [x] Multiple keys support (comma-separated in env var)
+- [x] Key prefix conventions and validation (`sk_env_random` format)
+- [x] Secure key logging (mask all but prefix: `sk_prod_****`)
+- [x] Key rotation support (multiple active keys during transition)
 - [ ] Custom validator function support (for advanced use cases)
 
 ### P2 - Security Enhancements
@@ -40,13 +40,13 @@ This roadmap outlines planned features and improvements for Chapkit, organized b
 - [ ] Security headers middleware (CSP, HSTS, X-Frame-Options)
 - [ ] CORS configuration improvements
 
-### P2 - Documentation & Examples
-- [ ] Docker Compose with environment variables example
-- [ ] Docker secrets setup guide (Docker Compose & Swarm)
-- [ ] Kubernetes secrets integration example
-- [ ] Key rotation best practices documentation
-- [ ] Security hardening guide
-- [ ] `.env.example` file patterns and gitignore setup
+### P2 - Documentation & Examples ✅ MOSTLY COMPLETED
+- [x] Docker Compose with environment variables example
+- [x] Docker secrets setup guide (Docker Compose & Swarm)
+- [x] Kubernetes secrets integration example
+- [x] Key rotation best practices documentation
+- [ ] Security hardening guide (covered in authentication.md)
+- [x] `.env.example` file patterns and gitignore setup
 
 ---
 

@@ -221,6 +221,7 @@ MLServiceBuilder(
 - `.with_ml(runner=runner)` - ML train/predict endpoints
 
 **Still available (optional):**
+- `.with_auth()` - Enable API key authentication (inherited from ServiceBuilder)
 - `.include_router(router)` - Add custom routers
 - `.on_startup(hook)` / `.on_shutdown(hook)` - Lifecycle hooks
 - `.build()` - Returns FastAPI app
@@ -263,6 +264,22 @@ app = MLServiceBuilder(
     hierarchy=HIERARCHY,
     runner=runner,
 ).build()
+```
+
+**With authentication:**
+```python
+# Add authentication to ML service
+app = (
+    MLServiceBuilder(
+        info=info,
+        database_url="...",
+        config_schema=DiseaseConfig,
+        hierarchy=HIERARCHY,
+        runner=runner,
+    )
+    .with_auth()  # Reads from CHAPKIT_API_KEYS env var
+    .build()
+)
 ```
 
 **When to use:**

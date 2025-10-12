@@ -1,12 +1,25 @@
-# ML Service cURL Examples
+# Chapkit Service Examples - cURL Guides
 
-This directory contains cURL guides for interacting with the ML service examples.
+This directory contains comprehensive cURL guides for testing Chapkit services.
 
-## Available Examples
+## Authentication Examples
+
+Secure your APIs with API key authentication:
+
+- **[auth_basic.md](auth_basic.md)** - Basic authentication with direct API keys (development)
+- **[auth_envvar.md](auth_envvar.md)** - Environment variable auth (recommended for production)
+- **[auth_docker_secrets.md](auth_docker_secrets.md)** - Docker secrets file auth (most secure)
+- **[auth_ml.md](auth_ml.md)** - Authenticated ML service with train/predict
+- **[auth_quick_reference.md](auth_quick_reference.md)** - One-page authentication cheat sheet
+
+## ML Service Examples
+
+Train and deploy machine learning models:
 
 - **[ml_basic.md](ml_basic.md)** - Basic functional model runner with LinearRegression
 - **[ml_class.md](ml_class.md)** - Class-based model runner with feature preprocessing
 - **[ml_shell.md](ml_shell.md)** - Shell-based runner using external Python scripts
+- **[quick_reference.md](quick_reference.md)** - One-page ML workflow cheat sheet
 
 ## Common ML Workflow
 
@@ -233,8 +246,71 @@ Common error types:
 4. **Logging**: Services with `.with_logging()` provide structured logs with request tracing
 5. **Interactive Docs**: Visit `http://127.0.0.1:8000/docs` for Swagger UI
 
+## Common Authentication Workflow
+
+All authenticated services follow this basic pattern:
+
+### 1. Set API Keys
+
+```bash
+# Environment variable (recommended)
+export CHAPKIT_API_KEYS="sk_prod_abc123,sk_prod_xyz789"
+
+# Or Docker secrets file
+export CHAPKIT_API_KEY_FILE="./secrets/api_keys.txt"
+```
+
+### 2. Start Service
+
+```bash
+fastapi run examples/auth_envvar.py
+```
+
+### 3. Test Health (No Auth)
+
+```bash
+curl http://127.0.0.1:8000/api/v1/health
+```
+
+### 4. Access Protected Endpoint
+
+```bash
+# Without auth (fails with 401)
+curl http://127.0.0.1:8000/api/v1/config
+
+# With valid API key (succeeds)
+curl -H "X-API-Key: sk_prod_abc123" http://127.0.0.1:8000/api/v1/config
+```
+
+### Common Authentication Endpoints
+
+#### Unauthenticated (Public)
+- `GET /api/v1/health` - Health check
+- `GET /docs` - Swagger UI
+- `GET /redoc` - ReDoc
+- `GET /openapi.json` - OpenAPI schema
+
+#### Authenticated (Require X-API-Key header)
+- All `/api/v1/config` endpoints
+- All `/api/v1/artifacts` endpoints (if enabled)
+- All `/api/v1/jobs` endpoints (if enabled)
+- All `/api/v1/ml/*` endpoints (if enabled)
+
+## Docker Deployment
+
+See [../docker/](../docker/) for Docker Compose examples:
+- `docker-compose.auth-envvar.yml` - Environment variables
+- `docker-compose.auth-secrets.yml` - Docker secrets
+
+## Postman Collections
+
+Import-ready collections for API testing:
+- `auth_basic.postman_collection.json` - Basic authentication workflow
+- See [POSTMAN.md](POSTMAN.md) for import instructions
+
 ## Next Steps
 
 - See example-specific guides for detailed workflows
-- Check [../ml_basic.py](../ml_basic.py) source code for implementation details
+- Check [../auth_envvar.py](../auth_envvar.py) or [../ml_basic.py](../ml_basic.py) source code
+- Read [../../docs/authentication.md](../../docs/authentication.md) for comprehensive auth guide
 - Read [../../CLAUDE.md](../../CLAUDE.md) for architecture and API reference
