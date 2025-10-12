@@ -29,8 +29,8 @@ classifiers = [
 ]
 dependencies = [
     "aiosqlite>=0.21.0",
-    "alembic>=1.15.1",
-    "fastapi[standard]>=0.118.2",
+    "alembic>=1.17.0",
+    "fastapi[standard]>=0.119.0",
     "geojson-pydantic>=2.1.0",
     "gunicorn>=23.0.0",
     "pandas>=2.3.3",
