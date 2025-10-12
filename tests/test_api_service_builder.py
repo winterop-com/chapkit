@@ -159,13 +159,19 @@ async def test_service_builder_with_database_instance(
     test_database: Database,
 ) -> None:
     """Test injecting a pre-configured database instance."""
-    app = ServiceBuilder(info=service_info).with_database_instance(test_database).with_config(ExampleConfig).build()
+    app = ServiceBuilder(info=service_info).with_database(test_database).with_config(ExampleConfig).build()
 
     # Test that the app uses the injected database
     with TestClient(app) as client:
         response = client.get("/api/v1/config/")
 
         assert response.status_code == 200
+
+
+def test_service_builder_with_database_invalid_type(service_info: ServiceInfo) -> None:
+    """Test that with_database() rejects invalid types."""
+    with pytest.raises(TypeError, match="Expected str, Database, or None"):
+        ServiceBuilder(info=service_info).with_database(123).build()  # type: ignore[arg-type]
 
 
 def test_service_builder_custom_router_integration(service_info: ServiceInfo) -> None:

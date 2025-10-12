@@ -119,24 +119,36 @@ class BaseServiceBuilder:
 
     def with_database(
         self,
-        url: str = "sqlite+aiosqlite:///:memory:",
+        url_or_instance: str | Database | None = None,
         *,
         pool_size: int = 5,
         max_overflow: int = 10,
         pool_recycle: int = 3600,
         pool_pre_ping: bool = True,
     ) -> Self:
-        """Configure database URL and connection pool settings (defaults to in-memory SQLite)."""
-        self._database_url = url
+        """Configure database with URL string, Database instance, or default in-memory SQLite."""
+        if isinstance(url_or_instance, Database):
+            # Pre-configured instance provided
+            self._database_instance = url_or_instance
+            return self  # Skip pool configuration for instances
+        elif isinstance(url_or_instance, str):
+            # String URL provided
+            self._database_url = url_or_instance
+        elif url_or_instance is None:
+            # Default: in-memory SQLite
+            self._database_url = "sqlite+aiosqlite:///:memory:"
+        else:
+            raise TypeError(
+                f"Expected str, Database, or None, got {type(url_or_instance).__name__}. "
+                "Use .with_database() for default, .with_database('url') for custom URL, "
+                "or .with_database(db_instance) for pre-configured database."
+            )
+
+        # Configure pool settings (only applies to URL-based databases)
         self._pool_size = pool_size
         self._max_overflow = max_overflow
         self._pool_recycle = pool_recycle
         self._pool_pre_ping = pool_pre_ping
-        return self
-
-    def with_database_instance(self, database: Database) -> Self:
-        """Inject a pre-configured database instance."""
-        self._database_instance = database
         return self
 
     def with_landing_page(self) -> Self:
