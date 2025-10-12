@@ -39,7 +39,7 @@ Service runs at: `http://127.0.0.1:8000`
 ### 2. Check Health
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8000/health
 ```
 
 ### 3. Create Configuration
@@ -121,8 +121,8 @@ curl http://127.0.0.1:8000/api/v1/artifacts/YOUR_PREDICTION_ARTIFACT_ID
 All ML services provide these endpoints:
 
 ### Health & Info
-- `GET /api/v1/health` - Health check
-- `GET /api/v1/system` - System information (if `.with_system()` enabled)
+- `GET /health` - Health check
+- `GET /system` - System information (if `.with_system()` enabled)
 
 ### Configuration
 - `POST /api/v1/config` - Create config
@@ -269,7 +269,7 @@ fastapi run examples/auth_envvar.py
 ### 3. Test Health (No Auth)
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8000/health
 ```
 
 ### 4. Access Protected Endpoint
@@ -285,7 +285,7 @@ curl -H "X-API-Key: sk_prod_abc123" http://127.0.0.1:8000/api/v1/config
 ### Common Authentication Endpoints
 
 #### Unauthenticated (Public)
-- `GET /api/v1/health` - Health check
+- `GET /health` - Health check
 - `GET /docs` - Swagger UI
 - `GET /redoc` - ReDoc
 - `GET /openapi.json` - OpenAPI schema

@@ -29,7 +29,7 @@ def test_landing_page(client: TestClient) -> None:
 
 def test_health_endpoint_with_custom_checks(client: TestClient) -> None:
     """Test health check includes custom flaky_service check."""
-    response = client.get("/api/v1/health")
+    response = client.get("/health")
     # Can be healthy or unhealthy due to flaky check
     assert response.status_code in [200, 503]
     data = response.json()

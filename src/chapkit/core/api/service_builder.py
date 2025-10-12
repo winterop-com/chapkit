@@ -17,7 +17,7 @@ from chapkit.core.logging import configure_logging, get_logger
 from .auth import APIKeyMiddleware, load_api_keys_from_env, load_api_keys_from_file
 from .dependencies import get_database, get_scheduler, set_database, set_scheduler
 from .middleware import add_error_handlers, add_logging_middleware
-from .routers import HealthRouter, JobRouter, SystemRouter
+from .routers import HealthRouter, JobRouter, MetricsRouter, SystemRouter
 from .routers.health import HealthCheck, HealthState
 
 logger = get_logger(__name__)
@@ -62,6 +62,16 @@ class _AuthOptions:
     header_name: str
     unauthenticated_paths: set[str]
     source: str
+
+
+@dataclass(frozen=True)
+class _MonitoringOptions:
+    """Configuration for OpenTelemetry monitoring."""
+
+    prefix: str
+    tags: List[str]
+    service_name: str | None
+    enable_traces: bool
 
 
 class ServiceInfo(BaseModel):
@@ -110,6 +120,7 @@ class BaseServiceBuilder:
         self._system_options: _SystemOptions | None = None
         self._job_options: _JobOptions | None = None
         self._auth_options: _AuthOptions | None = None
+        self._monitoring_options: _MonitoringOptions | None = None
         self._custom_routers: List[APIRouter] = []
         self._dependency_overrides: Dict[DependencyOverride, DependencyOverride] = {}
         self._startup_hooks: List[LifecycleHook] = []
@@ -164,7 +175,7 @@ class BaseServiceBuilder:
     def with_health(
         self,
         *,
-        prefix: str = "/api/v1/health",
+        prefix: str = "/health",
         tags: List[str] | None = None,
         checks: dict[str, HealthCheck] | None = None,
         include_database_check: bool = True,
@@ -185,7 +196,7 @@ class BaseServiceBuilder:
     def with_system(
         self,
         *,
-        prefix: str = "/api/v1/system",
+        prefix: str = "/system",
         tags: List[str] | None = None,
     ) -> Self:
         """Add system info endpoint."""
@@ -271,7 +282,7 @@ class BaseServiceBuilder:
             raise ValueError("No API keys configured. Provide api_keys, api_key_file, or set environment variable.")
 
         # Default unauthenticated paths
-        default_unauth = {"/docs", "/redoc", "/openapi.json", "/api/v1/health", "/"}
+        default_unauth = {"/docs", "/redoc", "/openapi.json", "/health", "/"}
         unauth_set = set(unauthenticated_paths) if unauthenticated_paths else default_unauth
 
         self._auth_options = _AuthOptions(
@@ -279,6 +290,23 @@ class BaseServiceBuilder:
             header_name=header_name,
             unauthenticated_paths=unauth_set,
             source=auth_source,
+        )
+        return self
+
+    def with_monitoring(
+        self,
+        *,
+        prefix: str = "/metrics",
+        tags: List[str] | None = None,
+        service_name: str | None = None,
+        enable_traces: bool = False,
+    ) -> Self:
+        """Enable OpenTelemetry monitoring with Prometheus endpoint and auto-instrumentation."""
+        self._monitoring_options = _MonitoringOptions(
+            prefix=prefix,
+            tags=list(tags) if tags is not None else ["monitoring"],
+            service_name=service_name,
+            enable_traces=enable_traces,
         )
         return self
 
@@ -360,6 +388,21 @@ class BaseServiceBuilder:
                 scheduler_factory=get_scheduler,
             )
             app.include_router(job_router)
+
+        if self._monitoring_options:
+            from .monitoring import setup_monitoring
+
+            metric_reader = setup_monitoring(
+                app,
+                service_name=self._monitoring_options.service_name,
+                enable_traces=self._monitoring_options.enable_traces,
+            )
+            metrics_router = MetricsRouter.create(
+                prefix=self._monitoring_options.prefix,
+                tags=self._monitoring_options.tags,
+                metric_reader=metric_reader,
+            )
+            app.include_router(metrics_router)
 
         # Extension point for module-specific routers
         self._register_module_routers(app)

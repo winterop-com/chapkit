@@ -96,7 +96,7 @@ examples/docker/
 
 ```bash
 # Should work without authentication
-curl http://localhost:8000/api/v1/health
+curl http://localhost:8000/health
 ```
 
 ### Authenticated Endpoint

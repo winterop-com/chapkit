@@ -25,7 +25,7 @@ fastapi dev examples/auth_ml_service.py
 ### 1. Check Service Health (No Auth Required)
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8000/health
 ```
 
 **Response:**
@@ -59,7 +59,7 @@ curl http://127.0.0.1:8000/api/v1/config
 
 ```bash
 curl -H "X-API-Key: sk_ml_train_abc123" \
-  http://127.0.0.1:8000/api/v1/system
+  http://127.0.0.1:8000/system
 ```
 
 **Response:**
@@ -334,14 +334,14 @@ POST   /api/v1/ml/$train
 POST   /api/v1/ml/$predict
 
 # System endpoints
-GET    /api/v1/system
+GET    /system
 ```
 
 ### Public (No Auth) ⭐
 
 ```bash
 # Health and documentation
-GET    /api/v1/health
+GET    /health
 GET    /docs
 GET    /redoc
 GET    /openapi.json

@@ -94,7 +94,7 @@ EXPOSE 8000
 
 # Health check to verify the API is responding
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT}/api/health').read()" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT}/health').read()" || exit 1
 
 ENTRYPOINT ["/usr/bin/tini","--"]
 

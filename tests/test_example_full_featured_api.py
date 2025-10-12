@@ -43,7 +43,7 @@ def test_landing_page(client: TestClient) -> None:
 
 def test_health_endpoint(client: TestClient) -> None:
     """Test health check returns healthy status with custom checks."""
-    response = client.get("/api/v1/health")
+    response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
@@ -58,7 +58,7 @@ def test_health_endpoint(client: TestClient) -> None:
 
 def test_system_endpoint(client: TestClient) -> None:
     """Test system info endpoint returns metadata."""
-    response = client.get("/api/v1/system")
+    response = client.get("/system")
     assert response.status_code == 200
     data = response.json()
 
@@ -475,8 +475,8 @@ def test_openapi_schema(client: TestClient) -> None:
     paths = schema["paths"]
 
     # Verify all major endpoint groups are present
-    assert "/api/v1/health" in paths
-    assert "/api/v1/system" in paths
+    assert "/health" in paths
+    assert "/system" in paths
     assert "/api/v1/config" in paths
     assert "/api/v1/artifacts" in paths
     assert "/api/v1/tasks" in paths

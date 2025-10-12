@@ -40,7 +40,7 @@ export CHAPKIT_API_KEYS="sk_dev_test123"
 fastapi dev examples/auth_envvar.py
 
 # 2. Health check (no auth)
-curl http://localhost:8000/api/v1/health
+curl http://localhost:8000/health
 
 # 3. Try without auth (fails)
 curl http://localhost:8000/api/v1/config
@@ -60,7 +60,7 @@ curl -X POST http://localhost:8000/api/v1/config \
 ### Unauthenticated Endpoints
 
 ```bash
-GET /api/v1/health      # Health check
+GET /health      # Health check
 GET /docs               # Swagger UI
 GET /redoc              # ReDoc
 GET /openapi.json       # OpenAPI schema
@@ -258,7 +258,7 @@ secrets:
 | "Missing authentication header" | Add `-H "X-API-Key: sk_..."` to request |
 | "Invalid API key" | Check `$CHAPKIT_API_KEYS` matches key used |
 | "No API keys configured" | Set `CHAPKIT_API_KEYS` environment variable |
-| Health check returns 401 | Ensure `/api/v1/health` in unauthenticated paths |
+| Health check returns 401 | Ensure `/health` in unauthenticated paths |
 
 ## Security Best Practices
 
@@ -289,7 +289,7 @@ BASE_URL="http://localhost:8000"
 # fastapi dev examples/auth_envvar.py
 
 echo "1. Health Check (no auth)"
-curl -s $BASE_URL/api/v1/health | jq
+curl -s $BASE_URL/health | jq
 
 echo "\n2. Try without auth (should fail)"
 curl -s $BASE_URL/api/v1/config

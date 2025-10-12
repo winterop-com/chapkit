@@ -14,7 +14,7 @@ fastapi dev examples/ml_shell.py   # Shell-based external scripts
 
 ### Health Check
 ```bash
-curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8000/health
 ```
 
 ### Create Config
@@ -113,8 +113,8 @@ curl http://127.0.0.1:8000/api/v1/artifacts/ARTIFACT_ID
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/v1/health` | Health check |
-| GET | `/api/v1/system` | Service info |
+| GET | `/health` | Health check |
+| GET | `/system` | Service info |
 | POST | `/api/v1/config` | Create config |
 | GET | `/api/v1/config` | List configs |
 | GET | `/api/v1/config/{id}` | Get config |
@@ -153,7 +153,7 @@ CONFIG_ID=$(curl -s -X POST http://127.0.0.1:8000/api/v1/config \
 STATUS=$(curl -s http://127.0.0.1:8000/api/v1/jobs/$JOB_ID | jq -r '.status')
 
 # Pretty print
-curl -s http://127.0.0.1:8000/api/v1/health | jq '.'
+curl -s http://127.0.0.1:8000/health | jq '.'
 ```
 
 ## Complete Workflow Script

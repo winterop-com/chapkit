@@ -36,7 +36,7 @@ async def client(app: FastAPI) -> AsyncGenerator[AsyncClient, None]:
 @pytest.mark.asyncio
 async def test_health_endpoint(client: AsyncClient):
     """Test health endpoint is available."""
-    response = await client.get("/api/v1/health")
+    response = await client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"

@@ -1,11 +1,4 @@
-"""Core-only API example using BaseServiceBuilder with custom User entity.
-
-Demonstrates using chapkit.core.api without module dependencies (Config/Artifact/Task).
-Shows how to build a FastAPI service with custom entities, CRUD endpoints, health checks,
-and job scheduling using only the core layer.
-"""
-
-from __future__ import annotations
+"""Core-only API example using BaseServiceBuilder with custom User entity."""
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,8 +8,6 @@ from ulid import ULID
 from chapkit.core import BaseManager, BaseRepository, Entity, EntityIn, EntityOut
 from chapkit.core.api import BaseServiceBuilder, CrudRouter, ServiceInfo
 from chapkit.core.api.dependencies import get_session
-
-# --------------------------------------------------------------------- Domain Model
 
 
 class User(Entity):
@@ -29,9 +20,6 @@ class User(Entity):
     email: Mapped[str] = mapped_column(unique=True, index=True)
     full_name: Mapped[str | None] = mapped_column(default=None)
     is_active: Mapped[bool] = mapped_column(default=True)
-
-
-# --------------------------------------------------------------------- Schemas
 
 
 class UserIn(EntityIn):
@@ -52,9 +40,6 @@ class UserOut(EntityOut):
     is_active: bool
 
 
-# --------------------------------------------------------------------- Repository
-
-
 class UserRepository(BaseRepository[User, ULID]):
     """Repository for user data access with custom queries."""
 
@@ -71,9 +56,6 @@ class UserRepository(BaseRepository[User, ULID]):
         return result.scalar_one_or_none()
 
 
-# --------------------------------------------------------------------- Manager
-
-
 class UserManager(BaseManager[User, UserIn, UserOut, ULID]):
     """Manager for user business logic with validation."""
 
@@ -88,15 +70,9 @@ class UserManager(BaseManager[User, UserIn, UserOut, ULID]):
         return self._to_output_schema(user) if user else None
 
 
-# --------------------------------------------------------------------- Dependency
-
-
 def get_user_manager(session: AsyncSession = Depends(get_session)) -> UserManager:
     """Provide user manager instance for dependency injection."""
     return UserManager(UserRepository(session))
-
-
-# --------------------------------------------------------------------- Router
 
 
 user_router = CrudRouter.create(
@@ -107,8 +83,6 @@ user_router = CrudRouter.create(
     manager_factory=get_user_manager,
 )
 
-
-# --------------------------------------------------------------------- Application
 
 app = (
     BaseServiceBuilder(

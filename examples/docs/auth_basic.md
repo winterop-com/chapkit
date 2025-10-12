@@ -24,7 +24,7 @@ fastapi dev examples/auth_basic.py
 ### 1. Check Service Health (No Auth Required)
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8000/health
 ```
 
 **Response:**
@@ -234,7 +234,7 @@ These endpoints don't require authentication:
 
 ```bash
 # Health check
-curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8000/health
 
 # Swagger docs
 curl http://127.0.0.1:8000/docs
@@ -326,7 +326,7 @@ curl -H "X-API-Key: sk_dev_abc123" http://127.0.0.1:8000/api/v1/config
 ### Health check returns 401
 **Problem:** Custom `unauthenticated_paths` removed default paths
 
-**Solution:** Ensure `/api/v1/health` is in unauthenticated paths list
+**Solution:** Ensure `/health` is in unauthenticated paths list
 
 ## Service-to-Service Communication
 

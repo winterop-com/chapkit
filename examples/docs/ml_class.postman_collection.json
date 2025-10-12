@@ -16,7 +16,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/health",
+              "raw": "{{baseUrl}}/health",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -36,7 +36,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/system",
+              "raw": "{{baseUrl}}/system",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -55,7 +55,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/system",
+                  "raw": "{{baseUrl}}/system",
                   "host": [
                     "{{baseUrl}}"
                   ],

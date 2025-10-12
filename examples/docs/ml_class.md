@@ -25,13 +25,13 @@ fastapi dev examples/ml_class.py
 ### 1. Check Service Health
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8000/health
 ```
 
 ### 2. View System Info
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/system
+curl http://127.0.0.1:8000/system
 ```
 
 **Response:**

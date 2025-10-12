@@ -23,7 +23,7 @@ def client() -> Generator[TestClient, None, None]:
 
 def test_health_endpoint(client: TestClient) -> None:
     """Test health check returns healthy status."""
-    response = client.get("/api/v1/health")
+    response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
@@ -34,7 +34,7 @@ def test_health_endpoint(client: TestClient) -> None:
 
 def test_system_endpoint(client: TestClient) -> None:
     """Test system info endpoint returns system metadata."""
-    response = client.get("/api/v1/system")
+    response = client.get("/system")
     assert response.status_code == 200
     data = response.json()
     assert "python_version" in data
@@ -257,5 +257,5 @@ def test_openapi_schema(client: TestClient) -> None:
     assert schema["info"]["version"] == "1.0.0"
     assert "paths" in schema
     assert "/api/v1/users" in schema["paths"]
-    assert "/api/v1/health" in schema["paths"]
-    assert "/api/v1/system" in schema["paths"]
+    assert "/health" in schema["paths"]
+    assert "/system" in schema["paths"]

@@ -88,7 +88,7 @@ fastapi run examples/auth_docker_secrets.py
 ### 3. Check Service Health (No Auth Required)
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/health
+curl http://127.0.0.1:8000/health
 ```
 
 **Response:**

@@ -56,7 +56,7 @@ def wait_for_job_completion(client: TestClient, job_id: str, timeout: float = 5.
 
 def test_health_endpoint(client: TestClient) -> None:
     """Test health check returns healthy status."""
-    response = client.get("/api/v1/health")
+    response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"

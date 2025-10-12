@@ -22,7 +22,7 @@ def client() -> Generator[TestClient, None, None]:
 
 def test_health_endpoint(client: TestClient) -> None:
     """Test health check returns healthy status."""
-    response = client.get("/api/v1/health")
+    response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"

@@ -54,7 +54,7 @@ def test_service_builder_with_health_endpoint(service_info: ServiceInfo) -> None
     app = ServiceBuilder(info=service_info).with_health().build()
 
     with TestClient(app) as client:
-        response = client.get("/api/v1/health")
+        response = client.get("/health")
 
         assert response.status_code == 200
         assert response.json()["status"] == "healthy"
@@ -76,7 +76,7 @@ def test_service_builder_with_custom_health_checks(service_info: ServiceInfo) ->
     )
 
     client = TestClient(app)
-    response = client.get("/api/v1/health")
+    response = client.get("/health")
 
     assert response.status_code == 200
     data = response.json()
@@ -310,7 +310,7 @@ def test_service_builder_with_system(service_info: ServiceInfo) -> None:
     app = ServiceBuilder(info=service_info).with_system().build()
 
     with TestClient(app) as client:
-        response = client.get("/api/v1/system/")
+        response = client.get("/system/")
 
         assert response.status_code == 200
         data = response.json()
@@ -358,6 +358,28 @@ def test_service_builder_landing_page_with_custom_fields() -> None:
         assert data["custom_field"] == {"key": "value", "count": 42}
 
 
+def test_service_builder_with_monitoring(service_info: ServiceInfo) -> None:
+    """Test that with_monitoring() adds metrics endpoint."""
+    app = ServiceBuilder(info=service_info).with_monitoring().build()
+
+    with TestClient(app) as client:
+        response = client.get("/metrics")
+
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("text/plain")
+        # Check for Prometheus format markers
+        assert b"# HELP" in response.content or b"# TYPE" in response.content or len(response.content) > 0
+
+
+def test_service_builder_with_monitoring_custom_prefix(service_info: ServiceInfo) -> None:
+    """Test that monitoring can use custom prefix."""
+    app = ServiceBuilder(info=service_info).with_monitoring(prefix="/api/v1/metrics").build()
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/metrics")
+        assert response.status_code == 200
+
+
 def test_service_builder_with_all_features(service_info: ServiceInfo) -> None:
     """Integration test with all features enabled."""
     hierarchy = ArtifactHierarchy(name="test", level_labels={0: "root"})
@@ -377,6 +399,7 @@ def test_service_builder_with_all_features(service_info: ServiceInfo) -> None:
         .with_health(checks={"test": health_check})
         .with_config(ExampleConfig)
         .with_artifacts(hierarchy=hierarchy, enable_config_linking=True)
+        .with_monitoring()
         .on_startup(startup)
         .on_shutdown(shutdown)
         .build()
@@ -386,6 +409,7 @@ def test_service_builder_with_all_features(service_info: ServiceInfo) -> None:
         # Test all endpoints work
         assert client.get("/").status_code == 200
         assert client.get("/api/v1/info").status_code == 200
-        assert client.get("/api/v1/health").status_code == 200
+        assert client.get("/health").status_code == 200
         assert client.get("/api/v1/config/").status_code == 200
         assert client.get("/api/v1/artifacts/").status_code == 200
+        assert client.get("/metrics").status_code == 200
