@@ -85,8 +85,8 @@ This roadmap outlines planned features and improvements for Chapkit, organized b
 
 ### P0 - Production Database
 - [ ] PostgreSQL support with asyncpg
-- [ ] Connection pooling configuration (min/max connections)
-- [ ] Database health checks with connection testing
+- [x] Connection pooling configuration (min/max connections)
+- [x] Database health checks with connection testing
 
 ### P1 - Performance Optimization
 - [ ] Query result caching (Redis/in-memory)
@@ -351,8 +351,10 @@ This roadmap outlines planned features and improvements for Chapkit, organized b
 ## 🎯 Current Focus (Next Release)
 
 The immediate focus is on:
-1. **API Key Authentication (P0)** - Simple service-to-service auth with env vars and Docker secrets
-2. **PostgreSQL Support (P0)** - Production-grade database backend
-3. **Core API Features (P1)** - Filtering, sorting, field selection, bulk operations
-4. **Production Readiness (P0-P1)** - Graceful shutdown, timeouts, rate limiting
-5. **ML Landing Pages (P1)** - Model metadata display and interactive forms
+1. **API Key Authentication (P0)** ✅ COMPLETED - Simple service-to-service auth with env vars and Docker secrets
+2. **Database Connection Pooling (P0)** ✅ COMPLETED - Production-grade connection pool configuration
+3. **Database Health Checks (P0)** ✅ COMPLETED - Connection testing in health endpoints
+4. **PostgreSQL Support (P0)** - Production-grade database backend (deferred)
+5. **Core API Features (P1)** - Filtering, sorting, field selection, bulk operations
+6. **Production Readiness (P0-P1)** - Graceful shutdown, timeouts, rate limiting
+7. **ML Landing Pages (P1)** - Model metadata display and interactive forms

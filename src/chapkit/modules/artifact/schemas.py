@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, ClassVar, Mapping
+from typing import Any, ClassVar, Mapping, Self
 
 import pandas as pd
 from pydantic import BaseModel, Field, field_serializer
@@ -66,7 +66,7 @@ class ArtifactTreeNode(ArtifactOut):
     config: "ConfigOut[BaseConfig] | None" = None
 
     @classmethod
-    def from_artifact(cls, artifact: ArtifactOut) -> "ArtifactTreeNode":
+    def from_artifact(cls, artifact: ArtifactOut) -> Self:
         """Create a tree node from an artifact output schema."""
         return cls.model_validate(artifact.model_dump())
 
@@ -106,7 +106,7 @@ class PandasDataFrame(BaseModel):
     data: list[list[Any]]
 
     @classmethod
-    def from_dataframe(cls, df: pd.DataFrame) -> "PandasDataFrame":
+    def from_dataframe(cls, df: pd.DataFrame) -> Self:
         """Create schema from pandas DataFrame."""
         if not isinstance(df, pd.DataFrame):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(f"Expected a pandas DataFrame, but got {type(df)}")

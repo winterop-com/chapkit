@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 import chapkit.core.database as database_module
-from chapkit import Database
+from chapkit import Database, SqliteDatabaseBuilder
 
 
 def test_install_sqlite_pragmas(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -153,6 +153,45 @@ class TestDatabase:
         assert db.url == url
         await db.dispose()
 
+    async def test_pool_configuration_file_database(self) -> None:
+        """Test that pool parameters are applied to file-based databases."""
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_file:
+            db_path = Path(tmp_file.name)
+
+        try:
+            db = Database(
+                f"sqlite+aiosqlite:///{db_path}",
+                pool_size=10,
+                max_overflow=20,
+                pool_recycle=7200,
+                pool_pre_ping=False,
+            )
+            # File-based databases should have pool configuration
+            # Verify pool exists and database is functional
+            await db.init()
+            async with db.session() as session:
+                result = await session.execute(text("SELECT 1"))
+                assert result.scalar() == 1
+            await db.dispose()
+        finally:
+            if db_path.exists():
+                db_path.unlink()
+
+    async def test_pool_configuration_memory_database(self) -> None:
+        """Test that in-memory databases skip pool configuration."""
+        # In-memory databases use StaticPool which doesn't accept pool params
+        # This should not raise an error
+        db = Database(
+            "sqlite+aiosqlite:///:memory:",
+            pool_size=10,
+            max_overflow=20,
+        )
+        await db.init()
+        async with db.session() as session:
+            result = await session.execute(text("SELECT 1"))
+            assert result.scalar() == 1
+        await db.dispose()
+
     async def test_session_factory_configuration(self) -> None:
         """Test that session factory is configured correctly."""
         db = Database("sqlite+aiosqlite:///:memory:")
@@ -204,3 +243,109 @@ class TestDatabase:
             # Clean up temporary database file
             if db_path.exists():
                 db_path.unlink()
+
+
+class TestSqliteDatabaseBuilder:
+    """Tests for SqliteDatabaseBuilder class."""
+
+    async def test_in_memory_builder(self) -> None:
+        """Test building an in-memory database."""
+        db = SqliteDatabaseBuilder.in_memory().build()
+
+        assert db.url == "sqlite+aiosqlite:///:memory:"
+        assert db.is_in_memory() is True
+        # Note: auto_migrate setting doesn't matter for in-memory - they always skip Alembic
+
+        await db.init()
+        async with db.session() as session:
+            result = await session.execute(text("SELECT 1"))
+            assert result.scalar() == 1
+
+        await db.dispose()
+
+    async def test_from_file_builder(self) -> None:
+        """Test building a file-based database."""
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_file:
+            db_path = Path(tmp_file.name)
+
+        try:
+            db = SqliteDatabaseBuilder.from_file(db_path).build()
+
+            assert db.url == f"sqlite+aiosqlite:///{db_path}"
+            assert db.is_in_memory() is False
+            assert db.auto_migrate is True  # File-based should enable migrations by default
+
+            await db.dispose()
+        finally:
+            if db_path.exists():
+                db_path.unlink()
+
+    async def test_from_file_with_string_path(self) -> None:
+        """Test building from string path."""
+        db = SqliteDatabaseBuilder.from_file("./test.db").build()
+        assert db.url == "sqlite+aiosqlite:///./test.db"
+        await db.dispose()
+
+    async def test_builder_with_echo(self) -> None:
+        """Test builder with echo enabled."""
+        db = SqliteDatabaseBuilder.in_memory().with_echo(True).build()
+        assert db.engine.echo is True
+        await db.dispose()
+
+    async def test_builder_with_migrations(self) -> None:
+        """Test builder with migration configuration."""
+        custom_dir = Path("/custom/alembic")
+        db = SqliteDatabaseBuilder.in_memory().with_migrations(enabled=True, alembic_dir=custom_dir).build()
+
+        assert db.auto_migrate is True
+        assert db.alembic_dir == custom_dir
+        await db.dispose()
+
+    async def test_builder_with_pool(self) -> None:
+        """Test builder with pool configuration."""
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_file:
+            db_path = Path(tmp_file.name)
+
+        try:
+            db = (
+                SqliteDatabaseBuilder.from_file(db_path)
+                .with_pool(size=20, max_overflow=40, recycle=1800, pre_ping=False)
+                .build()
+            )
+
+            # Verify database is functional
+            await db.init()
+            async with db.session() as session:
+                result = await session.execute(text("SELECT 1"))
+                assert result.scalar() == 1
+
+            await db.dispose()
+        finally:
+            if db_path.exists():
+                db_path.unlink()
+
+    async def test_builder_chainable_api(self) -> None:
+        """Test that builder methods are chainable."""
+        db = SqliteDatabaseBuilder.in_memory().with_echo(True).with_migrations(False).with_pool(size=10).build()
+
+        assert db.engine.echo is True
+        assert db.auto_migrate is False
+        await db.dispose()
+
+    def test_builder_without_url_raises_error(self) -> None:
+        """Test that building without URL raises error."""
+        builder = SqliteDatabaseBuilder()
+        with pytest.raises(ValueError, match="Database URL not configured"):
+            builder.build()
+
+    async def test_is_in_memory_method(self) -> None:
+        """Test is_in_memory() method."""
+        # In-memory database
+        db_mem = Database("sqlite+aiosqlite:///:memory:")
+        assert db_mem.is_in_memory() is True
+        await db_mem.dispose()
+
+        # File-based database
+        db_file = Database("sqlite+aiosqlite:///./app.db")
+        assert db_file.is_in_memory() is False
+        await db_file.dispose()

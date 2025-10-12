@@ -958,6 +958,72 @@ Features: Auto request tracing with ULID request IDs, `X-Request-ID` response he
 - File DBs: Run Alembic migrations automatically on `Database.init()`
 - In-memory: Skip migrations (fast tests)
 
+**Connection pooling:**
+Configure connection pool settings for production deployments:
+
+```python
+# Default pool settings (suitable for most applications)
+app = ServiceBuilder(info=info).with_database("sqlite+aiosqlite:///./app.db").build()
+
+# Custom pool settings for high-concurrency scenarios
+app = (
+    ServiceBuilder(info=info)
+    .with_database(
+        "sqlite+aiosqlite:///./app.db",
+        pool_size=20,          # Number of connections to maintain (default: 5)
+        max_overflow=40,       # Max overflow connections beyond pool_size (default: 10)
+        pool_recycle=1800,     # Recycle connections after seconds (default: 3600)
+        pool_pre_ping=True,    # Test connections before use (default: True)
+    )
+    .build()
+)
+
+# Or configure Database directly
+from chapkit.core import Database
+db = Database(
+    "sqlite+aiosqlite:///./app.db",
+    pool_size=20,
+    max_overflow=40,
+    pool_recycle=1800,
+    pool_pre_ping=True,
+)
+```
+
+**SqliteDatabaseBuilder (recommended):**
+Cleaner, type-safe database configuration with builder pattern:
+
+```python
+from chapkit.core import SqliteDatabaseBuilder
+
+# In-memory database for development/testing
+db = SqliteDatabaseBuilder.in_memory().build()
+
+# File-based database with default settings
+db = SqliteDatabaseBuilder.from_file("app.db").build()
+
+# Production configuration with custom pool settings
+db = (
+    SqliteDatabaseBuilder.from_file("app.db")
+    .with_pool(size=20, max_overflow=40, recycle=1800)
+    .with_echo(False)
+    .build()
+)
+
+# Use with ServiceBuilder
+app = (
+    ServiceBuilder(info=info)
+    .with_database_instance(SqliteDatabaseBuilder.from_file("app.db").build())
+    .with_health()
+    .build()
+)
+```
+
+**Pool parameters:**
+- `pool_size`: Number of connections to maintain in the pool (default: 5)
+- `max_overflow`: Maximum overflow connections beyond pool_size (default: 10)
+- `pool_recycle`: Recycle connections after this many seconds (default: 3600)
+- `pool_pre_ping`: Test connections before using them (default: True, recommended)
+
 **Create migration:**
 ```bash
 make migrate MSG='add_user_table'  # or: uv run alembic revision --autogenerate -m "..."

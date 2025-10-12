@@ -3,7 +3,7 @@
 # ruff: noqa: F401
 
 # Base infrastructure (framework-agnostic)
-from .database import Database
+from .database import Database, SqliteDatabaseBuilder
 from .exceptions import (
     BadRequestError,
     ChapkitException,
@@ -35,6 +35,7 @@ from .types import ULIDType
 __all__ = [
     # Base infrastructure
     "Database",
+    "SqliteDatabaseBuilder",
     "Repository",
     "BaseRepository",
     "Manager",

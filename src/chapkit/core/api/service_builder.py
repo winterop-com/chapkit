@@ -99,6 +99,10 @@ class BaseServiceBuilder:
         self._version = self.info.version
         self._database_url = database_url
         self._database_instance: Database | None = None
+        self._pool_size: int = 5
+        self._max_overflow: int = 10
+        self._pool_recycle: int = 3600
+        self._pool_pre_ping: bool = True
         self._include_error_handlers = include_error_handlers
         self._include_logging = include_logging
         self._include_landing_page = False
@@ -113,9 +117,21 @@ class BaseServiceBuilder:
 
     # --------------------------------------------------------------------- Fluent configuration
 
-    def with_database(self, url: str) -> Self:
-        """Configure database URL."""
+    def with_database(
+        self,
+        url: str,
+        *,
+        pool_size: int = 5,
+        max_overflow: int = 10,
+        pool_recycle: int = 3600,
+        pool_pre_ping: bool = True,
+    ) -> Self:
+        """Configure database URL and connection pool settings."""
         self._database_url = url
+        self._pool_size = pool_size
+        self._max_overflow = max_overflow
+        self._pool_recycle = pool_recycle
+        self._pool_pre_ping = pool_pre_ping
         return self
 
     def with_database_instance(self, database: Database) -> Self:
@@ -376,6 +392,10 @@ class BaseServiceBuilder:
         """Build lifespan context manager for app startup/shutdown."""
         database_url = self._database_url
         database_instance = self._database_instance
+        pool_size = self._pool_size
+        max_overflow = self._max_overflow
+        pool_recycle = self._pool_recycle
+        pool_pre_ping = self._pool_pre_ping
         job_options = self._job_options
         include_logging = self._include_logging
         startup_hooks = list(self._startup_hooks)
@@ -392,7 +412,13 @@ class BaseServiceBuilder:
                 database = database_instance
                 should_manage_lifecycle = False
             else:
-                database = Database(database_url)
+                database = Database(
+                    database_url,
+                    pool_size=pool_size,
+                    max_overflow=max_overflow,
+                    pool_recycle=pool_recycle,
+                    pool_pre_ping=pool_pre_ping,
+                )
                 should_manage_lifecycle = True
 
             # Always initialize database (safe to call multiple times)
