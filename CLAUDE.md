@@ -13,7 +13,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 ```
 chapkit/
 ├── core/                 # Framework-agnostic infrastructure
-│   ├── database.py      # Database, migrations
+│   ├── database.py      # Database, SqliteDatabase, SqliteDatabaseBuilder, migrations
 │   ├── models.py        # Base, Entity ORM classes
 │   ├── repository.py    # Repository, BaseRepository
 │   ├── manager.py       # Manager, BaseManager
@@ -42,7 +42,7 @@ chapkit/
 ```
 
 **Dependency Flow:**
-- `core` → framework-agnostic (Database, Repository, Manager, Entity, schemas)
+- `core` → framework-agnostic (Database, SqliteDatabase, SqliteDatabaseBuilder, Repository, Manager, Entity, schemas)
 - `core.api` → FastAPI layer (Router, CrudRouter, middleware, dependencies)
 - `modules` → domain features, each with complete vertical slice (models, schemas, repository, manager, router)
 - `api` → orchestration (ServiceBuilder, feature-specific dependencies)
@@ -954,40 +954,14 @@ Features: Auto request tracing with ULID request IDs, `X-Request-ID` response he
 
 ## Database & Migrations
 
+**Database Architecture:**
+- `Database` - Generic base class for database abstraction (framework-agnostic)
+- `SqliteDatabase` - SQLite-specific implementation with optimizations (WAL mode, pragmas, in-memory detection)
+- `SqliteDatabaseBuilder` - Fluent builder API for SQLite database configuration (recommended)
+
 **Automatic migrations:**
-- File DBs: Run Alembic migrations automatically on `Database.init()`
+- File DBs: Run Alembic migrations automatically on `SqliteDatabase.init()`
 - In-memory: Skip migrations (fast tests)
-
-**Connection pooling:**
-Configure connection pool settings for production deployments:
-
-```python
-# Default pool settings (suitable for most applications)
-app = ServiceBuilder(info=info).with_database("sqlite+aiosqlite:///./app.db").build()
-
-# Custom pool settings for high-concurrency scenarios
-app = (
-    ServiceBuilder(info=info)
-    .with_database(
-        "sqlite+aiosqlite:///./app.db",
-        pool_size=20,          # Number of connections to maintain (default: 5)
-        max_overflow=40,       # Max overflow connections beyond pool_size (default: 10)
-        pool_recycle=1800,     # Recycle connections after seconds (default: 3600)
-        pool_pre_ping=True,    # Test connections before use (default: True)
-    )
-    .build()
-)
-
-# Or configure Database directly
-from chapkit.core import Database
-db = Database(
-    "sqlite+aiosqlite:///./app.db",
-    pool_size=20,
-    max_overflow=40,
-    pool_recycle=1800,
-    pool_pre_ping=True,
-)
-```
 
 **SqliteDatabaseBuilder (recommended):**
 Cleaner, type-safe database configuration with builder pattern:
@@ -1009,12 +983,44 @@ db = (
     .build()
 )
 
-# Use with ServiceBuilder
+# Chainable API for complex configurations
+db = (
+    SqliteDatabaseBuilder.from_file("app.db")
+    .with_pool(size=20, max_overflow=40, recycle=1800, pre_ping=True)
+    .with_migrations(enabled=True, alembic_dir=None)
+    .with_echo(False)
+    .build()
+)
+```
+
+**Connection pooling:**
+Configure connection pool settings for production deployments:
+
+```python
+# Default pool settings (suitable for most applications)
+app = ServiceBuilder(info=info).with_database("sqlite+aiosqlite:///./app.db").build()
+
+# Custom pool settings for high-concurrency scenarios
 app = (
     ServiceBuilder(info=info)
-    .with_database_instance(SqliteDatabaseBuilder.from_file("app.db").build())
-    .with_health()
+    .with_database(
+        "sqlite+aiosqlite:///./app.db",
+        pool_size=20,          # Number of connections to maintain (default: 5)
+        max_overflow=40,       # Max overflow connections beyond pool_size (default: 10)
+        pool_recycle=1800,     # Recycle connections after seconds (default: 3600)
+        pool_pre_ping=True,    # Test connections before use (default: True)
+    )
     .build()
+)
+
+# Or use SqliteDatabase directly for advanced scenarios
+from chapkit.core import SqliteDatabase
+db = SqliteDatabase(
+    "sqlite+aiosqlite:///./app.db",
+    pool_size=20,
+    max_overflow=40,
+    pool_recycle=1800,
+    pool_pre_ping=True,
 )
 ```
 
@@ -1023,6 +1029,8 @@ app = (
 - `max_overflow`: Maximum overflow connections beyond pool_size (default: 10)
 - `pool_recycle`: Recycle connections after this many seconds (default: 3600)
 - `pool_pre_ping`: Test connections before using them (default: True, recommended)
+
+**Note:** In-memory databases automatically use StaticPool and ignore pool configuration parameters.
 
 **Create migration:**
 ```bash

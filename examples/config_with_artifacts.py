@@ -18,7 +18,7 @@ from chapkit import (
     ConfigOut,
     ConfigRepository,
 )
-from chapkit.core import Database
+from chapkit.core import SqliteDatabaseBuilder
 
 
 class ExperimentConfig(BaseConfig):
@@ -158,7 +158,7 @@ def print_tree(node: ConfigOut[ExperimentConfig], tree_root_id: ULID, tree: dict
 
 async def main() -> None:
     """Demonstrate linking configs to artifact hierarchies with tree traversal."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     try:

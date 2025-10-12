@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from ulid import ULID
 
-from chapkit.core import BaseManager, BaseRepository, Database, Entity, EntityIn, EntityOut
+from chapkit.core import BaseManager, BaseRepository, Entity, EntityIn, EntityOut, SqliteDatabaseBuilder
 
 # --------------------------------------------------------------------- Domain Model
 
@@ -117,7 +117,7 @@ class ProductManager(BaseManager[Product, ProductIn, ProductOut, ULID]):
 async def main() -> None:
     """Demonstrate direct database usage with custom entities."""
     # Initialize database (in-memory for demo)
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     try:

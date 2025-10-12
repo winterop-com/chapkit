@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 import chapkit.core.database as database_module
-from chapkit import Database, SqliteDatabaseBuilder
+from chapkit import SqliteDatabase, SqliteDatabaseBuilder
 
 
 def test_install_sqlite_pragmas(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -63,12 +63,12 @@ def test_install_sqlite_pragmas(monkeypatch: pytest.MonkeyPatch) -> None:
     assert connection._cursor.closed is True
 
 
-class TestDatabase:
-    """Tests for the Database class."""
+class TestSqliteDatabase:
+    """Tests for the SqliteDatabase class."""
 
     async def test_init_creates_tables(self) -> None:
         """Test that init() creates all tables."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
         await db.init()
 
         # Verify tables were created by checking metadata
@@ -81,7 +81,7 @@ class TestDatabase:
 
     async def test_session_context_manager(self) -> None:
         """Test that session() context manager works correctly."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
         await db.init()
 
         async with db.session() as session:
@@ -95,7 +95,7 @@ class TestDatabase:
 
     async def test_multiple_sessions(self) -> None:
         """Test that multiple sessions can be created."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
         await db.init()
 
         async with db.session() as session1:
@@ -110,7 +110,7 @@ class TestDatabase:
 
     async def test_dispose_closes_engine(self) -> None:
         """Test that dispose() properly closes the engine."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
         await db.init()
 
         # Verify engine is initially usable
@@ -124,8 +124,8 @@ class TestDatabase:
 
     async def test_echo_parameter(self) -> None:
         """Test that echo parameter is passed to engine."""
-        db_echo = Database("sqlite+aiosqlite:///:memory:", echo=True)
-        db_no_echo = Database("sqlite+aiosqlite:///:memory:", echo=False)
+        db_echo = SqliteDatabase("sqlite+aiosqlite:///:memory:", echo=True)
+        db_no_echo = SqliteDatabase("sqlite+aiosqlite:///:memory:", echo=False)
 
         assert db_echo.engine.echo is True
         assert db_no_echo.engine.echo is False
@@ -135,7 +135,7 @@ class TestDatabase:
 
     async def test_wal_mode_enabled(self) -> None:
         """Test that WAL mode is enabled after init()."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
         await db.init()
 
         async with db.session() as session:
@@ -149,7 +149,7 @@ class TestDatabase:
     async def test_url_storage(self) -> None:
         """Test that the URL is stored correctly."""
         url = "sqlite+aiosqlite:///:memory:"
-        db = Database(url)
+        db = SqliteDatabase(url)
         assert db.url == url
         await db.dispose()
 
@@ -159,7 +159,7 @@ class TestDatabase:
             db_path = Path(tmp_file.name)
 
         try:
-            db = Database(
+            db = SqliteDatabase(
                 f"sqlite+aiosqlite:///{db_path}",
                 pool_size=10,
                 max_overflow=20,
@@ -181,7 +181,7 @@ class TestDatabase:
         """Test that in-memory databases skip pool configuration."""
         # In-memory databases use StaticPool which doesn't accept pool params
         # This should not raise an error
-        db = Database(
+        db = SqliteDatabase(
             "sqlite+aiosqlite:///:memory:",
             pool_size=10,
             max_overflow=20,
@@ -194,7 +194,7 @@ class TestDatabase:
 
     async def test_session_factory_configuration(self) -> None:
         """Test that session factory is configured correctly."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
         await db.init()
 
         # Verify session factory has expire_on_commit set to False
@@ -210,7 +210,7 @@ class TestDatabase:
 
         try:
             # Initialize database with file-based URL
-            db = Database(f"sqlite+aiosqlite:///{db_path}")
+            db = SqliteDatabase(f"sqlite+aiosqlite:///{db_path}")
             await db.init()
 
             # Verify that tables were created via Alembic migration
@@ -243,6 +243,18 @@ class TestDatabase:
             # Clean up temporary database file
             if db_path.exists():
                 db_path.unlink()
+
+    async def test_is_in_memory_method(self) -> None:
+        """Test is_in_memory() method."""
+        # In-memory database
+        db_mem = SqliteDatabase("sqlite+aiosqlite:///:memory:")
+        assert db_mem.is_in_memory() is True
+        await db_mem.dispose()
+
+        # File-based database
+        db_file = SqliteDatabase("sqlite+aiosqlite:///./app.db")
+        assert db_file.is_in_memory() is False
+        await db_file.dispose()
 
 
 class TestSqliteDatabaseBuilder:
@@ -337,15 +349,3 @@ class TestSqliteDatabaseBuilder:
         builder = SqliteDatabaseBuilder()
         with pytest.raises(ValueError, match="Database URL not configured"):
             builder.build()
-
-    async def test_is_in_memory_method(self) -> None:
-        """Test is_in_memory() method."""
-        # In-memory database
-        db_mem = Database("sqlite+aiosqlite:///:memory:")
-        assert db_mem.is_in_memory() is True
-        await db_mem.dispose()
-
-        # File-based database
-        db_file = Database("sqlite+aiosqlite:///./app.db")
-        assert db_file.is_in_memory() is False
-        await db_file.dispose()

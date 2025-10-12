@@ -38,7 +38,7 @@ def _install_sqlite_connect_pragmas(engine: AsyncEngine) -> None:
 
 
 class Database:
-    """Async SQLAlchemy database connection manager."""
+    """Generic async SQLAlchemy database connection manager."""
 
     def __init__(
         self,
@@ -57,9 +57,10 @@ class Database:
         self.alembic_dir = alembic_dir
         self.auto_migrate = auto_migrate
 
-        # Build engine kwargs - pool params only for non-in-memory databases
+        # Build engine kwargs - skip pool params for in-memory SQLite databases
         engine_kwargs: dict = {"echo": echo, "future": True}
-        if not self.is_in_memory():
+        if ":memory:" not in url:
+            # Only add pool params for non-in-memory databases
             engine_kwargs.update(
                 {
                     "pool_size": pool_size,
@@ -70,29 +71,23 @@ class Database:
             )
 
         self.engine: AsyncEngine = create_async_engine(url, **engine_kwargs)
-        _install_sqlite_connect_pragmas(self.engine)
         self._session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
             bind=self.engine, class_=AsyncSession, expire_on_commit=False
         )
 
     async def init(self) -> None:
-        """Initialize database tables and configure SQLite using Alembic migrations."""
+        """Initialize database tables using Alembic migrations or direct creation."""
         import asyncio
 
         # Import Base here to avoid circular import at module level
         from chapkit.core.models import Base
 
-        # Set WAL mode first (if not in-memory)
-        if not self.is_in_memory():
-            async with self.engine.begin() as conn:
-                await conn.exec_driver_sql("PRAGMA journal_mode=WAL;")
-
-        # For in-memory databases or when migrations are disabled, use direct table creation
-        if self.is_in_memory() or not self.auto_migrate:
+        # For databases without migrations, use direct table creation
+        if not self.auto_migrate:
             async with self.engine.begin() as conn:
                 await conn.run_sync(Base.metadata.create_all)
         else:
-            # For file-based databases, use Alembic migrations
+            # Use Alembic migrations
             alembic_cfg = Config()
 
             # Use custom alembic directory if provided, otherwise use bundled migrations
@@ -115,13 +110,76 @@ class Database:
         async with self._session_factory() as s:
             yield s
 
-    def is_in_memory(self) -> bool:
-        """Check if this is an in-memory database."""
-        return ":memory:" in self.url
-
     async def dispose(self) -> None:
         """Dispose of database engine and connection pool."""
         await self.engine.dispose()
+
+
+class SqliteDatabase(Database):
+    """SQLite-specific database implementation with optimizations."""
+
+    def __init__(
+        self,
+        url: str,
+        *,
+        echo: bool = False,
+        alembic_dir: Path | None = None,
+        auto_migrate: bool = True,
+        pool_size: int = 5,
+        max_overflow: int = 10,
+        pool_recycle: int = 3600,
+        pool_pre_ping: bool = True,
+    ) -> None:
+        """Initialize SQLite database with connection URL and pool configuration."""
+        self.url = url
+        self.alembic_dir = alembic_dir
+        self.auto_migrate = auto_migrate
+
+        # Build engine kwargs - pool params only for non-in-memory databases
+        engine_kwargs: dict = {"echo": echo, "future": True}
+        if not self._is_in_memory_url(url):
+            # File-based databases can use pool configuration
+            engine_kwargs.update(
+                {
+                    "pool_size": pool_size,
+                    "max_overflow": max_overflow,
+                    "pool_recycle": pool_recycle,
+                    "pool_pre_ping": pool_pre_ping,
+                }
+            )
+
+        self.engine: AsyncEngine = create_async_engine(url, **engine_kwargs)
+        _install_sqlite_connect_pragmas(self.engine)
+        self._session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
+            bind=self.engine, class_=AsyncSession, expire_on_commit=False
+        )
+
+    @staticmethod
+    def _is_in_memory_url(url: str) -> bool:
+        """Check if URL represents an in-memory database."""
+        return ":memory:" in url
+
+    def is_in_memory(self) -> bool:
+        """Check if this is an in-memory database."""
+        return self._is_in_memory_url(self.url)
+
+    async def init(self) -> None:
+        """Initialize database tables and configure SQLite using Alembic migrations."""
+        # Import Base here to avoid circular import at module level
+        from chapkit.core.models import Base
+
+        # Set WAL mode first (if not in-memory)
+        if not self.is_in_memory():
+            async with self.engine.begin() as conn:
+                await conn.exec_driver_sql("PRAGMA journal_mode=WAL;")
+
+        # For in-memory databases or when migrations are disabled, use direct table creation
+        if self.is_in_memory() or not self.auto_migrate:
+            async with self.engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+        else:
+            # For file-based databases, use Alembic migrations
+            await super().init()
 
 
 class SqliteDatabaseBuilder:
@@ -179,12 +237,12 @@ class SqliteDatabaseBuilder:
         self._pool_pre_ping = pre_ping
         return self
 
-    def build(self) -> Database:
-        """Build and return configured Database instance."""
+    def build(self) -> SqliteDatabase:
+        """Build and return configured SqliteDatabase instance."""
         if not self._url:
             raise ValueError("Database URL not configured. Use .in_memory() or .from_file()")
 
-        return Database(
+        return SqliteDatabase(
             url=self._url,
             echo=self._echo,
             alembic_dir=self._alembic_dir,

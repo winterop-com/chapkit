@@ -13,7 +13,7 @@ from ulid import ULID
 
 from chapkit import BaseConfig
 from chapkit.api import ServiceBuilder, ServiceInfo
-from chapkit.core import BaseManager, BaseRepository, Database, Entity, EntityIn, EntityOut
+from chapkit.core import BaseManager, BaseRepository, Entity, EntityIn, EntityOut, SqliteDatabaseBuilder
 from chapkit.core.api import CrudRouter
 from chapkit.core.api.dependencies import get_session
 
@@ -94,8 +94,9 @@ def get_user_manager(session: AsyncSession = Depends(get_session)) -> UserManage
 async def seed_data(app: FastAPI) -> None:
     """Seed initial configuration and users."""
     from chapkit import ConfigIn, ConfigManager, ConfigRepository
+    from chapkit.core import SqliteDatabase
 
-    database: Database | None = getattr(app.state, "database", None)
+    database: SqliteDatabase | None = getattr(app.state, "database", None)
     if database is None:
         return
 
@@ -135,11 +136,7 @@ info = ServiceInfo(
 )
 
 # Use an in-memory database for this example
-# In production, you would use a file-based database with alembic_dir and auto_migrate=True
-db = Database(
-    "sqlite+aiosqlite:///:memory:",  # In-memory database (data lost on restart)
-    auto_migrate=False,  # Skip migrations, use create_all() for development
-)
+db = SqliteDatabaseBuilder.in_memory().build()
 
 # Create user router using CrudRouter for automatic REST endpoints
 user_router = CrudRouter.create(

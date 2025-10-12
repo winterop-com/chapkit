@@ -20,7 +20,7 @@ from chapkit import (
     ConfigRepository,
     PandasDataFrame,
 )
-from chapkit.core import Database
+from chapkit.core import SqliteDatabaseBuilder
 
 ML_CONFIG_ID = ULID.from_str("01K72P60ZNX2PJ6QJWZK7RMCRV")
 TRAIN_ROOT_ID = ULID.from_str("01K72P5N5KCRM6MD3BRE4P07N5")
@@ -53,7 +53,7 @@ def _make_prediction_frame(run_name: str, probabilities: Iterable[float]) -> pd.
 
 async def main() -> None:
     """Demonstrate ML pipeline with config and hierarchical artifacts storing pandas DataFrames."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     hierarchy = ArtifactHierarchy(name="ml_pipeline", level_labels={0: "train", 1: "predict"})

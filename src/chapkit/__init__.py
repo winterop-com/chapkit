@@ -11,6 +11,7 @@ from chapkit.core import (
     EntityOut,
     Manager,
     Repository,
+    SqliteDatabase,
     SqliteDatabaseBuilder,
     ULIDType,
 )
@@ -43,6 +44,7 @@ from chapkit.modules.task import Task, TaskIn, TaskManager, TaskOut, TaskReposit
 __all__ = [
     # Core framework
     "Database",
+    "SqliteDatabase",
     "SqliteDatabaseBuilder",
     "Repository",
     "BaseRepository",

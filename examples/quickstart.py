@@ -7,7 +7,7 @@ import asyncio
 from ulid import ULID
 
 from chapkit import BaseConfig, ConfigIn, ConfigManager, ConfigOut, ConfigRepository
-from chapkit.core import Database
+from chapkit.core import SqliteDatabaseBuilder
 
 EMAIL_SERVICE_CONFIG_ID = ULID.from_str("01K72P5N5KCRM6MD3BRE4P07N4")
 
@@ -23,7 +23,7 @@ class EmailServiceConfig(BaseConfig):
 
 async def main() -> None:
     """Demonstrate storing and retrieving typed configuration."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     try:
