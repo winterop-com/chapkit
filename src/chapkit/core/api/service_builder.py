@@ -11,12 +11,15 @@ from pydantic import BaseModel, ConfigDict
 from sqlalchemy import text
 
 from chapkit.core import Database
-from chapkit.core.logging import configure_logging
+from chapkit.core.logging import configure_logging, get_logger
 
+from .auth import APIKeyMiddleware, load_api_keys_from_env, load_api_keys_from_file
 from .dependencies import get_database, get_scheduler, set_database, set_scheduler
 from .middleware import add_error_handlers, add_logging_middleware
 from .routers import HealthRouter, JobRouter, SystemRouter
 from .routers.health import HealthCheck, HealthState
+
+logger = get_logger(__name__)
 
 
 class ServiceInfo(BaseModel):
@@ -64,6 +67,7 @@ class BaseServiceBuilder:
         self._dependency_overrides: Dict[Callable[..., object], Callable[..., object]] = {}
         self._startup_hooks: List[Callable[[FastAPI], Awaitable[None]]] = []
         self._shutdown_hooks: List[Callable[[FastAPI], Awaitable[None]]] = []
+        self._auth_options: tuple[set[str], str, set[str], str] | None = None
 
     # --------------------------------------------------------------------- Fluent configuration
 
@@ -125,6 +129,73 @@ class BaseServiceBuilder:
         self._job_options = (prefix, list(tags) if tags is not None else ["jobs"], max_concurrency)
         return self
 
+    def with_auth(
+        self,
+        *,
+        api_keys: List[str] | None = None,
+        api_key_file: str | None = None,
+        env_var: str = "CHAPKIT_API_KEYS",
+        header_name: str = "X-API-Key",
+        unauthenticated_paths: List[str] | None = None,
+    ) -> Self:
+        """Enable API key authentication.
+
+        Priority (first non-None wins):
+        1. api_keys (direct list - for examples/dev only)
+        2. api_key_file (read from file - Docker secrets)
+        3. env_var (read from environment - default behavior)
+
+        Args:
+            api_keys: Direct list of API keys (NOT recommended for production)
+            api_key_file: Path to file containing keys (one per line)
+            env_var: Environment variable name (default: CHAPKIT_API_KEYS)
+            header_name: HTTP header name for API key (default: X-API-Key)
+            unauthenticated_paths: Paths that don't require authentication
+
+        Returns:
+            Self for method chaining
+
+        Example:
+            # Production (environment variable)
+            .with_auth()
+
+            # Docker secrets
+            .with_auth(api_key_file="/run/secrets/api_keys")
+
+            # Development only
+            .with_auth(api_keys=["sk_dev_test123"])
+        """
+        keys: set[str] = set()
+        auth_source: str = ""  # Track source for later logging
+
+        # Priority 1: Direct list (examples/dev)
+        if api_keys is not None:
+            keys = set(api_keys)
+            auth_source = "direct_keys"
+
+        # Priority 2: File (Docker secrets)
+        elif api_key_file is not None:
+            keys = load_api_keys_from_file(api_key_file)
+            auth_source = f"file:{api_key_file}"
+
+        # Priority 3: Environment variable (default)
+        else:
+            keys = load_api_keys_from_env(env_var)
+            if keys:
+                auth_source = f"env:{env_var}"
+            else:
+                auth_source = f"env:{env_var}:empty"
+
+        if not keys:
+            raise ValueError("No API keys configured. Provide api_keys, api_key_file, or set environment variable.")
+
+        # Default unauthenticated paths
+        default_unauth = {"/docs", "/redoc", "/openapi.json", "/api/v1/health", "/"}
+        unauth_set = set(unauthenticated_paths) if unauthenticated_paths else default_unauth
+
+        self._auth_options = (keys, header_name, unauth_set, auth_source)
+        return self
+
     def include_router(self, router: APIRouter) -> Self:
         """Include a custom router."""
         self._custom_routers.append(router)
@@ -169,6 +240,18 @@ class BaseServiceBuilder:
 
         if self._include_logging:
             add_logging_middleware(app)
+
+        if self._auth_options:
+            api_keys, header_name, unauth_paths, auth_source = self._auth_options
+            app.add_middleware(
+                APIKeyMiddleware,
+                api_keys=api_keys,
+                header_name=header_name,
+                unauthenticated_paths=unauth_paths,
+            )
+            # Store auth_source for logging during startup
+            app.state.auth_source = auth_source
+            app.state.auth_key_count = len(api_keys)
 
         if self._health_options:
             prefix, tags, checks = self._health_options
@@ -262,6 +345,31 @@ class BaseServiceBuilder:
                 scheduler = AIOJobScheduler(max_concurrency=max_concurrency)
                 set_scheduler(scheduler)
                 app.state.scheduler = scheduler
+
+            # Log auth configuration after logging is configured
+            if hasattr(app.state, "auth_source"):
+                auth_source = app.state.auth_source
+                key_count = app.state.auth_key_count
+
+                if auth_source == "direct_keys":
+                    logger.warning(
+                        "auth.direct_keys",
+                        message="Using direct API keys - not recommended for production",
+                        count=key_count,
+                    )
+                elif auth_source.startswith("file:"):
+                    file_path = auth_source.split(":", 1)[1]
+                    logger.info("auth.loaded_from_file", file=file_path, count=key_count)
+                elif auth_source.startswith("env:"):
+                    parts = auth_source.split(":", 2)
+                    env_var = parts[1]
+                    if len(parts) > 2 and parts[2] == "empty":
+                        logger.warning(
+                            "auth.no_keys",
+                            message=f"No API keys found in {env_var}. Service will reject all requests.",
+                        )
+                    else:
+                        logger.info("auth.loaded_from_env", env_var=env_var, count=key_count)
 
             for hook in startup_hooks:
                 await hook(app)
