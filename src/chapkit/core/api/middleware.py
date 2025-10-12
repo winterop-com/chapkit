@@ -14,11 +14,14 @@ from chapkit.core.schemas import ProblemDetail
 
 logger = get_logger(__name__)
 
+# Type alias for middleware call_next function
+type MiddlewareCallNext = Callable[[Request], Awaitable[Response]]
+
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Middleware for logging HTTP requests with unique request IDs and context binding."""
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+    async def dispatch(self, request: Request, call_next: MiddlewareCallNext) -> Response:
         """Process request with logging and context binding."""
         request_id = str(ULID())
         start_time = time.perf_counter()

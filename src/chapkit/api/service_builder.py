@@ -30,6 +30,9 @@ from .dependencies import get_config_manager as default_get_config_manager
 from .dependencies import get_ml_manager as default_get_ml_manager
 from .dependencies import get_task_manager as default_get_task_manager
 
+# Type alias for dependency factory functions
+type DependencyFactory = Callable[..., Coroutine[Any, Any, Any]]
+
 
 class AssessedStatus(StrEnum):
     """Status indicating the maturity and validation level of an ML service."""
@@ -304,7 +307,7 @@ class ServiceBuilder(BaseServiceBuilder):
     @staticmethod
     def _build_config_dependency(
         schema: type[BaseConfig],
-    ) -> Callable[..., Coroutine[Any, Any, ConfigManager[BaseConfig]]]:
+    ) -> DependencyFactory:
         async def _dependency(session: AsyncSession = Depends(get_session)) -> ConfigManager[BaseConfig]:
             repo = ConfigRepository(session)
             return ConfigManager[BaseConfig](repo, schema)
@@ -316,7 +319,7 @@ class ServiceBuilder(BaseServiceBuilder):
         *,
         hierarchy: ArtifactHierarchy,
         include_config: bool,
-    ) -> Callable[..., Coroutine[Any, Any, ArtifactManager]]:
+    ) -> DependencyFactory:
         async def _dependency(session: AsyncSession = Depends(get_session)) -> ArtifactManager:
             artifact_repo = ArtifactRepository(session)
             config_repo = ConfigRepository(session) if include_config else None
@@ -325,7 +328,7 @@ class ServiceBuilder(BaseServiceBuilder):
         return _dependency
 
     @staticmethod
-    def _build_task_dependency() -> Callable[..., Coroutine[Any, Any, TaskManager]]:
+    def _build_task_dependency() -> DependencyFactory:
         async def _dependency(
             session: AsyncSession = Depends(get_session),
             artifact_manager: ArtifactManager = Depends(default_get_artifact_manager),
@@ -343,7 +346,7 @@ class ServiceBuilder(BaseServiceBuilder):
 
         return _dependency
 
-    def _build_ml_dependency(self) -> Callable[..., Coroutine[Any, Any, MLManager]]:
+    def _build_ml_dependency(self) -> DependencyFactory:
         ml_runner = self._ml_options.runner if self._ml_options else None
 
         async def _dependency() -> MLManager:

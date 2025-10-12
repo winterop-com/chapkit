@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Set
+from typing import Any, Set
 
 from fastapi import Request, Response, status
 from fastapi.responses import JSONResponse
@@ -10,6 +10,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from chapkit.core.logging import get_logger
 from chapkit.core.schemas import ProblemDetail
+
+from .middleware import MiddlewareCallNext
 
 logger = get_logger(__name__)
 
@@ -38,7 +40,7 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
         self.header_name = header_name
         self.unauthenticated_paths = unauthenticated_paths
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
+    async def dispatch(self, request: Request, call_next: MiddlewareCallNext) -> Response:
         """Process request with API key authentication."""
         # Allow unauthenticated access to specific paths
         if request.url.path in self.unauthenticated_paths:

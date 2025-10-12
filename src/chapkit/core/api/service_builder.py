@@ -22,6 +22,11 @@ from .routers.health import HealthCheck, HealthState
 
 logger = get_logger(__name__)
 
+# Type aliases for service builder
+type LifecycleHook = Callable[[FastAPI], Awaitable[None]]
+type DependencyOverride = Callable[..., object]
+type LifespanFactory = Callable[[FastAPI], AsyncContextManager[None]]
+
 
 @dataclass(frozen=True)
 class _HealthOptions:
@@ -102,9 +107,9 @@ class BaseServiceBuilder:
         self._job_options: _JobOptions | None = None
         self._auth_options: _AuthOptions | None = None
         self._custom_routers: List[APIRouter] = []
-        self._dependency_overrides: Dict[Callable[..., object], Callable[..., object]] = {}
-        self._startup_hooks: List[Callable[[FastAPI], Awaitable[None]]] = []
-        self._shutdown_hooks: List[Callable[[FastAPI], Awaitable[None]]] = []
+        self._dependency_overrides: Dict[DependencyOverride, DependencyOverride] = {}
+        self._startup_hooks: List[LifecycleHook] = []
+        self._shutdown_hooks: List[LifecycleHook] = []
 
     # --------------------------------------------------------------------- Fluent configuration
 
@@ -254,17 +259,17 @@ class BaseServiceBuilder:
         self._custom_routers.append(router)
         return self
 
-    def override_dependency(self, dependency: Callable[..., object], override: Callable[..., object]) -> Self:
+    def override_dependency(self, dependency: DependencyOverride, override: DependencyOverride) -> Self:
         """Override a dependency for testing or customization."""
         self._dependency_overrides[dependency] = override
         return self
 
-    def on_startup(self, hook: Callable[[FastAPI], Awaitable[None]]) -> Self:
+    def on_startup(self, hook: LifecycleHook) -> Self:
         """Register a startup hook."""
         self._startup_hooks.append(hook)
         return self
 
-    def on_shutdown(self, hook: Callable[[FastAPI], Awaitable[None]]) -> Self:
+    def on_shutdown(self, hook: LifecycleHook) -> Self:
         """Register a shutdown hook."""
         self._shutdown_hooks.append(hook)
         return self
@@ -367,7 +372,7 @@ class BaseServiceBuilder:
                         "Only alphanumeric characters, underscores, and hyphens are allowed."
                     )
 
-    def _build_lifespan(self) -> Callable[[FastAPI], AsyncContextManager[None]]:
+    def _build_lifespan(self) -> LifespanFactory:
         """Build lifespan context manager for app startup/shutdown."""
         database_url = self._database_url
         database_instance = self._database_instance

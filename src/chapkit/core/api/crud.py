@@ -13,6 +13,11 @@ from chapkit.core.api.router import Router
 from chapkit.core.manager import Manager
 from chapkit.core.schemas import PaginatedResponse
 
+# Type alias for manager factory function
+type ManagerFactory[InSchemaT: BaseModel, OutSchemaT: BaseModel] = Callable[
+    ..., Manager[Any, InSchemaT, OutSchemaT, ULID]
+]
+
 
 @dataclass(slots=True)
 class CrudPermissions:
@@ -33,7 +38,7 @@ class CrudRouter[InSchemaT: BaseModel, OutSchemaT: BaseModel](Router):
         tags: list[str],
         entity_in_type: type[InSchemaT],
         entity_out_type: type[OutSchemaT],
-        manager_factory: Callable[..., Manager[Any, InSchemaT, OutSchemaT, ULID]],
+        manager_factory: ManagerFactory[InSchemaT, OutSchemaT],
         *,
         permissions: CrudPermissions | None = None,
         **kwargs: Any,

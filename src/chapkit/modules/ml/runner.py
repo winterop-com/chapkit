@@ -18,6 +18,12 @@ from chapkit.modules.config.schemas import BaseConfig
 
 ConfigT = TypeVar("ConfigT", bound=BaseConfig)
 
+# Type aliases for ML runner functions
+type TrainFunction[ConfigT] = Callable[[ConfigT, pd.DataFrame, FeatureCollection | None], Awaitable[Any]]
+type PredictFunction[ConfigT] = Callable[
+    [ConfigT, Any, pd.DataFrame | None, pd.DataFrame, FeatureCollection | None], Awaitable[pd.DataFrame]
+]
+
 logger = get_logger(__name__)
 
 
@@ -60,10 +66,8 @@ class FunctionalModelRunner(BaseModelRunner, Generic[ConfigT]):
 
     def __init__(
         self,
-        on_train: Callable[[ConfigT, pd.DataFrame, FeatureCollection | None], Awaitable[Any]],
-        on_predict: Callable[
-            [ConfigT, Any, pd.DataFrame | None, pd.DataFrame, FeatureCollection | None], Awaitable[pd.DataFrame]
-        ],
+        on_train: TrainFunction[ConfigT],
+        on_predict: PredictFunction[ConfigT],
     ) -> None:
         """Initialize functional runner with train and predict functions."""
         self._on_train = on_train

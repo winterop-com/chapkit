@@ -14,6 +14,10 @@ from .schemas import JobRecord, JobStatus
 
 ULID = ulid.ULID
 
+# Type aliases for scheduler job targets
+type JobTarget = Callable[..., Any] | Callable[..., Awaitable[Any]] | Awaitable[Any]
+type JobExecutor = Callable[[], Awaitable[Any]]
+
 
 class JobScheduler(BaseModel, ABC):
     """Abstract job scheduler interface for async task management."""
@@ -23,7 +27,7 @@ class JobScheduler(BaseModel, ABC):
     @abstractmethod
     async def add_job(
         self,
-        target: Callable[..., Any] | Callable[..., Awaitable[Any]] | Awaitable[Any],
+        target: JobTarget,
         /,
         *args: Any,
         **kwargs: Any,
@@ -96,7 +100,7 @@ class AIOJobScheduler(JobScheduler):
 
     async def add_job(
         self,
-        target: Callable[..., Any] | Callable[..., Awaitable[Any]] | Awaitable[Any],
+        target: JobTarget,
         /,
         *args: Any,
         **kwargs: Any,
@@ -153,7 +157,7 @@ class AIOJobScheduler(JobScheduler):
     async def _run_with_state(
         self,
         jid: ULID,
-        exec_fn: Callable[[], Awaitable[Any]],
+        exec_fn: JobExecutor,
     ) -> Any:
         """Execute job function and manage its state transitions."""
         async with self._lock:
