@@ -112,7 +112,7 @@ Each collection includes pre-configured variables:
 1. **Start the service:**
    ```bash
    export CHAPKIT_API_KEYS="sk_dev_abc123,sk_dev_xyz789"
-   fastapi dev examples/authenticated_api.py
+   fastapi dev examples/auth_basic.py
    ```
 
 2. **Check service health (no auth):**

@@ -1,4 +1,4 @@
-# authenticated_api.py - API Key Authentication cURL Guide
+# auth_basic.py - API Key Authentication cURL Guide
 
 Simple config service with API key authentication for service-to-service communication.
 
@@ -7,7 +7,7 @@ Simple config service with API key authentication for service-to-service communi
 ```bash
 # Start the service
 export CHAPKIT_API_KEYS="sk_dev_abc123,sk_dev_xyz789"
-fastapi dev examples/authenticated_api.py
+fastapi dev examples/auth_basic.py
 
 # Service available at: http://127.0.0.1:8000
 ```
@@ -255,7 +255,7 @@ curl http://127.0.0.1:8000/
 
 ```bash
 export CHAPKIT_API_KEYS="sk_dev_abc123,sk_dev_xyz789"
-fastapi dev examples/authenticated_api.py
+fastapi dev examples/auth_basic.py
 ```
 
 ### Option 2: .env File
@@ -268,7 +268,7 @@ CHAPKIT_API_KEYS=sk_prod_abc123,sk_prod_xyz789
 ```bash
 # Load and run
 set -a; source .env; set +a
-fastapi run examples/authenticated_api.py
+fastapi run examples/auth_basic.py
 ```
 
 ### Option 3: Docker Secrets (Production)
@@ -367,6 +367,6 @@ app = (
 
 ## Next Steps
 
-- Read **[../authenticated_api.py](../authenticated_api.py)** source code
+- Read **[../auth_basic.py](../auth_basic.py)** source code
 - Check **[../../docs/authentication.md](../../docs/authentication.md)** for comprehensive guide
 - See **[../../CLAUDE.md](../../CLAUDE.md)** for API reference

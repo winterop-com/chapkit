@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "01K79YAHJ7BR4E87VVTG8FNBMA",
 		"name": "Chapkit Auth Basic - API Key Authentication",
-		"description": "Complete workflow for testing API key authentication with config service.\n\nThis collection demonstrates:\n- Health checks without authentication\n- Authentication failures (missing/invalid keys)\n- Successful authenticated CRUD operations\n- Key rotation patterns\n\nBefore running:\n1. Start service: `export CHAPKIT_API_KEYS=\"sk_dev_abc123,sk_dev_xyz789\" && fastapi dev examples/authenticated_api.py`\n2. Service runs at: http://127.0.0.1:8000\n3. Collection auto-captures IDs (config_id) to variables\n\nEnvironment variables used:\n- baseUrl: Service URL (default: http://127.0.0.1:8000)\n- api_key: Valid API key (default: sk_dev_abc123)\n- config_id: Auto-captured from create request",
+		"description": "Complete workflow for testing API key authentication with config service.\n\nThis collection demonstrates:\n- Health checks without authentication\n- Authentication failures (missing/invalid keys)\n- Successful authenticated CRUD operations\n- Key rotation patterns\n\nBefore running:\n1. Start service: `export CHAPKIT_API_KEYS=\"sk_dev_abc123,sk_dev_xyz789\" && fastapi dev examples/auth_basic.py`\n2. Service runs at: http://127.0.0.1:8000\n3. Collection auto-captures IDs (config_id) to variables\n\nEnvironment variables used:\n- baseUrl: Service URL (default: http://127.0.0.1:8000)\n- api_key: Valid API key (default: sk_dev_abc123)\n- config_id: Auto-captured from create request",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "12345678"
 	},

@@ -559,5 +559,5 @@ export CHAPKIT_API_KEYS="sk_dev_test123"
 - **Monitoring:** Track authentication metrics with Prometheus (P1)
 
 For more examples, see:
-- `examples/authenticated_api.py` - Basic authentication example
+- `examples/auth_basic.py` - Basic authentication example
 - `CLAUDE.md` - Comprehensive development guide

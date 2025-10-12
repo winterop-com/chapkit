@@ -324,6 +324,6 @@ echo "\n✅ Workflow complete"
 ## Links
 
 - **Examples:** [auth_envvar.md](auth_envvar.md), [auth_docker_secrets.md](auth_docker_secrets.md), [auth_ml.md](auth_ml.md)
-- **Source Code:** [../authenticated_api.py](../authenticated_api.py), [../auth_envvar.py](../auth_envvar.py)
+- **Source Code:** [../auth_basic.py](../auth_basic.py), [../auth_envvar.py](../auth_envvar.py)
 - **Full Guide:** [../../docs/authentication.md](../../docs/authentication.md)
 - **Project Docs:** [../../CLAUDE.md](../../CLAUDE.md)
