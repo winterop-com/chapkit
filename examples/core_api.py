@@ -1,6 +1,6 @@
 """Core-only API example using BaseServiceBuilder with custom User entity."""
 
-from fastapi import Depends
+from fastapi import Depends, FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from ulid import ULID
@@ -75,6 +75,38 @@ def get_user_manager(session: AsyncSession = Depends(get_session)) -> UserManage
     return UserManager(UserRepository(session))
 
 
+async def seed_users(app: FastAPI) -> None:
+    """Seed example users on startup."""
+    from chapkit.core.api.dependencies import get_database
+
+    db = get_database()
+    async with db.session() as session:
+        manager = UserManager(UserRepository(session))
+
+        # Check if users already exist
+        existing = await manager.find_by_username("alice")
+        if existing:
+            return
+
+        # Create example users
+        await manager.save(
+            UserIn(
+                username="alice",
+                email="alice@example.com",
+                full_name="Alice Smith",
+                is_active=True,
+            )
+        )
+        await manager.save(
+            UserIn(
+                username="bob",
+                email="bob@example.com",
+                full_name="Bob Johnson",
+                is_active=True,
+            )
+        )
+
+
 user_router = CrudRouter.create(
     prefix="/api/v1/users",
     tags=["users"],
@@ -99,7 +131,9 @@ app = (
     .with_system()
     .with_jobs(max_concurrency=5)
     .with_logging()
+    .with_monitoring()
     .include_router(user_router)
+    .on_startup(seed_users)
     .build()
 )
 
