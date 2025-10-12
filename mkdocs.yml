@@ -105,11 +105,9 @@ markdown_extensions:
 plugins:
   - search:
       separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
-  - autorefs
   - mkdocstrings:
       handlers:
         python:
-          paths: [src]
           options:
             docstring_style: google
             show_source: true
@@ -118,109 +116,11 @@ plugins:
             show_symbol_type_heading: true
             show_symbol_type_toc: true
             members_order: source
-            group_by_category: true
-            show_category_heading: true
-            show_signature: true
-            show_signature_annotations: true
-            separate_signature: true
-            signature_crossrefs: true
-            merge_init_into_class: true
-            docstring_section_style: table
-            show_if_no_docstring: false
-            inherited_members: false
-            filters:
-              - "!^_"  # Exclude private members
+            heading_level: 2
 
 nav:
   - Home: index.md
-
-  - Getting Started:
-    - getting-started/index.md
-    - Installation: getting-started/installation.md
-    - Quick Start: getting-started/quickstart.md
-    - Your First Service: getting-started/first-service.md
-
-  - Architecture:
-    - architecture/index.md
-    - Core Layer: architecture/core-layer.md
-    - API Layer: architecture/api-layer.md
-    - Modules: architecture/modules.md
-    - Dependency Flow: architecture/dependency-flow.md
-
-  - Service Builders:
-    - service-builders/index.md
-    - BaseServiceBuilder: service-builders/base-service-builder.md
-    - ServiceBuilder: service-builders/service-builder.md
-    - MLServiceBuilder: service-builders/ml-service-builder.md
-
-  - Modules:
-    - modules/index.md
-    - Config: modules/config.md
-    - Artifacts: modules/artifacts.md
-    - Tasks: modules/tasks.md
-    - ML: modules/ml.md
-
-  - ML Workflows:
-    - ml-workflows/index.md
-    - Functional Runner: ml-workflows/functional-runner.md
-    - Class-Based Runner: ml-workflows/class-runner.md
-    - Shell-Based Runner: ml-workflows/shell-runner.md
-    - Complete Examples: ml-workflows/examples.md
-
-  - API Reference:
-    - api-reference/index.md
-    - Endpoints: api-reference/endpoints.md
-    - Pagination: api-reference/pagination.md
-    - Error Handling: api-reference/error-handling.md
-    - Operations: api-reference/operations.md
-    - Core Layer:
-      - Database: api-reference/core/database.md
-      - Repository: api-reference/core/repository.md
-      - Manager: api-reference/core/manager.md
-      - Models: api-reference/core/models.md
-      - Schemas: api-reference/core/schemas.md
-      - Exceptions: api-reference/core/exceptions.md
-      - Scheduler: api-reference/core/scheduler.md
-      - Logging: api-reference/core/logging.md
-      - Types: api-reference/core/types.md
-    - Core API Layer:
-      - Router: api-reference/core-api/router.md
-      - CRUD: api-reference/core-api/crud.md
-      - ServiceBuilder: api-reference/core-api/service-builder.md
-      - Middleware: api-reference/core-api/middleware.md
-      - Dependencies: api-reference/core-api/dependencies.md
-      - Pagination: api-reference/core-api/pagination.md
-      - Utilities: api-reference/core-api/utilities.md
-    - Modules:
-      - Config: api-reference/modules/config.md
-      - Artifact: api-reference/modules/artifact.md
-      - Task: api-reference/modules/task.md
-      - ML: api-reference/modules/ml.md
-    - Service Builders:
-      - ServiceBuilder: api-reference/service-builders/service-builder.md
-      - Dependencies: api-reference/service-builders/dependencies.md
-
-  - Guides:
-    - guides/index.md
-    - Custom Entities: guides/custom-entities.md
-    - Custom Routers: guides/custom-routers.md
-    - Creating Modules: guides/creating-modules.md
-    - Migrations: guides/migrations.md
-    - Testing: guides/testing.md
-    - Docker: guides/docker.md
-
-  - Advanced:
-    - advanced/index.md
-    - Logging: advanced/logging.md
-    - Lifecycle Hooks: advanced/hooks.md
-    - Job Scheduler: advanced/job-scheduler.md
-    - Library Usage: advanced/library-usage.md
-
-  - Contributing:
-    - contributing/index.md
-    - Development: contributing/development.md
-    - Code Quality: contributing/code-quality.md
-    - Git Workflow: contributing/git-workflow.md
+  - API Reference: api-reference.md
 
 extra_css:
   - stylesheets/extra.css
