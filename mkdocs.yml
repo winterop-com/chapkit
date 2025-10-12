@@ -55,8 +55,6 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/winterop-com/chapkit
       name: GitHub Repository
-  version:
-    provider: mike
 
 markdown_extensions:
   # Python Markdown
