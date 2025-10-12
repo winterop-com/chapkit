@@ -110,12 +110,16 @@ HIERARCHY = ArtifactHierarchy(
 runner = FunctionalModelRunner(on_train=on_train, on_predict=on_predict)
 
 # Build the FastAPI application
-app = MLServiceBuilder(
-    info=info,
-    config_schema=DiseaseConfig,
-    hierarchy=HIERARCHY,
-    runner=runner,
-).build()
+app = (
+    MLServiceBuilder(
+        info=info,
+        config_schema=DiseaseConfig,
+        hierarchy=HIERARCHY,
+        runner=runner,
+    )
+    .with_monitoring()
+    .build()
+)
 
 
 if __name__ == "__main__":

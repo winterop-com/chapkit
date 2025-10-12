@@ -203,12 +203,16 @@ HIERARCHY = ArtifactHierarchy(
 runner = WeatherModelRunner()
 
 # Build the FastAPI application
-app = MLServiceBuilder(
-    info=info,
-    config_schema=WeatherConfig,
-    hierarchy=HIERARCHY,
-    runner=runner,
-).build()
+app = (
+    MLServiceBuilder(
+        info=info,
+        config_schema=WeatherConfig,
+        hierarchy=HIERARCHY,
+        runner=runner,
+    )
+    .with_monitoring()
+    .build()
+)
 
 
 if __name__ == "__main__":
