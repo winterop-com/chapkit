@@ -24,6 +24,7 @@ services:
             - "--web.console.templates=/usr/share/prometheus/consoles"
         volumes:
             - ./monitoring/prometheus:/etc/prometheus:ro
+            - prometheus-data:/prometheus # <-- named persistent volume
         restart: unless-stopped
         healthcheck:
             test:
@@ -59,6 +60,7 @@ services:
         volumes:
             - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
             - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+            - grafana-data:/var/lib/grafana # <-- named persistent volume
         restart: unless-stopped
         healthcheck:
             test:
@@ -82,3 +84,7 @@ services:
 networks:
     chapkit-monitoring:
         driver: bridge
+
+volumes:
+    grafana-data:
+    prometheus-data:
