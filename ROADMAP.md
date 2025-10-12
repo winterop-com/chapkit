@@ -14,31 +14,39 @@ This roadmap outlines planned features and improvements for Chapkit, organized b
 
 ## 🔐 Authentication & Authorization
 
-### P0 - Core Auth
-- [ ] User/session management module with Entity base
-- [ ] API key authentication (header-based)
-- [ ] Basic permission model (CrudPermissions extension)
+### P0 - API Key Authentication
+- [ ] API key middleware with header validation (`X-API-Key`)
 - [ ] `.with_auth()` method on ServiceBuilder
+- [ ] Environment variable support (default: `CHAPKIT_API_KEYS`)
+- [ ] Docker secrets file support (`api_key_file` parameter)
+- [ ] Direct key list support (for examples/dev only)
+- [ ] Configurable unauthenticated paths (health checks, docs)
 
-### P1 - Enhanced Auth
-- [ ] JWT token support with refresh tokens
-- [ ] Role-based access control (RBAC) with role hierarchy
-- [ ] Endpoint-level permission decorators
-- [ ] Session management with configurable expiration
-- [ ] Password hashing utilities (bcrypt/argon2)
+### P1 - Enhanced API Key Features
+- [ ] Multiple keys support (comma-separated in env var)
+- [ ] Key prefix conventions and validation (`sk_env_random` format)
+- [ ] Secure key logging (mask all but prefix: `sk_prod_****`)
+- [ ] Key rotation support (multiple active keys during transition)
+- [ ] Custom validator function support (for advanced use cases)
 
-### P2 - Enterprise Auth
-- [ ] OAuth2 integration (Google, GitHub, Microsoft)
-- [ ] Multi-factor authentication (MFA/2FA)
-- [ ] API key scoping and rate limits per key
-- [ ] Audit logging for auth events
-- [ ] Token revocation/blacklisting
+### P2 - Security Enhancements
+- [ ] Rate limiting per API key
+- [ ] Key scoping (whitelist/blacklist endpoints per key)
+- [ ] Audit logging for authentication events
+- [ ] Key expiration/TTL (via custom validator)
+- [ ] IP allowlisting (via custom validator)
+- [ ] Endpoint-level permission configuration (CrudPermissions)
+- [ ] Input sanitization middleware
+- [ ] Security headers middleware (CSP, HSTS, X-Frame-Options)
+- [ ] CORS configuration improvements
 
-### P3 - Advanced Auth
-- [ ] SSO/SAML integration
-- [ ] Custom authentication backends
-- [ ] Passwordless authentication (magic links, WebAuthn)
-- [ ] Organization/tenant isolation
+### P2 - Documentation & Examples
+- [ ] Docker Compose with environment variables example
+- [ ] Docker secrets setup guide (Docker Compose & Swarm)
+- [ ] Kubernetes secrets integration example
+- [ ] Key rotation best practices documentation
+- [ ] Security hardening guide
+- [ ] `.env.example` file patterns and gitignore setup
 
 ---
 
@@ -233,12 +241,10 @@ This roadmap outlines planned features and improvements for Chapkit, organized b
 - [ ] Dead letter queue for failed jobs
 - [ ] Job result persistence to database
 
-### P2 - Security Hardening
-- [ ] Input sanitization middleware
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] CORS configuration improvements
-- [ ] Security headers middleware (CSP, HSTS, etc.)
+### P2 - Secrets Management
 - [ ] Secrets management integration (Vault, AWS Secrets Manager)
+- [ ] Environment variable validation and type coercion
+- [ ] Configuration schema validation at startup
 
 ### P3 - Advanced Production
 - [ ] Blue-green deployment support
@@ -345,8 +351,8 @@ This roadmap outlines planned features and improvements for Chapkit, organized b
 ## 🎯 Current Focus (Next Release)
 
 The immediate focus is on:
-1. Authentication & Authorization (P0 items)
-2. PostgreSQL support (P0)
-3. Core API features: filtering, sorting, search (P1)
-4. Production readiness features (P0-P1)
-5. ML Landing Pages (P1)
+1. **API Key Authentication (P0)** - Simple service-to-service auth with env vars and Docker secrets
+2. **PostgreSQL Support (P0)** - Production-grade database backend
+3. **Core API Features (P1)** - Filtering, sorting, field selection, bulk operations
+4. **Production Readiness (P0-P1)** - Graceful shutdown, timeouts, rate limiting
+5. **ML Landing Pages (P1)** - Model metadata display and interactive forms
