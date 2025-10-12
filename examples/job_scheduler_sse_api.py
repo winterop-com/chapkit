@@ -41,7 +41,7 @@ async def slow_computation(steps: int) -> SlowComputeResult:
     print(f"[TASK] Starting slow computation with {steps} steps...")
     for i in range(steps):
         await asyncio.sleep(1.0)
-        print(f"[TASK] Progress: {i+1}/{steps} ({(i+1)*100//steps}%)")
+        print(f"[TASK] Progress: {i + 1}/{steps} ({(i + 1) * 100 // steps}%)")
     print("[TASK] Computation complete!")
     return SlowComputeResult(steps_completed=steps, result=42)
 

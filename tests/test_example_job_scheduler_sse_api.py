@@ -18,7 +18,7 @@ async def app() -> AsyncGenerator[FastAPI, None]:
     examples_dir = Path(__file__).parent.parent / "examples"
     sys.path.insert(0, str(examples_dir))
 
-    from job_scheduler_sse_api import app as example_app
+    from job_scheduler_sse_api import app as example_app  # type: ignore[import-not-found]
 
     async with example_app.router.lifespan_context(example_app):
         yield example_app

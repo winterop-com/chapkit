@@ -271,6 +271,7 @@ class TestJobRouter:
             async for line in response.aiter_lines():
                 if line.startswith("data: "):
                     import json
+
                     data = json.loads(line[6:])
                     events.append(data)
 
@@ -298,6 +299,7 @@ class TestJobRouter:
             async for line in response.aiter_lines():
                 if line.startswith("data: "):
                     import json
+
                     data = json.loads(line[6:])
                     events.append(data)
                     if data["status"] == "completed":
@@ -327,6 +329,7 @@ class TestJobRouter:
             async for line in response.aiter_lines():
                 if line.startswith("data: "):
                     import json
+
                     data = json.loads(line[6:])
                     events.append(data)
                     if data["status"] == "failed":
@@ -370,6 +373,7 @@ class TestJobRouter:
             async for line in response.aiter_lines():
                 if line.startswith("data: "):
                     import json
+
                     data = json.loads(line[6:])
                     events.append(data)
                     if data["status"] == "completed":

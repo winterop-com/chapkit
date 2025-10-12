@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
 
 import ulid
 from fastapi import Depends, HTTPException, status
@@ -91,7 +91,7 @@ class JobRouter(Router):
                 raise HTTPException(status_code=404, detail="Job not found")
 
             # SSE event generator
-            async def event_stream():
+            async def event_stream() -> AsyncGenerator[bytes, None]:
                 terminal_states = {"completed", "failed", "canceled"}
 
                 while True:
