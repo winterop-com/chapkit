@@ -14,9 +14,7 @@ from chapkit.core.manager import Manager
 from chapkit.core.schemas import PaginatedResponse
 
 # Type alias for manager factory function
-type ManagerFactory[InSchemaT: BaseModel, OutSchemaT: BaseModel] = Callable[
-    ..., Manager[Any, InSchemaT, OutSchemaT, ULID]
-]
+type ManagerFactory[InSchemaT: BaseModel, OutSchemaT: BaseModel] = Callable[..., Manager[InSchemaT, OutSchemaT, ULID]]
 
 
 @dataclass(slots=True)
@@ -179,7 +177,7 @@ class CrudRouter[InSchemaT: BaseModel, OutSchemaT: BaseModel](Router):
             entity_in: InSchemaT,
             request: Request,
             response: Response,
-            manager: Manager[Any, InSchemaT, OutSchemaT, ULID] = manager_dependency,
+            manager: Manager[InSchemaT, OutSchemaT, ULID] = manager_dependency,
         ) -> OutSchemaT:
             from .utilities import build_location_url
 
@@ -200,7 +198,7 @@ class CrudRouter[InSchemaT: BaseModel, OutSchemaT: BaseModel](Router):
         async def find_all(
             page: int | None = None,
             size: int | None = None,
-            manager: Manager[Any, InSchemaT, OutSchemaT, ULID] = manager_dependency,
+            manager: Manager[InSchemaT, OutSchemaT, ULID] = manager_dependency,
         ) -> list[OutSchemaT] | PaginatedResponse[OutSchemaT]:
             from .pagination import create_paginated_response
 
@@ -220,7 +218,7 @@ class CrudRouter[InSchemaT: BaseModel, OutSchemaT: BaseModel](Router):
         @self.router.get("/{entity_id}", response_model=entity_out_annotation)
         async def find_by_id(
             entity_id: str,
-            manager: Manager[Any, InSchemaT, OutSchemaT, ULID] = manager_dependency,
+            manager: Manager[InSchemaT, OutSchemaT, ULID] = manager_dependency,
         ) -> OutSchemaT:
             from chapkit.core.exceptions import NotFoundError
 
@@ -246,7 +244,7 @@ class CrudRouter[InSchemaT: BaseModel, OutSchemaT: BaseModel](Router):
         async def update(
             entity_id: str,
             entity_in: InSchemaT,
-            manager: Manager[Any, InSchemaT, OutSchemaT, ULID] = manager_dependency,
+            manager: Manager[InSchemaT, OutSchemaT, ULID] = manager_dependency,
         ) -> OutSchemaT:
             from chapkit.core.exceptions import NotFoundError
 
@@ -271,7 +269,7 @@ class CrudRouter[InSchemaT: BaseModel, OutSchemaT: BaseModel](Router):
         @self.router.delete("/{entity_id}", status_code=status.HTTP_204_NO_CONTENT)
         async def delete_by_id(
             entity_id: str,
-            manager: Manager[Any, InSchemaT, OutSchemaT, ULID] = manager_dependency,
+            manager: Manager[InSchemaT, OutSchemaT, ULID] = manager_dependency,
         ) -> None:
             from chapkit.core.exceptions import NotFoundError
 
@@ -303,7 +301,7 @@ class CrudRouter[InSchemaT: BaseModel, OutSchemaT: BaseModel](Router):
 
     def _manager_dependency(self) -> tuple[Any, Any]:
         manager_dependency = Depends(self.manager_factory)
-        manager_annotation: Any = Manager[Any, Any, Any, ULID]
+        manager_annotation: Any = Manager[Any, Any, ULID]
         return manager_dependency, manager_annotation
 
     def _annotate_manager(self, endpoint: Any, manager_annotation: Any) -> None:

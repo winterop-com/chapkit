@@ -13,7 +13,7 @@ from chapkit.core import Manager
 ConfigDataT = TypeVar("ConfigDataT", bound=BaseConfig)
 
 
-class ConfigManagerStub(Manager[Any, ConfigIn[ConfigDataT], ConfigOut[ConfigDataT], ULID], Generic[ConfigDataT]):
+class ConfigManagerStub(Manager[ConfigIn[ConfigDataT], ConfigOut[ConfigDataT], ULID], Generic[ConfigDataT]):
     """Config manager stub supporting name lookups for tests."""
 
     def __init__(
@@ -96,7 +96,7 @@ class ConfigManagerStub(Manager[Any, ConfigIn[ConfigDataT], ConfigOut[ConfigData
         return len(self._items_by_id)
 
 
-class ArtifactManagerStub(Manager[Any, ArtifactIn, ArtifactOut, ULID]):
+class ArtifactManagerStub(Manager[ArtifactIn, ArtifactOut, ULID]):
     """Artifact manager stub providing tree data for tests."""
 
     def __init__(self, *, trees: dict[ULID, ArtifactTreeNode] | None = None) -> None:

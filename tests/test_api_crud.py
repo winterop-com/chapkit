@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import Any
 
 import pytest
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -32,7 +31,7 @@ class ItemOut(BaseModel):
     description: str | None = None
 
 
-class FakeManager(Manager[Any, ItemIn, ItemOut, ULID]):
+class FakeManager(Manager[ItemIn, ItemOut, ULID]):
     """Minimal async manager used for exercising router behaviour."""
 
     def __init__(self) -> None:
@@ -81,7 +80,7 @@ class FakeManager(Manager[Any, ItemIn, ItemOut, ULID]):
 
 
 def _build_router(manager: FakeManager) -> CrudRouter[ItemIn, ItemOut]:
-    def manager_factory() -> Manager[Any, ItemIn, ItemOut, ULID]:
+    def manager_factory() -> Manager[ItemIn, ItemOut, ULID]:
         return manager
 
     return CrudRouter[ItemIn, ItemOut](

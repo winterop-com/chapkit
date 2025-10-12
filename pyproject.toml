@@ -158,6 +158,7 @@ diagnosticMode = "workspace"
 useLibraryCodeForTypes = true
 reportPrivateUsage = false  # Tests need to access protected members
 reportUnusedFunction = false  # Decorated functions (pytest fixtures, routes) flagged incorrectly
+reportUnusedTypeParameters = true  # Catch unused type parameters in generic classes
 reportUnknownMemberType = false  # Third-party libraries (pandas) have incomplete stubs
 reportUnknownArgumentType = false  # Related to third-party stub issues
 reportUnknownParameterType = false  # Test helpers don't need full annotations

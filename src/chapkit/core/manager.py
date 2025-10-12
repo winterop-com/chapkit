@@ -42,7 +42,7 @@ class LifecycleHooks[ModelT, InSchemaT: BaseModel]:
         pass
 
 
-class Manager[ModelT, InSchemaT: BaseModel, OutSchemaT: BaseModel, IdT](ABC):
+class Manager[InSchemaT: BaseModel, OutSchemaT: BaseModel, IdT](ABC):
     """Abstract manager interface for business logic operations."""
 
     @abstractmethod
@@ -103,7 +103,7 @@ class Manager[ModelT, InSchemaT: BaseModel, OutSchemaT: BaseModel, IdT](ABC):
 
 class BaseManager[ModelT, InSchemaT: BaseModel, OutSchemaT: BaseModel, IdT](
     LifecycleHooks[ModelT, InSchemaT],
-    Manager[ModelT, InSchemaT, OutSchemaT, IdT],
+    Manager[InSchemaT, OutSchemaT, IdT],
 ):
     """Base manager implementation with CRUD operations and lifecycle hooks."""
 
