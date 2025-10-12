@@ -9,7 +9,7 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.resources import Resource
-from prometheus_client import REGISTRY, CollectorRegistry, ProcessCollector
+from prometheus_client import REGISTRY, ProcessCollector
 
 from chapkit.core.logging import get_logger
 
