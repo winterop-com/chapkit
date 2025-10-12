@@ -4,7 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from chapkit import Artifact, ArtifactManager, ArtifactRepository, Config, ConfigManager, ConfigRepository, SqliteDatabase, SqliteDatabaseBuilder
+from chapkit import (
+    Artifact,
+    ArtifactManager,
+    ArtifactRepository,
+    Config,
+    ConfigManager,
+    ConfigRepository,
+    SqliteDatabaseBuilder,
+)
 
 from .conftest import DemoConfig
 

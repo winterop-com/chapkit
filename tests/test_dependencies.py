@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from chapkit import SqliteDatabase, SqliteDatabaseBuilder
+from chapkit import SqliteDatabaseBuilder
 from chapkit.core.api.dependencies import get_database, get_scheduler, set_database, set_scheduler
 
 

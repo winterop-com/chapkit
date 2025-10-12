@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import pytest
 from ulid import ULID
 
-from chapkit import ArtifactManager, SqliteDatabase, SqliteDatabaseBuilder, Task, TaskManager, TaskRepository
+from chapkit import ArtifactManager, Task, TaskManager, TaskRepository
 from chapkit.core import Database, JobScheduler
 
 

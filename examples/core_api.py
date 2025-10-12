@@ -110,7 +110,6 @@ user_router = CrudRouter.create(
 
 # --------------------------------------------------------------------- Application
 
-
 app = (
     BaseServiceBuilder(
         info=ServiceInfo(
@@ -121,7 +120,7 @@ app = (
             "CRUD operations, health checks, and job scheduling without module dependencies.",
         )
     )
-    .with_database("sqlite+aiosqlite:///:memory:")
+    .with_database()  # Defaults to in-memory SQLite
     .with_health()
     .with_system()
     .with_jobs(max_concurrency=5)

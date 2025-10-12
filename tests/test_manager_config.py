@@ -4,7 +4,16 @@ from __future__ import annotations
 
 from ulid import ULID
 
-from chapkit import Artifact, ArtifactRepository, Config, ConfigIn, ConfigManager, ConfigOut, ConfigRepository, SqliteDatabase, SqliteDatabaseBuilder
+from chapkit import (
+    Artifact,
+    ArtifactRepository,
+    Config,
+    ConfigIn,
+    ConfigManager,
+    ConfigOut,
+    ConfigRepository,
+    SqliteDatabaseBuilder,
+)
 
 from .conftest import DemoConfig
 

@@ -8,8 +8,9 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from chapkit import ArtifactHierarchy, BaseConfig, SqliteDatabase, SqliteDatabaseBuilder
+from chapkit import ArtifactHierarchy, BaseConfig, SqliteDatabaseBuilder
 from chapkit.api import ServiceBuilder, ServiceInfo
+from chapkit.core import Database
 from chapkit.core.api.routers.health import HealthState
 
 

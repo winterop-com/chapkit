@@ -1,6 +1,6 @@
 from ulid import ULID
 
-from chapkit import Config, ConfigRepository, SqliteDatabase, SqliteDatabaseBuilder
+from chapkit import Config, ConfigRepository, SqliteDatabaseBuilder
 from chapkit.core import BaseRepository
 
 from .conftest import DemoConfig

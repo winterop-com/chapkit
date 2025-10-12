@@ -9,7 +9,6 @@ from chapkit import (
     ArtifactManager,
     ArtifactOut,
     ArtifactRepository,
-    Database,
     PandasDataFrame,
     SqliteDatabaseBuilder,
 )

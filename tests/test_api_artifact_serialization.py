@@ -6,7 +6,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from chapkit import ArtifactIn, ArtifactOut, SqliteDatabase, SqliteDatabaseBuilder
+from chapkit import ArtifactIn, ArtifactOut, SqliteDatabaseBuilder
 from chapkit.api import ArtifactRouter, add_error_handlers, get_artifact_manager
 from chapkit.core.api.dependencies import set_database
 
