@@ -140,7 +140,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config",
+							"raw": "{{baseUrl}}/api/v1/configs",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -159,7 +159,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config",
+									"raw": "{{baseUrl}}/api/v1/configs",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -180,7 +180,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"type\": \"urn:chapkit:error:unauthorized\",\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Missing authentication header: X-API-Key\",\n  \"instance\": \"/api/v1/config\"\n}"
+							"body": "{\n  \"type\": \"urn:chapkit:error:unauthorized\",\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Missing authentication header: X-API-Key\",\n  \"instance\": \"/api/v1/configs\"\n}"
 						}
 					]
 				},
@@ -219,7 +219,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config",
+							"raw": "{{baseUrl}}/api/v1/configs",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -244,7 +244,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config",
+									"raw": "{{baseUrl}}/api/v1/configs",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -265,7 +265,7 @@
 								}
 							],
 							"cookie": [],
-							"body": "{\n  \"type\": \"urn:chapkit:error:unauthorized\",\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Invalid API key\",\n  \"instance\": \"/api/v1/config\"\n}"
+							"body": "{\n  \"type\": \"urn:chapkit:error:unauthorized\",\n  \"title\": \"Unauthorized\",\n  \"status\": 401,\n  \"detail\": \"Invalid API key\",\n  \"instance\": \"/api/v1/configs\"\n}"
 						}
 					]
 				}
@@ -305,7 +305,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config",
+							"raw": "{{baseUrl}}/api/v1/configs",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -330,7 +330,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config",
+									"raw": "{{baseUrl}}/api/v1/configs",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -386,7 +386,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config/$schema",
+							"raw": "{{baseUrl}}/api/v1/configs/$schema",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -412,7 +412,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config/$schema",
+									"raw": "{{baseUrl}}/api/v1/configs/$schema",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -485,7 +485,7 @@
 							"raw": "{\n  \"id\": \"01K79YAHJ7BR4E87VVTG8FNBMA\",\n  \"name\": \"production_config\",\n  \"data\": {\n    \"environment\": \"production\",\n    \"debug\": false\n  }\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config",
+							"raw": "{{baseUrl}}/api/v1/configs",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -519,7 +519,7 @@
 									"raw": "{\n  \"id\": \"01K79YAHJ7BR4E87VVTG8FNBMA\",\n  \"name\": \"production_config\",\n  \"data\": {\n    \"environment\": \"production\",\n    \"debug\": false\n  }\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config",
+									"raw": "{{baseUrl}}/api/v1/configs",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -575,7 +575,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config/{{config_id}}",
+							"raw": "{{baseUrl}}/api/v1/configs/{{config_id}}",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -601,7 +601,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config/01K79YAHJ7BR4E87VVTG8FNBMA",
+									"raw": "{{baseUrl}}/api/v1/configs/01K79YAHJ7BR4E87VVTG8FNBMA",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -667,7 +667,7 @@
 							"raw": "{\n  \"name\": \"production_config_v2\",\n  \"data\": {\n    \"environment\": \"production\",\n    \"debug\": true\n  }\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config/{{config_id}}",
+							"raw": "{{baseUrl}}/api/v1/configs/{{config_id}}",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -702,7 +702,7 @@
 									"raw": "{\n  \"name\": \"production_config_v2\",\n  \"data\": {\n    \"environment\": \"production\",\n    \"debug\": true\n  }\n}"
 								},
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config/01K79YAHJ7BR4E87VVTG8FNBMA",
+									"raw": "{{baseUrl}}/api/v1/configs/01K79YAHJ7BR4E87VVTG8FNBMA",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -759,7 +759,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config",
+							"raw": "{{baseUrl}}/api/v1/configs",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -784,7 +784,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config",
+									"raw": "{{baseUrl}}/api/v1/configs",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -834,7 +834,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config/{{config_id}}",
+							"raw": "{{baseUrl}}/api/v1/configs/{{config_id}}",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -860,7 +860,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config/01K79YAHJ7BR4E87VVTG8FNBMA",
+									"raw": "{{baseUrl}}/api/v1/configs/01K79YAHJ7BR4E87VVTG8FNBMA",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -912,7 +912,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config",
+							"raw": "{{baseUrl}}/api/v1/configs",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -937,7 +937,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config",
+									"raw": "{{baseUrl}}/api/v1/configs",
 									"host": [
 										"{{baseUrl}}"
 									],
@@ -987,7 +987,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/v1/config",
+							"raw": "{{baseUrl}}/api/v1/configs",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -1012,7 +1012,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{baseUrl}}/api/v1/config",
+									"raw": "{{baseUrl}}/api/v1/configs",
 									"host": [
 										"{{baseUrl}}"
 									],

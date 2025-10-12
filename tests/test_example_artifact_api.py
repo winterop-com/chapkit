@@ -255,7 +255,7 @@ def test_delete_artifact_not_allowed(client: TestClient) -> None:
 
 def test_list_configs(client: TestClient) -> None:
     """Test listing configs endpoint exists."""
-    response = client.get("/api/v1/config")
+    response = client.get("/api/v1/configs")
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)

@@ -136,7 +136,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/config/$schema",
+              "raw": "{{baseUrl}}/api/v1/configs/$schema",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -156,7 +156,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/config/$schema",
+                  "raw": "{{baseUrl}}/api/v1/configs/$schema",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -217,7 +217,7 @@
               "raw": "{\n  \"name\": \"weather_model_normalized\",\n  \"data\": {\n    \"min_samples\": 5,\n    \"normalize_features\": true\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/config",
+              "raw": "{{baseUrl}}/api/v1/configs",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -246,7 +246,7 @@
               "raw": "{\n  \"name\": \"weather_model_raw\",\n  \"data\": {\n    \"min_samples\": 3,\n    \"normalize_features\": false\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/config",
+              "raw": "{{baseUrl}}/api/v1/configs",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -266,7 +266,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/config",
+              "raw": "{{baseUrl}}/api/v1/configs",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -286,7 +286,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/config/{{config_id}}",
+              "raw": "{{baseUrl}}/api/v1/configs/{{config_id}}",
               "host": [
                 "{{baseUrl}}"
               ],

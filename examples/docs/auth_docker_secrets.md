@@ -105,7 +105,7 @@ curl http://127.0.0.1:8000/health
 
 ```bash
 # Without API key (fails)
-curl http://127.0.0.1:8000/api/v1/config
+curl http://127.0.0.1:8000/api/v1/configs
 ```
 
 **Response (401):**
@@ -115,14 +115,14 @@ curl http://127.0.0.1:8000/api/v1/config
   "title": "Unauthorized",
   "status": 401,
   "detail": "Missing authentication header: X-API-Key",
-  "instance": "/api/v1/config"
+  "instance": "/api/v1/configs"
 }
 ```
 
 ```bash
 # With valid API key (succeeds)
 curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
-  http://127.0.0.1:8000/api/v1/config
+  http://127.0.0.1:8000/api/v1/configs
 ```
 
 **Response:**
@@ -133,7 +133,7 @@ curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
 ### 5. Create Configuration
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
   -H "Content-Type: application/json" \
   -d '{
@@ -167,11 +167,11 @@ curl -X POST http://127.0.0.1:8000/api/v1/config \
 ```bash
 # Using first key
 curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
-  http://127.0.0.1:8000/api/v1/config
+  http://127.0.0.1:8000/api/v1/configs
 
 # Using second key (both work!)
 curl -H "X-API-Key: sk_prod_x1y2z3a4b5c6d7e8" \
-  http://127.0.0.1:8000/api/v1/config
+  http://127.0.0.1:8000/api/v1/configs
 ```
 
 ## Docker Compose Deployment
@@ -248,7 +248,7 @@ docker service create \
 docker service ps secure-api
 
 # Test
-curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" http://localhost:8000/api/v1/config
+curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" http://localhost:8000/api/v1/configs
 ```
 
 ## Kubernetes Deployment
@@ -316,7 +316,7 @@ kubectl get service secure-api
 
 # Test
 curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
-  http://EXTERNAL-IP:8000/api/v1/config
+  http://EXTERNAL-IP:8000/api/v1/configs
 ```
 
 ## Key Rotation with Docker Secrets

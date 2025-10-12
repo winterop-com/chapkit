@@ -43,13 +43,13 @@ fastapi dev examples/auth_envvar.py
 curl http://localhost:8000/health
 
 # 3. Try without auth (fails)
-curl http://localhost:8000/api/v1/config
+curl http://localhost:8000/api/v1/configs
 
 # 4. With auth (works)
-curl -H "X-API-Key: sk_dev_test123" http://localhost:8000/api/v1/config
+curl -H "X-API-Key: sk_dev_test123" http://localhost:8000/api/v1/configs
 
 # 5. Create config
-curl -X POST http://localhost:8000/api/v1/config \
+curl -X POST http://localhost:8000/api/v1/configs \
   -H "X-API-Key: sk_dev_test123" \
   -H "Content-Type: application/json" \
   -d '{"name": "test", "data": {"key": "value"}}'
@@ -71,11 +71,11 @@ GET /                   # Landing page
 
 ```bash
 # Config
-POST   /api/v1/config
-GET    /api/v1/config
-GET    /api/v1/config/{id}
-PUT    /api/v1/config/{id}
-DELETE /api/v1/config/{id}
+POST   /api/v1/configs
+GET    /api/v1/configs
+GET    /api/v1/configs/{id}
+PUT    /api/v1/configs/{id}
+DELETE /api/v1/configs/{id}
 
 # Artifacts (if enabled)
 POST   /api/v1/artifacts
@@ -124,7 +124,7 @@ headers = {"X-API-Key": os.getenv("API_KEY")}
 
 async with httpx.AsyncClient() as client:
     response = await client.get(
-        "http://localhost:8000/api/v1/config",
+        "http://localhost:8000/api/v1/configs",
         headers=headers
     )
     print(response.json())
@@ -134,26 +134,26 @@ async with httpx.AsyncClient() as client:
 
 ```bash
 # List configs
-curl -H "X-API-Key: sk_dev_test123" http://localhost:8000/api/v1/config
+curl -H "X-API-Key: sk_dev_test123" http://localhost:8000/api/v1/configs
 
 # Create config
-curl -X POST http://localhost:8000/api/v1/config \
+curl -X POST http://localhost:8000/api/v1/configs \
   -H "X-API-Key: sk_dev_test123" \
   -H "Content-Type: application/json" \
   -d '{"name": "prod", "data": {"env": "production"}}'
 
 # Get specific config
 curl -H "X-API-Key: sk_dev_test123" \
-  http://localhost:8000/api/v1/config/01K7XXXX...
+  http://localhost:8000/api/v1/configs/01K7XXXX...
 
 # Update config
-curl -X PUT http://localhost:8000/api/v1/config/01K7XXXX... \
+curl -X PUT http://localhost:8000/api/v1/configs/01K7XXXX... \
   -H "X-API-Key: sk_dev_test123" \
   -H "Content-Type: application/json" \
   -d '{"name": "prod_v2", "data": {"env": "production"}}'
 
 # Delete config
-curl -X DELETE http://localhost:8000/api/v1/config/01K7XXXX... \
+curl -X DELETE http://localhost:8000/api/v1/configs/01K7XXXX... \
   -H "X-API-Key: sk_dev_test123"
 ```
 
@@ -235,7 +235,7 @@ secrets:
   "title": "Unauthorized",
   "status": 401,
   "detail": "Missing authentication header: X-API-Key",
-  "instance": "/api/v1/config"
+  "instance": "/api/v1/configs"
 }
 ```
 
@@ -247,7 +247,7 @@ secrets:
   "title": "Unauthorized",
   "status": 401,
   "detail": "Invalid API key",
-  "instance": "/api/v1/config"
+  "instance": "/api/v1/configs"
 }
 ```
 
@@ -292,10 +292,10 @@ echo "1. Health Check (no auth)"
 curl -s $BASE_URL/health | jq
 
 echo "\n2. Try without auth (should fail)"
-curl -s $BASE_URL/api/v1/config
+curl -s $BASE_URL/api/v1/configs
 
 echo "\n3. Create config (with auth)"
-CONFIG_ID=$(curl -s -X POST $BASE_URL/api/v1/config \
+CONFIG_ID=$(curl -s -X POST $BASE_URL/api/v1/configs \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "test", "data": {"env": "dev"}}' | jq -r '.id')
@@ -303,19 +303,19 @@ CONFIG_ID=$(curl -s -X POST $BASE_URL/api/v1/config \
 echo "Created config: $CONFIG_ID"
 
 echo "\n4. List configs"
-curl -s -H "X-API-Key: $API_KEY" $BASE_URL/api/v1/config | jq
+curl -s -H "X-API-Key: $API_KEY" $BASE_URL/api/v1/configs | jq
 
 echo "\n5. Get specific config"
-curl -s -H "X-API-Key: $API_KEY" $BASE_URL/api/v1/config/$CONFIG_ID | jq
+curl -s -H "X-API-Key: $API_KEY" $BASE_URL/api/v1/configs/$CONFIG_ID | jq
 
 echo "\n6. Update config"
-curl -s -X PUT $BASE_URL/api/v1/config/$CONFIG_ID \
+curl -s -X PUT $BASE_URL/api/v1/configs/$CONFIG_ID \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"name": "test_updated", "data": {"env": "dev"}}' | jq
 
 echo "\n7. Delete config"
-curl -s -X DELETE $BASE_URL/api/v1/config/$CONFIG_ID \
+curl -s -X DELETE $BASE_URL/api/v1/configs/$CONFIG_ID \
   -H "X-API-Key: $API_KEY"
 
 echo "\n✅ Workflow complete"

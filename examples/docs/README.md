@@ -45,7 +45,7 @@ curl http://127.0.0.1:8000/health
 ### 3. Create Configuration
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{
     "name": "my_model_config",
@@ -125,12 +125,12 @@ All ML services provide these endpoints:
 - `GET /system` - System information (if `.with_system()` enabled)
 
 ### Configuration
-- `POST /api/v1/config` - Create config
-- `GET /api/v1/config` - List all configs (supports pagination)
-- `GET /api/v1/config/{id}` - Get specific config
-- `PUT /api/v1/config/{id}` - Update config
-- `DELETE /api/v1/config/{id}` - Delete config
-- `GET /api/v1/config/$schema` - Get config JSON schema
+- `POST /api/v1/configs` - Create config
+- `GET /api/v1/configs` - List all configs (supports pagination)
+- `GET /api/v1/configs/{id}` - Get specific config
+- `PUT /api/v1/configs/{id}` - Update config
+- `DELETE /api/v1/configs/{id}` - Delete config
+- `GET /api/v1/configs/$schema` - Get config JSON schema
 
 ### Artifacts
 - `POST /api/v1/artifacts` - Create artifact
@@ -212,10 +212,10 @@ List endpoints support optional pagination:
 
 ```bash
 # Without pagination (returns array)
-curl http://127.0.0.1:8000/api/v1/config
+curl http://127.0.0.1:8000/api/v1/configs
 
 # With pagination (returns PaginatedResponse)
-curl "http://127.0.0.1:8000/api/v1/config?page=1&size=10"
+curl "http://127.0.0.1:8000/api/v1/configs?page=1&size=10"
 ```
 
 ## Error Handling
@@ -228,7 +228,7 @@ All services use RFC 9457 problem details format:
   "title": "Not Found",
   "status": 404,
   "detail": "Config 01K72P60ZNX2PJ6QJWZK7RMCRV not found",
-  "instance": "/api/v1/config/01K72P60ZNX2PJ6QJWZK7RMCRV"
+  "instance": "/api/v1/configs/01K72P60ZNX2PJ6QJWZK7RMCRV"
 }
 ```
 
@@ -276,10 +276,10 @@ curl http://127.0.0.1:8000/health
 
 ```bash
 # Without auth (fails with 401)
-curl http://127.0.0.1:8000/api/v1/config
+curl http://127.0.0.1:8000/api/v1/configs
 
 # With valid API key (succeeds)
-curl -H "X-API-Key: sk_prod_abc123" http://127.0.0.1:8000/api/v1/config
+curl -H "X-API-Key: sk_prod_abc123" http://127.0.0.1:8000/api/v1/configs
 ```
 
 ### Common Authentication Endpoints
@@ -291,7 +291,7 @@ curl -H "X-API-Key: sk_prod_abc123" http://127.0.0.1:8000/api/v1/config
 - `GET /openapi.json` - OpenAPI schema
 
 #### Authenticated (Require X-API-Key header)
-- All `/api/v1/config` endpoints
+- All `/api/v1/configs` endpoints
 - All `/api/v1/artifacts` endpoints (if enabled)
 - All `/api/v1/jobs` endpoints (if enabled)
 - All `/api/v1/ml/*` endpoints (if enabled)

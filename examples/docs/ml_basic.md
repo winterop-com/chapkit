@@ -76,7 +76,7 @@ curl http://127.0.0.1:8000/api/v1/info
 ### 4. Get Config Schema
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/config/\$schema
+curl http://127.0.0.1:8000/api/v1/configs/\$schema
 ```
 
 **Response:**
@@ -93,7 +93,7 @@ curl http://127.0.0.1:8000/api/v1/config/\$schema
 ### 5. Create Configuration
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{
     "id": "01K79YAHJ7BR4E87VVTG8FNBMA",
@@ -286,16 +286,16 @@ The `sample_0` column contains predicted disease cases!
 
 ```bash
 # Simple list
-curl http://127.0.0.1:8000/api/v1/config
+curl http://127.0.0.1:8000/api/v1/configs
 
 # Paginated
-curl "http://127.0.0.1:8000/api/v1/config?page=1&size=10"
+curl "http://127.0.0.1:8000/api/v1/configs?page=1&size=10"
 ```
 
 ### Update Config
 
 ```bash
-curl -X PUT http://127.0.0.1:8000/api/v1/config/01K79YAHJ7BR4E87VVTG8FNBMA \
+curl -X PUT http://127.0.0.1:8000/api/v1/configs/01K79YAHJ7BR4E87VVTG8FNBMA \
   -H "Content-Type: application/json" \
   -d '{
     "name": "updated_model_config",
@@ -328,7 +328,7 @@ curl "http://127.0.0.1:8000/api/v1/artifacts?page=1&size=20"
 
 ```bash
 # Delete config
-curl -X DELETE http://127.0.0.1:8000/api/v1/config/01K79YAHJ7BR4E87VVTG8FNBMA
+curl -X DELETE http://127.0.0.1:8000/api/v1/configs/01K79YAHJ7BR4E87VVTG8FNBMA
 
 # Delete artifact (cascades to children)
 curl -X DELETE http://127.0.0.1:8000/api/v1/artifacts/01K79YAHJ7BR4E87VVTG8FNBMC
@@ -388,7 +388,7 @@ curl -X DELETE http://127.0.0.1:8000/api/v1/jobs/01K79YAHJ7BR4E87VVTG8FNBMB
 ### "Config not found"
 ```bash
 # Verify config exists
-curl http://127.0.0.1:8000/api/v1/config/YOUR_CONFIG_ID
+curl http://127.0.0.1:8000/api/v1/configs/YOUR_CONFIG_ID
 ```
 
 ### "Model artifact not found"

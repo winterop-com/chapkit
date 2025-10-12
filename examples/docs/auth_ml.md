@@ -41,7 +41,7 @@ curl http://127.0.0.1:8000/health
 ### 2. Try Accessing Config Without Auth (Fails)
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/config
+curl http://127.0.0.1:8000/api/v1/configs
 ```
 
 **Response (401 Unauthorized):**
@@ -51,7 +51,7 @@ curl http://127.0.0.1:8000/api/v1/config
   "title": "Unauthorized",
   "status": 401,
   "detail": "Missing authentication header: X-API-Key",
-  "instance": "/api/v1/config"
+  "instance": "/api/v1/configs"
 }
 ```
 
@@ -76,7 +76,7 @@ curl -H "X-API-Key: sk_ml_train_abc123" \
 ### 4. Create ML Configuration (With Auth)
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "X-API-Key: sk_ml_train_abc123" \
   -H "Content-Type: application/json" \
   -d '{
@@ -310,12 +310,12 @@ export CUSTOMER_2_KEY="sk_ml_customer_2_xyz789"
 
 ```bash
 # Config endpoints
-POST   /api/v1/config
-GET    /api/v1/config
-GET    /api/v1/config/{id}
-PUT    /api/v1/config/{id}
-DELETE /api/v1/config/{id}
-GET    /api/v1/config/$schema
+POST   /api/v1/configs
+GET    /api/v1/configs
+GET    /api/v1/configs/{id}
+PUT    /api/v1/configs/{id}
+DELETE /api/v1/configs/{id}
+GET    /api/v1/configs/$schema
 
 # Artifact endpoints
 POST   /api/v1/artifacts

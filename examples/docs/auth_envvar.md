@@ -47,7 +47,7 @@ curl http://127.0.0.1:8000/health
 ### 2. Try Accessing Config Without Auth (Fails)
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/config
+curl http://127.0.0.1:8000/api/v1/configs
 ```
 
 **Response (401 Unauthorized):**
@@ -57,14 +57,14 @@ curl http://127.0.0.1:8000/api/v1/config
   "title": "Unauthorized",
   "status": 401,
   "detail": "Missing authentication header: X-API-Key",
-  "instance": "/api/v1/config"
+  "instance": "/api/v1/configs"
 }
 ```
 
 ### 3. Access Config With Valid Key (Success)
 
 ```bash
-curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" http://127.0.0.1:8000/api/v1/config
+curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" http://127.0.0.1:8000/api/v1/configs
 ```
 
 **Response:**
@@ -78,7 +78,7 @@ curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" http://127.0.0.1:8000/api/v1/confi
 
 ```bash
 curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
-  http://127.0.0.1:8000/api/v1/config/\$schema
+  http://127.0.0.1:8000/api/v1/configs/\$schema
 ```
 
 **Response:**
@@ -114,7 +114,7 @@ curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
 ### 5. Create Configuration (With Auth)
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
   -H "Content-Type: application/json" \
   -d '{
@@ -149,7 +149,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/config \
 
 ```bash
 curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
-  http://127.0.0.1:8000/api/v1/config/01K7AXYHJ7BR4E87VVTG8FNBMA
+  http://127.0.0.1:8000/api/v1/configs/01K7AXYHJ7BR4E87VVTG8FNBMA
 ```
 
 **Response:**
@@ -171,7 +171,7 @@ curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
 ### 7. Update Config
 
 ```bash
-curl -X PUT http://127.0.0.1:8000/api/v1/config/01K7AXYHJ7BR4E87VVTG8FNBMA \
+curl -X PUT http://127.0.0.1:8000/api/v1/configs/01K7AXYHJ7BR4E87VVTG8FNBMA \
   -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
   -H "Content-Type: application/json" \
   -d '{
@@ -206,17 +206,17 @@ curl -X PUT http://127.0.0.1:8000/api/v1/config/01K7AXYHJ7BR4E87VVTG8FNBMA \
 ```bash
 # Simple list
 curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
-  http://127.0.0.1:8000/api/v1/config
+  http://127.0.0.1:8000/api/v1/configs
 
 # Paginated
 curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" \
-  "http://127.0.0.1:8000/api/v1/config?page=1&size=10"
+  "http://127.0.0.1:8000/api/v1/configs?page=1&size=10"
 ```
 
 ### 9. Delete Config
 
 ```bash
-curl -X DELETE http://127.0.0.1:8000/api/v1/config/01K7AXYHJ7BR4E87VVTG8FNBMA \
+curl -X DELETE http://127.0.0.1:8000/api/v1/configs/01K7AXYHJ7BR4E87VVTG8FNBMA \
   -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8"
 ```
 
@@ -228,8 +228,8 @@ Support multiple keys simultaneously for zero-downtime rotation:
 
 ```bash
 # Both keys work
-curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" http://127.0.0.1:8000/api/v1/config
-curl -H "X-API-Key: sk_prod_x1y2z3a4b5c6d7e8" http://127.0.0.1:8000/api/v1/config
+curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" http://127.0.0.1:8000/api/v1/configs
+curl -H "X-API-Key: sk_prod_x1y2z3a4b5c6d7e8" http://127.0.0.1:8000/api/v1/configs
 ```
 
 **Rotation workflow:**
@@ -358,7 +358,7 @@ headers = {"X-API-Key": os.getenv("API_SERVICE_KEY")}
 
 async with httpx.AsyncClient() as client:
     response = await client.get(
-        "http://api-service:8000/api/v1/config",
+        "http://api-service:8000/api/v1/configs",
         headers=headers
     )
     print(response.json())
@@ -376,7 +376,7 @@ Already configured with `.with_auth()` - reads from `CHAPKIT_API_KEYS`
 
 **Solution:** Add header to all protected endpoints:
 ```bash
-curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" http://127.0.0.1:8000/api/v1/config
+curl -H "X-API-Key: sk_prod_a1b2c3d4e5f6g7h8" http://127.0.0.1:8000/api/v1/configs
 ```
 
 ### "Invalid API key"

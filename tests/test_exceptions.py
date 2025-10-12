@@ -74,14 +74,14 @@ def test_validation_error() -> None:
 
 def test_conflict_error() -> None:
     """Test ConflictError sets correct RFC 9457 fields."""
-    exc = ConflictError("Resource already exists", instance="/api/v1/config/prod")
+    exc = ConflictError("Resource already exists", instance="/api/v1/configs/prod")
 
     assert str(exc) == "Resource already exists"
     assert exc.detail == "Resource already exists"
     assert exc.type_uri == ErrorType.CONFLICT
     assert exc.title == "Resource Conflict"
     assert exc.status == 409
-    assert exc.instance == "/api/v1/config/prod"
+    assert exc.instance == "/api/v1/configs/prod"
 
 
 def test_invalid_ulid_error() -> None:

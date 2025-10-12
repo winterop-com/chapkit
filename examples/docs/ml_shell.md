@@ -100,7 +100,7 @@ curl http://127.0.0.1:8000/api/v1/info
 ### 4. Get Config Schema
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/config/\$schema
+curl http://127.0.0.1:8000/api/v1/configs/\$schema
 ```
 
 **Response:**
@@ -126,7 +126,7 @@ curl http://127.0.0.1:8000/api/v1/config/\$schema
 ### 5. Create Configuration
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{
     "name": "shell_disease_model",
@@ -474,7 +474,7 @@ runner = ShellModelRunner(
 Config fields are accessible in scripts:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/config -d '{
+curl -X POST http://127.0.0.1:8000/api/v1/configs -d '{
   "name": "advanced",
   "data": {
     "min_samples": 10,

@@ -47,7 +47,7 @@ def test_train_with_shell_runner(client: TestClient) -> None:
 
     # Create config
     config_response = client.post(
-        "/api/v1/config",
+        "/api/v1/configs",
         json={"name": f"shell_config_{ULID()}", "data": {"min_samples": 3, "model_type": "linear_regression"}},
     )
     config = config_response.json()
@@ -91,7 +91,7 @@ def test_train_and_predict_with_external_scripts(client: TestClient) -> None:
 
     # Create config
     config_response = client.post(
-        "/api/v1/config",
+        "/api/v1/configs",
         json={"name": f"shell_workflow_config_{ULID()}", "data": {"model_type": "linear_regression"}},
     )
     config_id = config_response.json()["id"]
@@ -161,7 +161,7 @@ def test_train_with_minimal_data(client: TestClient) -> None:
 
     # Create config with lower min_samples
     config_response = client.post(
-        "/api/v1/config", json={"name": f"minimal_config_{ULID()}", "data": {"min_samples": 1}}
+        "/api/v1/configs", json={"name": f"minimal_config_{ULID()}", "data": {"min_samples": 1}}
     )
     config_id = config_response.json()["id"]
 
@@ -187,7 +187,7 @@ def test_multiple_predictions_from_shell_model(client: TestClient) -> None:
     from ulid import ULID
 
     # Create config and train
-    config_response = client.post("/api/v1/config", json={"name": f"multi_predict_shell_{ULID()}", "data": {}})
+    config_response = client.post("/api/v1/configs", json={"name": f"multi_predict_shell_{ULID()}", "data": {}})
     config_id = config_response.json()["id"]
 
     train_request = {
@@ -238,7 +238,7 @@ def test_concurrent_shell_training_jobs(client: TestClient) -> None:
     config_ids = []
     unique_id = ULID()
     for i in range(2):
-        config_response = client.post("/api/v1/config", json={"name": f"concurrent_shell_{unique_id}_{i}", "data": {}})
+        config_response = client.post("/api/v1/configs", json={"name": f"concurrent_shell_{unique_id}_{i}", "data": {}})
         config_ids.append(config_response.json()["id"])
 
     # Submit training jobs

@@ -90,7 +90,7 @@ def test_service_builder_with_config(service_info: ServiceInfo) -> None:
     app = ServiceBuilder(info=service_info).with_config(ExampleConfig).build()
 
     with TestClient(app) as client:
-        response = client.get("/api/v1/config/")
+        response = client.get("/api/v1/configs/")
 
         assert response.status_code == 200
         assert isinstance(response.json(), list)
@@ -163,7 +163,7 @@ async def test_service_builder_with_database_instance(
 
     # Test that the app uses the injected database
     with TestClient(app) as client:
-        response = client.get("/api/v1/config/")
+        response = client.get("/api/v1/configs/")
 
         assert response.status_code == 200
 
@@ -212,11 +212,11 @@ def test_service_builder_permissions(service_info: ServiceInfo) -> None:
 
     with TestClient(app) as client:
         # GET should work (read is allowed)
-        response = client.get("/api/v1/config/")
+        response = client.get("/api/v1/configs/")
         assert response.status_code == 200
 
         # POST should fail (create is disabled)
-        response = client.post("/api/v1/config/", json={"name": "test", "data": {"enabled": True, "value": 42}})
+        response = client.post("/api/v1/configs/", json={"name": "test", "data": {"enabled": True, "value": 42}})
         assert response.status_code == 405  # Method not allowed
 
 
@@ -410,6 +410,6 @@ def test_service_builder_with_all_features(service_info: ServiceInfo) -> None:
         assert client.get("/").status_code == 200
         assert client.get("/api/v1/info").status_code == 200
         assert client.get("/health").status_code == 200
-        assert client.get("/api/v1/config/").status_code == 200
+        assert client.get("/api/v1/configs/").status_code == 200
         assert client.get("/api/v1/artifacts/").status_code == 200
         assert client.get("/metrics").status_code == 200

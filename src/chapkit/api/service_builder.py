@@ -61,7 +61,7 @@ class _ConfigOptions:
     """Internal config options for ServiceBuilder."""
 
     schema: type[BaseConfig]
-    prefix: str = "/api/v1/config"
+    prefix: str = "/api/v1/configs"
     tags: List[str] = field(default_factory=lambda: ["config"])
     permissions: CrudPermissions = field(default_factory=CrudPermissions)
 
@@ -112,7 +112,7 @@ class ServiceBuilder(BaseServiceBuilder):
         self,
         schema: type[BaseConfig],
         *,
-        prefix: str = "/api/v1/config",
+        prefix: str = "/api/v1/configs",
         tags: List[str] | None = None,
         permissions: CrudPermissions | None = None,
         allow_create: bool | None = None,

@@ -87,7 +87,7 @@ def test_info_endpoint(client: TestClient) -> None:
 
 def test_seeded_configs(client: TestClient) -> None:
     """Test that startup hook seeded example config."""
-    response = client.get("/api/v1/config")
+    response = client.get("/api/v1/configs")
     assert response.status_code == 200
     configs = response.json()
 
@@ -173,7 +173,7 @@ def test_config_crud(client: TestClient) -> None:
         },
     }
 
-    create_response = client.post("/api/v1/config", json=new_config)
+    create_response = client.post("/api/v1/configs", json=new_config)
     assert create_response.status_code == 201
     created = create_response.json()
     config_id = created["id"]
@@ -182,30 +182,30 @@ def test_config_crud(client: TestClient) -> None:
     assert created["data"]["model_type"] == "random_forest"
 
     # Read
-    get_response = client.get(f"/api/v1/config/{config_id}")
+    get_response = client.get(f"/api/v1/configs/{config_id}")
     assert get_response.status_code == 200
     fetched = get_response.json()
     assert fetched["id"] == config_id
 
     # Update
     fetched["data"]["max_epochs"] = 200
-    update_response = client.put(f"/api/v1/config/{config_id}", json=fetched)
+    update_response = client.put(f"/api/v1/configs/{config_id}", json=fetched)
     assert update_response.status_code == 200
     updated = update_response.json()
     assert updated["data"]["max_epochs"] == 200
 
     # Delete
-    delete_response = client.delete(f"/api/v1/config/{config_id}")
+    delete_response = client.delete(f"/api/v1/configs/{config_id}")
     assert delete_response.status_code == 204
 
     # Verify deletion
-    get_after_delete = client.get(f"/api/v1/config/{config_id}")
+    get_after_delete = client.get(f"/api/v1/configs/{config_id}")
     assert get_after_delete.status_code == 404
 
 
 def test_config_pagination(client: TestClient) -> None:
     """Test config pagination."""
-    response = client.get("/api/v1/config", params={"page": 1, "size": 2})
+    response = client.get("/api/v1/configs", params={"page": 1, "size": 2})
     assert response.status_code == 200
     data = response.json()
 
@@ -296,7 +296,7 @@ def test_config_artifact_linking(client: TestClient) -> None:
             "random_seed": 42,
         },
     }
-    config_response = client.post("/api/v1/config", json=config)
+    config_response = client.post("/api/v1/configs", json=config)
     config_id = config_response.json()["id"]
 
     # Create a root artifact (no parent_id means it's a root)
@@ -310,23 +310,25 @@ def test_config_artifact_linking(client: TestClient) -> None:
     assert artifact_get.json()["level"] == 0
 
     # Link them
-    link_response = client.post(f"/api/v1/config/{config_id}/$link-artifact", json={"artifact_id": artifact_id})
+    link_response = client.post(f"/api/v1/configs/{config_id}/$link-artifact", json={"artifact_id": artifact_id})
     # Accept either 204 or 400 (in case linking not fully supported)
     if link_response.status_code == 204:
         # Verify link by getting artifacts for config
-        linked_response = client.get(f"/api/v1/config/{config_id}/$artifacts")
+        linked_response = client.get(f"/api/v1/configs/{config_id}/$artifacts")
         assert linked_response.status_code == 200
         linked_artifacts = linked_response.json()
         assert len(linked_artifacts) >= 1
         assert any(a["id"] == artifact_id for a in linked_artifacts)
 
         # Unlink
-        unlink_response = client.post(f"/api/v1/config/{config_id}/$unlink-artifact", json={"artifact_id": artifact_id})
+        unlink_response = client.post(
+            f"/api/v1/configs/{config_id}/$unlink-artifact", json={"artifact_id": artifact_id}
+        )
         assert unlink_response.status_code == 204
 
     # Cleanup
     client.delete(f"/api/v1/artifacts/{artifact_id}")
-    client.delete(f"/api/v1/config/{config_id}")
+    client.delete(f"/api/v1/configs/{config_id}")
 
 
 # ==================== Task Execution Tests ====================
@@ -477,7 +479,7 @@ def test_openapi_schema(client: TestClient) -> None:
     # Verify all major endpoint groups are present
     assert "/health" in paths
     assert "/system" in paths
-    assert "/api/v1/config" in paths
+    assert "/api/v1/configs" in paths
     assert "/api/v1/artifacts" in paths
     assert "/api/v1/tasks" in paths
     assert "/api/v1/jobs" in paths
@@ -486,8 +488,8 @@ def test_openapi_schema(client: TestClient) -> None:
     # Verify operation endpoints
     assert "/api/v1/artifacts/{entity_id}/$tree" in paths
     assert "/api/v1/tasks/{entity_id}/$execute" in paths
-    assert "/api/v1/config/{entity_id}/$artifacts" in paths
-    assert "/api/v1/config/{entity_id}/$link-artifact" in paths
+    assert "/api/v1/configs/{entity_id}/$artifacts" in paths
+    assert "/api/v1/configs/{entity_id}/$link-artifact" in paths
 
 
 # ==================== Helper Functions ====================

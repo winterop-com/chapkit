@@ -51,7 +51,7 @@ def test_info_endpoint(client: TestClient) -> None:
 
 def test_list_configs(client: TestClient) -> None:
     """Test listing all seeded configs."""
-    response = client.get("/api/v1/config")
+    response = client.get("/api/v1/configs")
     assert response.status_code == 200
     data = response.json()
 
@@ -80,7 +80,7 @@ def test_list_configs(client: TestClient) -> None:
 
 def test_list_configs_with_pagination(client: TestClient) -> None:
     """Test listing configs with pagination."""
-    response = client.get("/api/v1/config", params={"page": 1, "size": 2})
+    response = client.get("/api/v1/configs", params={"page": 1, "size": 2})
     assert response.status_code == 200
     data = response.json()
 
@@ -101,11 +101,11 @@ def test_list_configs_with_pagination(client: TestClient) -> None:
 def test_get_config_by_id(client: TestClient) -> None:
     """Test retrieving config by ID."""
     # First get the list to obtain a valid ID
-    list_response = client.get("/api/v1/config")
+    list_response = client.get("/api/v1/configs")
     configs = list_response.json()
     config_id = configs[0]["id"]
 
-    response = client.get(f"/api/v1/config/{config_id}")
+    response = client.get(f"/api/v1/configs/{config_id}")
     assert response.status_code == 200
     data = response.json()
 
@@ -116,7 +116,7 @@ def test_get_config_by_id(client: TestClient) -> None:
 
 def test_get_config_by_invalid_ulid(client: TestClient) -> None:
     """Test retrieving config with invalid ULID format returns 400."""
-    response = client.get("/api/v1/config/not-a-valid-ulid")
+    response = client.get("/api/v1/configs/not-a-valid-ulid")
     assert response.status_code == 400
     data = response.json()
     assert "invalid ulid" in data["detail"].lower()
@@ -125,7 +125,7 @@ def test_get_config_by_invalid_ulid(client: TestClient) -> None:
 def test_get_config_by_id_not_found(client: TestClient) -> None:
     """Test retrieving non-existent config by ID returns 404."""
     # Use a valid ULID format but non-existent ID
-    response = client.get("/api/v1/config/01K72P5N5KCRM6MD3BRE4P0999")
+    response = client.get("/api/v1/configs/01K72P5N5KCRM6MD3BRE4P0999")
     assert response.status_code == 404
     data = response.json()
     assert "not found" in data["detail"].lower()
@@ -138,7 +138,7 @@ def test_create_config(client: TestClient) -> None:
         "data": {"debug": True, "api_host": "localhost", "api_port": 9000, "max_connections": 50},
     }
 
-    response = client.post("/api/v1/config", json=new_config)
+    response = client.post("/api/v1/configs", json=new_config)
     assert response.status_code == 201
     data = response.json()
 
@@ -149,7 +149,7 @@ def test_create_config(client: TestClient) -> None:
 
     # Verify it was created by fetching it
     config_id = data["id"]
-    get_response = client.get(f"/api/v1/config/{config_id}")
+    get_response = client.get(f"/api/v1/configs/{config_id}")
     assert get_response.status_code == 200
 
 
@@ -160,7 +160,7 @@ def test_create_config_duplicate_name(client: TestClient) -> None:
         "name": "duplicate-test",
         "data": {"debug": False, "api_host": "0.0.0.0", "api_port": 8080, "max_connections": 1000},
     }
-    response1 = client.post("/api/v1/config", json=first_config)
+    response1 = client.post("/api/v1/configs", json=first_config)
     assert response1.status_code == 201
 
     # Try to create another with the same name
@@ -169,7 +169,7 @@ def test_create_config_duplicate_name(client: TestClient) -> None:
         "data": {"debug": True, "api_host": "127.0.0.1", "api_port": 8000, "max_connections": 500},
     }
 
-    response = client.post("/api/v1/config", json=duplicate_config)
+    response = client.post("/api/v1/configs", json=duplicate_config)
     # Should fail with 409 or 400 due to unique constraint
     assert response.status_code in [400, 409, 500]  # Database constraint error
 
@@ -181,7 +181,7 @@ def test_update_config(client: TestClient) -> None:
         "name": "update-test",
         "data": {"debug": False, "api_host": "127.0.0.1", "api_port": 8080, "max_connections": 100},
     }
-    create_response = client.post("/api/v1/config", json=new_config)
+    create_response = client.post("/api/v1/configs", json=new_config)
     created = create_response.json()
     config_id = created["id"]
 
@@ -197,7 +197,7 @@ def test_update_config(client: TestClient) -> None:
         },
     }
 
-    response = client.put(f"/api/v1/config/{config_id}", json=updated_config)
+    response = client.put(f"/api/v1/configs/{config_id}", json=updated_config)
     assert response.status_code == 200
     data = response.json()
 
@@ -214,22 +214,22 @@ def test_delete_config(client: TestClient) -> None:
         "name": "delete-test",
         "data": {"debug": False, "api_host": "127.0.0.1", "api_port": 8080, "max_connections": 100},
     }
-    create_response = client.post("/api/v1/config", json=new_config)
+    create_response = client.post("/api/v1/configs", json=new_config)
     created = create_response.json()
     config_id = created["id"]
 
     # Delete it
-    response = client.delete(f"/api/v1/config/{config_id}")
+    response = client.delete(f"/api/v1/configs/{config_id}")
     assert response.status_code == 204
 
     # Verify it's gone
-    get_response = client.get(f"/api/v1/config/{config_id}")
+    get_response = client.get(f"/api/v1/configs/{config_id}")
     assert get_response.status_code == 404
 
 
 def test_delete_config_not_found(client: TestClient) -> None:
     """Test deleting non-existent config returns 404."""
-    response = client.delete("/api/v1/config/01K72P5N5KCRM6MD3BRE4P0999")
+    response = client.delete("/api/v1/configs/01K72P5N5KCRM6MD3BRE4P0999")
     assert response.status_code == 404
     data = response.json()
     assert "not found" in data["detail"].lower()

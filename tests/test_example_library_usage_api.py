@@ -38,7 +38,7 @@ def test_health_endpoint(client: TestClient) -> None:
 
 def test_list_configs(client: TestClient) -> None:
     """Test listing configs using chapkit's Config model."""
-    response = client.get("/api/v1/config")
+    response = client.get("/api/v1/configs")
     assert response.status_code == 200
     data = response.json()
 
@@ -59,7 +59,7 @@ def test_create_config(client: TestClient) -> None:
     """Test creating a config with ApiConfig schema."""
     new_config = {"name": "staging", "data": {"max_users": 500, "registration_enabled": True, "default_theme": "light"}}
 
-    response = client.post("/api/v1/config", json=new_config)
+    response = client.post("/api/v1/configs", json=new_config)
     assert response.status_code == 201
     created = response.json()
 
@@ -308,7 +308,7 @@ def test_list_users_with_pagination(client: TestClient) -> None:
 def test_config_and_user_coexist(client: TestClient) -> None:
     """Test that Config and User endpoints coexist properly."""
     # Both endpoints should work
-    config_response = client.get("/api/v1/config")
+    config_response = client.get("/api/v1/configs")
     assert config_response.status_code == 200
 
     user_response = client.get("/api/v1/users")

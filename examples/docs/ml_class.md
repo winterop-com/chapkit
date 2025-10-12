@@ -68,7 +68,7 @@ curl http://127.0.0.1:8000/api/v1/info
 ### 4. Get Config Schema
 
 ```bash
-curl http://127.0.0.1:8000/api/v1/config/\$schema
+curl http://127.0.0.1:8000/api/v1/configs/\$schema
 ```
 
 **Response:**
@@ -95,7 +95,7 @@ curl http://127.0.0.1:8000/api/v1/config/\$schema
 
 ```bash
 # With normalization (recommended)
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{
     "name": "weather_model_normalized",
@@ -106,7 +106,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/config \
   }'
 
 # Without normalization (for comparison)
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{
     "name": "weather_model_raw",
@@ -316,11 +316,11 @@ curl -X POST http://127.0.0.1:8000/api/v1/ml/\$train \
 
 ```bash
 # Create two configs for comparison
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{"name": "normalized", "data": {"normalize_features": true}}'
 
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{"name": "raw", "data": {"normalize_features": false}}'
 
@@ -419,11 +419,11 @@ Compare normalized vs raw features:
 
 ```bash
 # 1. Train with normalization
-curl -X POST http://127.0.0.1:8000/api/v1/config -d '{"name":"norm","data":{"normalize_features":true}}'
+curl -X POST http://127.0.0.1:8000/api/v1/configs -d '{"name":"norm","data":{"normalize_features":true}}'
 # Train and save model_artifact_id as MODEL_NORM
 
 # 2. Train without normalization
-curl -X POST http://127.0.0.1:8000/api/v1/config -d '{"name":"raw","data":{"normalize_features":false}}'
+curl -X POST http://127.0.0.1:8000/api/v1/configs -d '{"name":"raw","data":{"normalize_features":false}}'
 # Train and save model_artifact_id as MODEL_RAW
 
 # 3. Predict with same test data using both models

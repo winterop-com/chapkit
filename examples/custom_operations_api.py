@@ -66,7 +66,7 @@ class ResetResponse(BaseModel):
 def create_feature_router() -> APIRouter:
     """Create config router with custom operations."""
     router = CrudRouter[ConfigIn[FeatureConfig], ConfigOut[FeatureConfig]](
-        prefix="/api/v1/config",
+        prefix="/api/v1/configs",
         tags=["config"],
         entity_in_type=ConfigIn[FeatureConfig],
         entity_out_type=ConfigOut[FeatureConfig],
@@ -84,7 +84,7 @@ def create_feature_router() -> APIRouter:
         config = await manager.find_by_id(config_id)
 
         if config is None:
-            raise NotFoundError(f"Config {entity_id} not found", instance=f"/api/v1/config/{entity_id}")
+            raise NotFoundError(f"Config {entity_id} not found", instance=f"/api/v1/configs/{entity_id}")
 
         # Create updated config with modified enabled flag
         updated_data = FeatureConfig(
@@ -117,7 +117,7 @@ def create_feature_router() -> APIRouter:
         config = await manager.find_by_id(config_id)
 
         if config is None:
-            raise NotFoundError(f"Config {entity_id} not found", instance=f"/api/v1/config/{entity_id}")
+            raise NotFoundError(f"Config {entity_id} not found", instance=f"/api/v1/configs/{entity_id}")
 
         errors: list[str] = []
         warnings: list[str] = []
@@ -162,11 +162,11 @@ def create_feature_router() -> APIRouter:
         config = await manager.find_by_id(config_id)
 
         if config is None:
-            raise NotFoundError(f"Config {entity_id} not found", instance=f"/api/v1/config/{entity_id}")
+            raise NotFoundError(f"Config {entity_id} not found", instance=f"/api/v1/configs/{entity_id}")
 
         # Check if name already exists
         if await manager.find_by_name(new_name):
-            raise ConflictError(f"Config with name '{new_name}' already exists", instance="/api/v1/config")
+            raise ConflictError(f"Config with name '{new_name}' already exists", instance="/api/v1/configs")
 
         # Create duplicate with new name
         duplicate = ConfigIn[FeatureConfig](

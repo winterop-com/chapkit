@@ -136,7 +136,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/config/$schema",
+              "raw": "{{baseUrl}}/api/v1/configs/$schema",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -156,7 +156,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/api/v1/config/$schema",
+                  "raw": "{{baseUrl}}/api/v1/configs/$schema",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -217,7 +217,7 @@
               "raw": "{\n  \"name\": \"shell_disease_model\",\n  \"data\": {\n    \"min_samples\": 3,\n    \"model_type\": \"linear_regression\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/v1/config",
+              "raw": "{{baseUrl}}/api/v1/configs",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -237,7 +237,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/config",
+              "raw": "{{baseUrl}}/api/v1/configs",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -257,7 +257,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/config/{{config_id}}",
+              "raw": "{{baseUrl}}/api/v1/configs/{{config_id}}",
               "host": [
                 "{{baseUrl}}"
               ],

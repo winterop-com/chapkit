@@ -350,7 +350,7 @@ All operational endpoints (`/health`, `/system`, `/metrics`) use root-level path
 
 **Solution**:
 1. Make some requests to your API endpoints
-2. Verify FastAPI instrumentation with: `curl http://localhost:8000/api/v1/config`
+2. Verify FastAPI instrumentation with: `curl http://localhost:8000/api/v1/configs`
 3. Check metrics again: `curl http://localhost:8000/metrics | grep http_request`
 
 ### Prometheus Cannot Scrape

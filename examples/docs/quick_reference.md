@@ -19,7 +19,7 @@ curl http://127.0.0.1:8000/health
 
 ### Create Config
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/config \
+curl -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{"name":"my_config","data":{}}'
 ```
@@ -115,12 +115,12 @@ curl http://127.0.0.1:8000/api/v1/artifacts/ARTIFACT_ID
 |--------|----------|-------------|
 | GET | `/health` | Health check |
 | GET | `/system` | Service info |
-| POST | `/api/v1/config` | Create config |
-| GET | `/api/v1/config` | List configs |
-| GET | `/api/v1/config/{id}` | Get config |
-| PUT | `/api/v1/config/{id}` | Update config |
-| DELETE | `/api/v1/config/{id}` | Delete config |
-| GET | `/api/v1/config/$schema` | Config schema |
+| POST | `/api/v1/configs` | Create config |
+| GET | `/api/v1/configs` | List configs |
+| GET | `/api/v1/configs/{id}` | Get config |
+| PUT | `/api/v1/configs/{id}` | Update config |
+| DELETE | `/api/v1/configs/{id}` | Delete config |
+| GET | `/api/v1/configs/$schema` | Config schema |
 | POST | `/api/v1/ml/$train` | Train model (async) |
 | POST | `/api/v1/ml/$predict` | Predict (async) |
 | GET | `/api/v1/jobs` | List jobs |
@@ -135,17 +135,17 @@ curl http://127.0.0.1:8000/api/v1/artifacts/ARTIFACT_ID
 
 ```bash
 # Without pagination (returns array)
-curl http://127.0.0.1:8000/api/v1/config
+curl http://127.0.0.1:8000/api/v1/configs
 
 # With pagination (returns PaginatedResponse)
-curl "http://127.0.0.1:8000/api/v1/config?page=1&size=10"
+curl "http://127.0.0.1:8000/api/v1/configs?page=1&size=10"
 ```
 
 ## Using jq for JSON Parsing
 
 ```bash
 # Extract config ID
-CONFIG_ID=$(curl -s -X POST http://127.0.0.1:8000/api/v1/config \
+CONFIG_ID=$(curl -s -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{"name":"test","data":{}}' | jq -r '.id')
 
@@ -163,7 +163,7 @@ curl -s http://127.0.0.1:8000/health | jq '.'
 set -e
 
 # 1. Create config
-CONFIG_ID=$(curl -s -X POST http://127.0.0.1:8000/api/v1/config \
+CONFIG_ID=$(curl -s -X POST http://127.0.0.1:8000/api/v1/configs \
   -H "Content-Type: application/json" \
   -d '{"name":"auto","data":{}}' | jq -r '.id')
 echo "Config ID: $CONFIG_ID"
@@ -243,7 +243,7 @@ kill $(lsof -t -i :8000)
 ### Config Not Found
 ```bash
 # List all configs
-curl http://127.0.0.1:8000/api/v1/config
+curl http://127.0.0.1:8000/api/v1/configs
 
 # Verify ID is correct (26 chars)
 ```

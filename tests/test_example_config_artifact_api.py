@@ -62,7 +62,7 @@ def test_info_endpoint(client: TestClient) -> None:
 
 def test_list_configs(client: TestClient) -> None:
     """Test listing all seeded configs."""
-    response = client.get("/api/v1/config")
+    response = client.get("/api/v1/configs")
     assert response.status_code == 200
     data = response.json()
 
@@ -103,13 +103,13 @@ def test_get_artifact_tree(client: TestClient) -> None:
 def test_get_linked_artifacts_for_config(client: TestClient) -> None:
     """Test retrieving artifacts linked to a config."""
     # Get experiment_alpha config
-    configs_response = client.get("/api/v1/config")
+    configs_response = client.get("/api/v1/configs")
     configs = configs_response.json()
     alpha_config = next((c for c in configs if c["name"] == "experiment_alpha"), None)
     assert alpha_config is not None
 
     config_id = alpha_config["id"]
-    response = client.get(f"/api/v1/config/{config_id}/$artifacts")
+    response = client.get(f"/api/v1/configs/{config_id}/$artifacts")
     assert response.status_code == 200
     artifacts = response.json()
 
@@ -144,7 +144,7 @@ def test_link_artifact_to_config(client: TestClient) -> None:
         "name": "test-experiment",
         "data": {"model": "random_forest", "learning_rate": 0.01, "epochs": 100, "batch_size": 128},
     }
-    create_response = client.post("/api/v1/config", json=new_config)
+    create_response = client.post("/api/v1/configs", json=new_config)
     assert create_response.status_code == 201
     config = create_response.json()
     config_id = config["id"]
@@ -157,11 +157,11 @@ def test_link_artifact_to_config(client: TestClient) -> None:
     artifact_id = artifact["id"]
 
     # Link the artifact to the config
-    link_response = client.post(f"/api/v1/config/{config_id}/$link-artifact", json={"artifact_id": artifact_id})
+    link_response = client.post(f"/api/v1/configs/{config_id}/$link-artifact", json={"artifact_id": artifact_id})
     assert link_response.status_code == 204
 
     # Verify the link
-    artifacts_response = client.get(f"/api/v1/config/{config_id}/$artifacts")
+    artifacts_response = client.get(f"/api/v1/configs/{config_id}/$artifacts")
     assert artifacts_response.status_code == 200
     linked_artifacts = artifacts_response.json()
     assert len(linked_artifacts) == 1
@@ -171,7 +171,7 @@ def test_link_artifact_to_config(client: TestClient) -> None:
 def test_link_non_root_artifact_fails(client: TestClient) -> None:
     """Test that linking a non-root artifact to config fails."""
     # Get experiment_alpha config
-    configs_response = client.get("/api/v1/config")
+    configs_response = client.get("/api/v1/configs")
     configs = configs_response.json()
     alpha_config = next((c for c in configs if c["name"] == "experiment_alpha"), None)
     assert alpha_config is not None
@@ -182,7 +182,7 @@ def test_link_non_root_artifact_fails(client: TestClient) -> None:
     non_root_artifact_id = "01K72PWT05GEXK1S24AVKAZ9VG"
 
     link_response = client.post(
-        f"/api/v1/config/{config_id}/$link-artifact", json={"artifact_id": non_root_artifact_id}
+        f"/api/v1/configs/{config_id}/$link-artifact", json={"artifact_id": non_root_artifact_id}
     )
     # Should fail because non-root artifacts can't be linked
     assert link_response.status_code == 400
@@ -197,7 +197,7 @@ def test_unlink_artifact_from_config(client: TestClient) -> None:
         "name": "unlink-test",
         "data": {"model": "mlp", "learning_rate": 0.001, "epochs": 50, "batch_size": 64},
     }
-    config_response = client.post("/api/v1/config", json=new_config)
+    config_response = client.post("/api/v1/configs", json=new_config)
     config = config_response.json()
     config_id = config["id"]
 
@@ -207,14 +207,14 @@ def test_unlink_artifact_from_config(client: TestClient) -> None:
     artifact_id = artifact["id"]
 
     # Link them
-    client.post(f"/api/v1/config/{config_id}/$link-artifact", json={"artifact_id": artifact_id})
+    client.post(f"/api/v1/configs/{config_id}/$link-artifact", json={"artifact_id": artifact_id})
 
     # Unlink
-    unlink_response = client.post(f"/api/v1/config/{config_id}/$unlink-artifact", json={"artifact_id": artifact_id})
+    unlink_response = client.post(f"/api/v1/configs/{config_id}/$unlink-artifact", json={"artifact_id": artifact_id})
     assert unlink_response.status_code == 204
 
     # Verify unlinked
-    artifacts_response = client.get(f"/api/v1/config/{config_id}/$artifacts")
+    artifacts_response = client.get(f"/api/v1/configs/{config_id}/$artifacts")
     linked_artifacts = artifacts_response.json()
     assert len(linked_artifacts) == 0
 
@@ -226,7 +226,7 @@ def test_create_config_with_experiment_schema(client: TestClient) -> None:
         "data": {"model": "svm", "learning_rate": 0.1, "epochs": 30, "batch_size": 512},
     }
 
-    response = client.post("/api/v1/config", json=new_config)
+    response = client.post("/api/v1/configs", json=new_config)
     assert response.status_code == 201
     data = response.json()
 

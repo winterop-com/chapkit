@@ -190,13 +190,13 @@ custom_paths = default_paths + ["/public", "/status"]
 
 ```bash
 # Valid request
-curl -H "X-API-Key: sk_dev_test123" http://localhost:8000/api/v1/config
+curl -H "X-API-Key: sk_dev_test123" http://localhost:8000/api/v1/configs
 
 # Missing key (returns 401)
-curl http://localhost:8000/api/v1/config
+curl http://localhost:8000/api/v1/configs
 
 # Invalid key (returns 401)
-curl -H "X-API-Key: invalid_key" http://localhost:8000/api/v1/config
+curl -H "X-API-Key: invalid_key" http://localhost:8000/api/v1/configs
 
 # Unauthenticated path (no key needed)
 curl http://localhost:8000/api/v1/health
@@ -211,7 +211,7 @@ headers = {"X-API-Key": "sk_dev_test123"}
 
 # Authenticated request
 response = requests.get(
-    "http://localhost:8000/api/v1/config",
+    "http://localhost:8000/api/v1/configs",
     headers=headers
 )
 
@@ -228,7 +228,7 @@ headers = {"X-API-Key": "sk_dev_test123"}
 
 async with httpx.AsyncClient() as client:
     response = await client.get(
-        "http://localhost:8000/api/v1/config",
+        "http://localhost:8000/api/v1/configs",
         headers=headers
     )
     assert response.status_code == 200
@@ -366,7 +366,7 @@ Chapkit automatically logs authentication events with **masked keys** for securi
 {
   "event": "auth.success",
   "key_prefix": "sk_prod",
-  "path": "/api/v1/config"
+  "path": "/api/v1/configs"
 }
 ```
 
@@ -376,7 +376,7 @@ Chapkit automatically logs authentication events with **masked keys** for securi
 {
   "event": "auth.invalid_key",
   "key_prefix": "sk_unkn",
-  "path": "/api/v1/config",
+  "path": "/api/v1/configs",
   "method": "GET"
 }
 ```
@@ -386,7 +386,7 @@ Chapkit automatically logs authentication events with **masked keys** for securi
 ```json
 {
   "event": "auth.missing_key",
-  "path": "/api/v1/config",
+  "path": "/api/v1/configs",
   "method": "GET"
 }
 ```
@@ -430,7 +430,7 @@ All authentication errors follow RFC 9457 Problem Details format.
   "title": "Unauthorized",
   "status": 401,
   "detail": "Missing authentication header: X-API-Key",
-  "instance": "/api/v1/config"
+  "instance": "/api/v1/configs"
 }
 ```
 
@@ -442,7 +442,7 @@ All authentication errors follow RFC 9457 Problem Details format.
   "title": "Unauthorized",
   "status": 401,
   "detail": "Invalid API key",
-  "instance": "/api/v1/config"
+  "instance": "/api/v1/configs"
 }
 ```
 
@@ -460,7 +460,7 @@ All authentication errors follow RFC 9457 Problem Details format.
 
 Test with:
 ```bash
-curl -H "X-Custom-API-Key: sk_dev_test123" http://localhost:8000/api/v1/config
+curl -H "X-Custom-API-Key: sk_dev_test123" http://localhost:8000/api/v1/configs
 ```
 
 ### Multiple Environments

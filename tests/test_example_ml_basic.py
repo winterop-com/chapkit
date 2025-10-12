@@ -69,7 +69,7 @@ def test_create_config(client: TestClient) -> None:
     config_name = f"test_disease_config_{ULID()}"
     new_config = {"name": config_name, "data": {}}
 
-    response = client.post("/api/v1/config", json=new_config)
+    response = client.post("/api/v1/configs", json=new_config)
     assert response.status_code == 201
     config = response.json()
 
@@ -83,7 +83,7 @@ def test_train_model(client: TestClient) -> None:
     from ulid import ULID
 
     # Create config first
-    config_response = client.post("/api/v1/config", json={"name": f"train_test_config_{ULID()}", "data": {}})
+    config_response = client.post("/api/v1/configs", json={"name": f"train_test_config_{ULID()}", "data": {}})
     config = config_response.json()
     config_id = config["id"]
 
@@ -149,7 +149,7 @@ def test_train_and_predict_workflow(client: TestClient) -> None:
     from ulid import ULID
 
     # 1. Create config
-    config_response = client.post("/api/v1/config", json={"name": f"workflow_config_{ULID()}", "data": {}})
+    config_response = client.post("/api/v1/configs", json={"name": f"workflow_config_{ULID()}", "data": {}})
     config_id = config_response.json()["id"]
 
     # 2. Train model
@@ -303,7 +303,7 @@ def test_multiple_predictions_from_same_model(client: TestClient) -> None:
     from ulid import ULID
 
     # Create config and train model
-    config_response = client.post("/api/v1/config", json={"name": f"multi_predict_config_{ULID()}", "data": {}})
+    config_response = client.post("/api/v1/configs", json={"name": f"multi_predict_config_{ULID()}", "data": {}})
     config_id = config_response.json()["id"]
 
     train_request = {
@@ -353,7 +353,7 @@ def test_artifact_hierarchy_levels(client: TestClient) -> None:
     from ulid import ULID
 
     # Create config and train
-    config_response = client.post("/api/v1/config", json={"name": f"hierarchy_config_{ULID()}", "data": {}})
+    config_response = client.post("/api/v1/configs", json={"name": f"hierarchy_config_{ULID()}", "data": {}})
     config_id = config_response.json()["id"]
 
     train_request = {
@@ -406,7 +406,9 @@ def test_concurrent_training_jobs(client: TestClient) -> None:
     config_ids = []
     unique_id = ULID()
     for i in range(3):
-        config_response = client.post("/api/v1/config", json={"name": f"concurrent_config_{unique_id}_{i}", "data": {}})
+        config_response = client.post(
+            "/api/v1/configs", json={"name": f"concurrent_config_{unique_id}_{i}", "data": {}}
+        )
         config_ids.append(config_response.json()["id"])
 
     # Submit training jobs

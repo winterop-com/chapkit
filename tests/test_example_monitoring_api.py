@@ -71,7 +71,7 @@ def test_service_metadata(client: TestClient) -> None:
 
 def test_config_endpoints_exist(client: TestClient) -> None:
     """Test that config endpoints are available."""
-    response = client.get("/api/v1/config")
+    response = client.get("/api/v1/configs")
     assert response.status_code == 200
     data = response.json()
     # Should return empty list or paginated response initially
@@ -80,7 +80,7 @@ def test_config_endpoints_exist(client: TestClient) -> None:
 
 def test_config_schema_endpoint(client: TestClient) -> None:
     """Test config schema endpoint returns Config entity schema with AppConfig data."""
-    response = client.get("/api/v1/config/$schema")
+    response = client.get("/api/v1/configs/$schema")
     assert response.status_code == 200
     schema = response.json()
     assert "properties" in schema
@@ -113,5 +113,5 @@ def test_openapi_schema(client: TestClient) -> None:
     assert "/metrics" in paths
 
     # Verify API endpoints are versioned
-    assert "/api/v1/config" in paths
-    assert "/api/v1/config/$schema" in paths
+    assert "/api/v1/configs" in paths
+    assert "/api/v1/configs/$schema" in paths

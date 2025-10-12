@@ -55,7 +55,7 @@ vi .env
 docker-compose -f docker-compose.auth-envvar.yml up
 
 # 4. Test
-curl -H "X-API-Key: YOUR_KEY_HERE" http://localhost:8000/api/v1/config
+curl -H "X-API-Key: YOUR_KEY_HERE" http://localhost:8000/api/v1/configs
 ```
 
 ### Option 2: Docker Secrets (Most Secure)
@@ -75,7 +75,7 @@ chmod 400 secrets/api_keys.txt
 docker-compose -f docker-compose.auth-secrets.yml up
 
 # 5. Test
-curl -H "X-API-Key: YOUR_KEY_HERE" http://localhost:8000/api/v1/config
+curl -H "X-API-Key: YOUR_KEY_HERE" http://localhost:8000/api/v1/configs
 ```
 
 ## File Structure
@@ -103,7 +103,7 @@ curl http://localhost:8000/health
 
 ```bash
 # Replace YOUR_KEY with actual key
-curl -H "X-API-Key: YOUR_KEY" http://localhost:8000/api/v1/config
+curl -H "X-API-Key: YOUR_KEY" http://localhost:8000/api/v1/configs
 ```
 
 ### View Logs

@@ -233,7 +233,7 @@ POST /api/v1/ml/$predict
 
 **Create config with normalization:**
 ```json
-POST /api/v1/config
+POST /api/v1/configs
 {
   "name": "weather_model_normalized",
   "data": {

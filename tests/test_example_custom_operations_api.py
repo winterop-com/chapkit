@@ -30,7 +30,7 @@ def test_health_endpoint(client: TestClient) -> None:
 
 def test_list_configs(client: TestClient) -> None:
     """Test listing all seeded feature configs."""
-    response = client.get("/api/v1/config")
+    response = client.get("/api/v1/configs")
     assert response.status_code == 200
     data = response.json()
 
@@ -56,11 +56,11 @@ def test_list_configs(client: TestClient) -> None:
 def test_get_config_by_id(client: TestClient) -> None:
     """Test retrieving config by ID."""
     # Get the list to obtain a valid ID
-    list_response = client.get("/api/v1/config")
+    list_response = client.get("/api/v1/configs")
     configs = list_response.json()
     config_id = configs[0]["id"]
 
-    response = client.get(f"/api/v1/config/{config_id}")
+    response = client.get(f"/api/v1/configs/{config_id}")
     assert response.status_code == 200
     data = response.json()
 
@@ -72,7 +72,7 @@ def test_get_config_by_id(client: TestClient) -> None:
 def test_enable_operation(client: TestClient) -> None:
     """Test PATCH operation to toggle enabled flag."""
     # Get experimental_features config (initially disabled)
-    list_response = client.get("/api/v1/config")
+    list_response = client.get("/api/v1/configs")
     configs = list_response.json()
     experimental = next((c for c in configs if c["name"] == "experimental_features"), None)
     assert experimental is not None
@@ -80,7 +80,7 @@ def test_enable_operation(client: TestClient) -> None:
     initial_enabled = experimental["data"]["enabled"]
 
     # Toggle enabled flag
-    response = client.patch(f"/api/v1/config/{config_id}/$enable", params={"enabled": not initial_enabled})
+    response = client.patch(f"/api/v1/configs/{config_id}/$enable", params={"enabled": not initial_enabled})
     assert response.status_code == 200
     updated = response.json()
 
@@ -88,7 +88,7 @@ def test_enable_operation(client: TestClient) -> None:
     assert updated["data"]["enabled"] is not initial_enabled
 
     # Toggle back
-    response2 = client.patch(f"/api/v1/config/{config_id}/$enable", params={"enabled": initial_enabled})
+    response2 = client.patch(f"/api/v1/configs/{config_id}/$enable", params={"enabled": initial_enabled})
     assert response2.status_code == 200
     restored = response2.json()
     assert restored["data"]["enabled"] is initial_enabled
@@ -97,11 +97,11 @@ def test_enable_operation(client: TestClient) -> None:
 def test_validate_operation(client: TestClient) -> None:
     """Test GET operation to validate configuration."""
     # Get a valid config
-    list_response = client.get("/api/v1/config")
+    list_response = client.get("/api/v1/configs")
     configs = list_response.json()
     config_id = configs[0]["id"]
 
-    response = client.get(f"/api/v1/config/{config_id}/$validate")
+    response = client.get(f"/api/v1/configs/{config_id}/$validate")
     assert response.status_code == 200
     validation = response.json()
 
@@ -127,13 +127,13 @@ def test_validate_with_errors(client: TestClient) -> None:
         },
     }
 
-    create_response = client.post("/api/v1/config", json=invalid_config)
+    create_response = client.post("/api/v1/configs", json=invalid_config)
     assert create_response.status_code == 201
     created = create_response.json()
     config_id = created["id"]
 
     # Validate it
-    response = client.get(f"/api/v1/config/{config_id}/$validate")
+    response = client.get(f"/api/v1/configs/{config_id}/$validate")
     assert response.status_code == 200
     validation = response.json()
 
@@ -147,13 +147,13 @@ def test_validate_with_errors(client: TestClient) -> None:
 def test_duplicate_operation(client: TestClient) -> None:
     """Test POST operation to duplicate a configuration."""
     # Get a config to duplicate
-    list_response = client.get("/api/v1/config")
+    list_response = client.get("/api/v1/configs")
     configs = list_response.json()
     original_config = configs[0]
     config_id = original_config["id"]
 
     # Duplicate it
-    response = client.post(f"/api/v1/config/{config_id}/$duplicate", params={"new_name": "duplicated-config"})
+    response = client.post(f"/api/v1/configs/{config_id}/$duplicate", params={"new_name": "duplicated-config"})
     assert response.status_code == 201
     duplicate = response.json()
 
@@ -166,13 +166,13 @@ def test_duplicate_operation(client: TestClient) -> None:
 def test_duplicate_with_existing_name_fails(client: TestClient) -> None:
     """Test duplicating with existing name returns 409."""
     # Get a config to duplicate
-    list_response = client.get("/api/v1/config")
+    list_response = client.get("/api/v1/configs")
     configs = list_response.json()
     config_id = configs[0]["id"]
 
     # Try to duplicate with name that already exists
     response = client.post(
-        f"/api/v1/config/{config_id}/$duplicate",
+        f"/api/v1/configs/{config_id}/$duplicate",
         params={"new_name": "api_rate_limiting"},  # Already exists
     )
     assert response.status_code == 409
@@ -183,7 +183,7 @@ def test_duplicate_with_existing_name_fails(client: TestClient) -> None:
 def test_bulk_toggle_operation(client: TestClient) -> None:
     """Test PATCH collection operation to bulk enable/disable configs."""
     # Disable all configs
-    response = client.patch("/api/v1/config/$bulk-toggle", json={"enabled": False, "tag_filter": None})
+    response = client.patch("/api/v1/configs/$bulk-toggle", json={"enabled": False, "tag_filter": None})
     assert response.status_code == 200
     result = response.json()
 
@@ -191,19 +191,19 @@ def test_bulk_toggle_operation(client: TestClient) -> None:
     assert result["updated"] >= 3  # At least 3 seeded configs updated
 
     # Verify all are disabled
-    list_response = client.get("/api/v1/config")
+    list_response = client.get("/api/v1/configs")
     configs = list_response.json()
     assert all(not c["data"]["enabled"] for c in configs)
 
     # Re-enable all
-    response2 = client.patch("/api/v1/config/$bulk-toggle", json={"enabled": True, "tag_filter": None})
+    response2 = client.patch("/api/v1/configs/$bulk-toggle", json={"enabled": True, "tag_filter": None})
     assert response2.status_code == 200
 
 
 def test_bulk_toggle_with_tag_filter(client: TestClient) -> None:
     """Test bulk toggle with tag filter."""
     # Toggle only configs with "api" tag (should be api_rate_limiting)
-    response = client.patch("/api/v1/config/$bulk-toggle", json={"enabled": False, "tag_filter": "api"})
+    response = client.patch("/api/v1/configs/$bulk-toggle", json={"enabled": False, "tag_filter": "api"})
     assert response.status_code == 200
     result = response.json()
 
@@ -211,7 +211,7 @@ def test_bulk_toggle_with_tag_filter(client: TestClient) -> None:
     assert result["updated"] >= 1
 
     # Verify only api_rate_limiting is disabled
-    list_response = client.get("/api/v1/config")
+    list_response = client.get("/api/v1/configs")
     configs = list_response.json()
     api_config = next((c for c in configs if c["name"] == "api_rate_limiting"), None)
     assert api_config is not None
@@ -220,7 +220,7 @@ def test_bulk_toggle_with_tag_filter(client: TestClient) -> None:
 
 def test_stats_operation(client: TestClient) -> None:
     """Test GET collection operation to get statistics."""
-    response = client.get("/api/v1/config/$stats")
+    response = client.get("/api/v1/configs/$stats")
     assert response.status_code == 200
     stats = response.json()
 
@@ -244,15 +244,15 @@ def test_stats_operation(client: TestClient) -> None:
 def test_reset_operation(client: TestClient) -> None:
     """Test POST collection operation to reset all configurations."""
     # First, modify some configs
-    list_response = client.get("/api/v1/config")
+    list_response = client.get("/api/v1/configs")
     configs = list_response.json()
     config_id = configs[0]["id"]
 
     # Update with different values
-    client.patch(f"/api/v1/config/{config_id}/$enable", params={"enabled": False})
+    client.patch(f"/api/v1/configs/{config_id}/$enable", params={"enabled": False})
 
     # Reset all
-    response = client.post("/api/v1/config/$reset")
+    response = client.post("/api/v1/configs/$reset")
     assert response.status_code == 200
     result = response.json()
 
@@ -260,7 +260,7 @@ def test_reset_operation(client: TestClient) -> None:
     assert result["reset"] >= 3  # At least 3 seeded configs reset
 
     # Verify configs are reset to defaults (check at least the seeded ones)
-    list_response2 = client.get("/api/v1/config")
+    list_response2 = client.get("/api/v1/configs")
     configs2 = list_response2.json()
 
     # Check that at least 3 configs have default values
@@ -288,7 +288,7 @@ def test_standard_crud_create(client: TestClient) -> None:
         },
     }
 
-    response = client.post("/api/v1/config", json=new_config)
+    response = client.post("/api/v1/configs", json=new_config)
     assert response.status_code == 201
     created = response.json()
 
@@ -304,7 +304,7 @@ def test_standard_crud_update(client: TestClient) -> None:
         "name": "update-test",
         "data": {"name": "Update Test", "enabled": False, "max_requests": 100, "timeout_seconds": 10.0, "tags": []},
     }
-    create_response = client.post("/api/v1/config", json=new_config)
+    create_response = client.post("/api/v1/configs", json=new_config)
     created = create_response.json()
     config_id = created["id"]
 
@@ -321,7 +321,7 @@ def test_standard_crud_update(client: TestClient) -> None:
         },
     }
 
-    response = client.put(f"/api/v1/config/{config_id}", json=updated_config)
+    response = client.put(f"/api/v1/configs/{config_id}", json=updated_config)
     assert response.status_code == 200
     updated = response.json()
 
@@ -337,22 +337,22 @@ def test_standard_crud_delete(client: TestClient) -> None:
         "name": "delete-test",
         "data": {"name": "Delete Test", "enabled": True, "max_requests": 100, "timeout_seconds": 10.0, "tags": []},
     }
-    create_response = client.post("/api/v1/config", json=new_config)
+    create_response = client.post("/api/v1/configs", json=new_config)
     created = create_response.json()
     config_id = created["id"]
 
     # Delete it
-    response = client.delete(f"/api/v1/config/{config_id}")
+    response = client.delete(f"/api/v1/configs/{config_id}")
     assert response.status_code == 204
 
     # Verify it's gone
-    get_response = client.get(f"/api/v1/config/{config_id}")
+    get_response = client.get(f"/api/v1/configs/{config_id}")
     assert get_response.status_code == 404
 
 
 def test_validate_not_found(client: TestClient) -> None:
     """Test validate operation on non-existent config returns 404."""
-    response = client.get("/api/v1/config/01K72P5N5KCRM6MD3BRE4P0999/$validate")
+    response = client.get("/api/v1/configs/01K72P5N5KCRM6MD3BRE4P0999/$validate")
     assert response.status_code == 404
     data = response.json()
     assert "not found" in data["detail"].lower()
@@ -360,7 +360,7 @@ def test_validate_not_found(client: TestClient) -> None:
 
 def test_duplicate_not_found(client: TestClient) -> None:
     """Test duplicate operation on non-existent config returns 404."""
-    response = client.post("/api/v1/config/01K72P5N5KCRM6MD3BRE4P0999/$duplicate", params={"new_name": "test"})
+    response = client.post("/api/v1/configs/01K72P5N5KCRM6MD3BRE4P0999/$duplicate", params={"new_name": "test"})
     assert response.status_code == 404
     data = response.json()
     assert "not found" in data["detail"].lower()

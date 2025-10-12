@@ -47,7 +47,7 @@ def test_train_with_class_runner(client: TestClient) -> None:
 
     # Create config
     config_response = client.post(
-        "/api/v1/config",
+        "/api/v1/configs",
         json={"name": f"weather_config_{ULID()}", "data": {"min_samples": 3, "normalize_features": True}},
     )
     config = config_response.json()
@@ -91,7 +91,7 @@ def test_train_and_predict_with_preprocessing(client: TestClient) -> None:
 
     # Create config with normalization
     config_response = client.post(
-        "/api/v1/config",
+        "/api/v1/configs",
         json={"name": f"preprocess_config_{ULID()}", "data": {"min_samples": 3, "normalize_features": True}},
     )
     config_id = config_response.json()["id"]
@@ -154,7 +154,7 @@ def test_train_with_insufficient_samples(client: TestClient) -> None:
 
     # Create config with min_samples requirement
     config_response = client.post(
-        "/api/v1/config", json={"name": f"min_samples_config_{ULID()}", "data": {"min_samples": 10}}
+        "/api/v1/configs", json={"name": f"min_samples_config_{ULID()}", "data": {"min_samples": 10}}
     )
     config_id = config_response.json()["id"]
 
@@ -186,7 +186,7 @@ def test_train_without_normalization(client: TestClient) -> None:
 
     # Create config without normalization, with lower min_samples
     config_response = client.post(
-        "/api/v1/config",
+        "/api/v1/configs",
         json={"name": f"no_norm_config_{ULID()}", "data": {"normalize_features": False, "min_samples": 3}},
     )
     config_id = config_response.json()["id"]
@@ -218,7 +218,7 @@ def test_multiple_models_from_same_config(client: TestClient) -> None:
 
     # Create config with lower min_samples
     config_response = client.post(
-        "/api/v1/config", json={"name": f"multi_model_config_{ULID()}", "data": {"min_samples": 1}}
+        "/api/v1/configs", json={"name": f"multi_model_config_{ULID()}", "data": {"min_samples": 1}}
     )
     config_id = config_response.json()["id"]
 
