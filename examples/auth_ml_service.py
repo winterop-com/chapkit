@@ -68,7 +68,6 @@ app = (
             contact={"email": "ml-ops@example.com"},
             license_info={"name": "MIT"},
         ),
-        database_url="sqlite+aiosqlite:///./secure_ml.db",
         config_schema=SecureMLConfig,
         hierarchy=HIERARCHY,
         runner=runner,

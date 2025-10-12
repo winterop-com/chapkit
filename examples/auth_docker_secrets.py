@@ -26,7 +26,6 @@ app = (
             contact={"email": "security@example.com"},
             license_info={"name": "MIT"},
         ),
-        database_url="sqlite+aiosqlite:///./secure.db",
     )
     .with_logging()
     .with_health()

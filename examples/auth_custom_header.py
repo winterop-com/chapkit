@@ -25,7 +25,6 @@ app = (
             contact={"email": "api@example.com"},
             license_info={"name": "MIT"},
         ),
-        database_url="sqlite+aiosqlite:///./custom_auth.db",
     )
     .with_logging()
     .with_health()
