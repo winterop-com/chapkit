@@ -11,14 +11,14 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable, Generic, TypeVar
 
 import pandas as pd
-import structlog
 from geojson_pydantic import FeatureCollection
 
+from chapkit.core.logging import get_logger
 from chapkit.modules.config.schemas import BaseConfig
 
 ConfigT = TypeVar("ConfigT", bound=BaseConfig)
 
-log = structlog.get_logger()
+logger = get_logger(__name__)
 
 
 class BaseModelRunner(ABC):
@@ -139,7 +139,7 @@ class ShellModelRunner(BaseModelRunner):
                 geo_file=str(geo_file) if geo_file else "",
             )
 
-            log.info("executing_train_script", command=command, temp_dir=str(temp_dir))
+            logger.info("executing_train_script", command=command, temp_dir=str(temp_dir))
 
             # Execute subprocess
             process = await asyncio.create_subprocess_shell(
@@ -154,10 +154,10 @@ class ShellModelRunner(BaseModelRunner):
             stderr = stderr_bytes.decode("utf-8") if stderr_bytes else ""
 
             if process.returncode != 0:
-                log.error("train_script_failed", exit_code=process.returncode, stderr=stderr)
+                logger.error("train_script_failed", exit_code=process.returncode, stderr=stderr)
                 raise RuntimeError(f"Training script failed with exit code {process.returncode}: {stderr}")
 
-            log.info("train_script_completed", stdout=stdout[:500], stderr=stderr[:500])
+            logger.info("train_script_completed", stdout=stdout[:500], stderr=stderr[:500])
 
             # Load trained model from file
             if not model_file.exists():
@@ -224,7 +224,7 @@ class ShellModelRunner(BaseModelRunner):
                 geo_file=str(geo_file) if geo_file else "",
             )
 
-            log.info("executing_predict_script", command=command, temp_dir=str(temp_dir))
+            logger.info("executing_predict_script", command=command, temp_dir=str(temp_dir))
 
             # Execute subprocess
             process = await asyncio.create_subprocess_shell(
@@ -239,10 +239,10 @@ class ShellModelRunner(BaseModelRunner):
             stderr = stderr_bytes.decode("utf-8") if stderr_bytes else ""
 
             if process.returncode != 0:
-                log.error("predict_script_failed", exit_code=process.returncode, stderr=stderr)
+                logger.error("predict_script_failed", exit_code=process.returncode, stderr=stderr)
                 raise RuntimeError(f"Prediction script failed with exit code {process.returncode}: {stderr}")
 
-            log.info("predict_script_completed", stdout=stdout[:500], stderr=stderr[:500])
+            logger.info("predict_script_completed", stdout=stdout[:500], stderr=stderr[:500])
 
             # Load predictions from file
             if not output_file.exists():

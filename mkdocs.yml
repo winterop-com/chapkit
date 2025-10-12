@@ -118,6 +118,8 @@ plugins:
 
 nav:
   - Home: index.md
+  - Guides:
+      - Authentication: authentication.md
   - API Reference: api-reference.md
 
 extra_css:

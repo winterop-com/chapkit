@@ -25,6 +25,7 @@ chapkit/
 │   └── api/             # FastAPI framework layer
 │       ├── router.py    # Router base class
 │       ├── crud.py      # CrudRouter, CrudPermissions
+│       ├── auth.py      # APIKeyMiddleware, key loading utilities
 │       ├── dependencies.py  # get_database, get_session, get_scheduler
 │       ├── middleware.py    # Error handlers, logging middleware
 │       ├── pagination.py    # Pagination helpers
@@ -176,6 +177,7 @@ ServiceBuilder(
 - `.with_tasks(prefix="/api/v1/tasks")` - Task execution CRUD with bash/script execution
 - `.with_ml(runner, prefix="/api/v1/ml")` - ML train/predict endpoints with model runner
 - `.with_logging()` - Enable structured logging with request tracing
+- `.with_auth(api_keys=None, api_key_file=None, env_var="CHAPKIT_API_KEYS", header_name="X-API-Key", unauthenticated_paths=None)` - Enable API key authentication
 - `.include_router(router)` - Add custom routers
 - `.on_startup(hook)` / `.on_shutdown(hook)` - Lifecycle hooks
 - `.build()` - Returns FastAPI app
@@ -436,6 +438,118 @@ async def seed_data(app: FastAPI) -> None:
 
 app = ServiceBuilder(info=info).with_config(AppConfig).on_startup(seed_data).build()
 ```
+
+### API Key Authentication
+
+For service-to-service communication in Docker Compose environments. Supports environment variables, Docker secrets, and direct keys (dev only).
+
+**Production (Environment Variables):**
+```python
+from chapkit import BaseConfig
+from chapkit.api import ServiceBuilder, ServiceInfo
+
+class AppConfig(BaseConfig):
+    environment: str
+
+# Reads from CHAPKIT_API_KEYS environment variable
+app = (
+    ServiceBuilder(info=ServiceInfo(display_name="My Service"))
+    .with_health()
+    .with_config(AppConfig)
+    .with_auth()  # Reads from CHAPKIT_API_KEYS env var
+    .build()
+)
+```
+
+Run with:
+```bash
+export CHAPKIT_API_KEYS="sk_prod_abc123,sk_prod_xyz789"
+fastapi dev your_file.py
+```
+
+**Docker Secrets:**
+```python
+app = (
+    ServiceBuilder(info=ServiceInfo(display_name="My Service"))
+    .with_health()
+    .with_config(AppConfig)
+    .with_auth(api_key_file="/run/secrets/api_keys")
+    .build()
+)
+```
+
+**Development (Direct Keys):**
+```python
+# WARNING: Only for examples and local development
+app = (
+    ServiceBuilder(info=ServiceInfo(display_name="My Service"))
+    .with_health()
+    .with_config(AppConfig)
+    .with_auth(api_keys=["sk_dev_test123"])
+    .build()
+)
+```
+
+**Configuration Options:**
+```python
+.with_auth(
+    api_keys=None,                      # Direct list (dev only)
+    api_key_file=None,                  # File path (Docker secrets)
+    env_var="CHAPKIT_API_KEYS",         # Environment variable name
+    header_name="X-API-Key",            # HTTP header for API key
+    unauthenticated_paths=None,         # Paths without auth
+)
+```
+
+**Key Format Convention:**
+```
+sk_prod_a1b2c3d4e5f6g7h8     # Production
+sk_dev_test123               # Development
+```
+
+**Testing Authenticated Endpoints:**
+```bash
+# Valid request
+curl -H "X-API-Key: sk_dev_test123" http://localhost:8000/api/v1/config
+
+# Missing key (returns 401)
+curl http://localhost:8000/api/v1/config
+
+# Unauthenticated path (no key needed)
+curl http://localhost:8000/api/v1/health
+```
+
+**Default Unauthenticated Paths:**
+- `/docs` - Swagger UI
+- `/redoc` - ReDoc
+- `/openapi.json` - OpenAPI schema
+- `/api/v1/health` - Health check
+- `/` - Landing page
+
+**Custom Unauthenticated Paths:**
+```python
+.with_auth(unauthenticated_paths=["/health", "/public", "/status"])
+```
+
+**Key Rotation:**
+Support multiple active keys during rotation:
+```bash
+# Step 1: Add new key (both keys work)
+export CHAPKIT_API_KEYS="sk_prod_old123,sk_prod_new456"
+
+# Step 2: Update all clients to use new key
+
+# Step 3: Remove old key
+export CHAPKIT_API_KEYS="sk_prod_new456"
+```
+
+**Security Features:**
+- Only first 7 characters logged (`sk_prod_****`)
+- RFC 9457 error responses (401 Unauthorized)
+- Prefix attached to request state for tracing
+- No database storage required
+
+**For complete documentation, see:** `docs/authentication.md`
 
 ### ML Train/Predict with Artifacts
 
