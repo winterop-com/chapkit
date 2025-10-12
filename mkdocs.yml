@@ -119,7 +119,8 @@ plugins:
 nav:
   - Home: index.md
   - Guides:
-      - Authentication: authentication.md
+      - Authentication: guides/authentication.md
+      - Job Scheduler: guides/job-scheduler.md
   - API Reference: api-reference.md
 
 extra_css:

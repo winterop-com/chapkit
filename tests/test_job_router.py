@@ -250,6 +250,135 @@ class TestJobRouter:
         assert jobs[1]["id"] == str(job_ids[1])
         assert jobs[2]["id"] == str(job_ids[0])
 
+    @pytest.mark.asyncio
+    async def test_stream_job_status_quick_job(self, client: AsyncClient, app: FastAPI):
+        """Test SSE streaming for quick job that completes immediately."""
+        scheduler = app.state.scheduler
+
+        async def quick_task():
+            return "done"
+
+        job_id = await scheduler.add_job(quick_task)
+        await scheduler.wait(job_id)
+
+        # Stream SSE events
+        events = []
+        async with client.stream("GET", f"/api/v1/jobs/{job_id}/$stream") as response:
+            assert response.status_code == 200
+            assert response.headers["content-type"] == "text/event-stream; charset=utf-8"
+            assert response.headers["cache-control"] == "no-cache"
+
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    import json
+                    data = json.loads(line[6:])
+                    events.append(data)
+
+        # Should have at least one event with completed status
+        assert len(events) >= 1
+        assert events[-1]["status"] == "completed"
+        assert events[-1]["id"] == str(job_id)
+
+    @pytest.mark.asyncio
+    async def test_stream_job_status_running_job(self, client: AsyncClient, app: FastAPI):
+        """Test SSE streaming for running job with status transitions."""
+        scheduler = app.state.scheduler
+
+        async def slow_task():
+            await asyncio.sleep(0.5)
+            return "done"
+
+        job_id = await scheduler.add_job(slow_task)
+
+        # Stream SSE events
+        events = []
+        async with client.stream("GET", f"/api/v1/jobs/{job_id}/$stream?poll_interval=0.1") as response:
+            assert response.status_code == 200
+
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    import json
+                    data = json.loads(line[6:])
+                    events.append(data)
+                    if data["status"] == "completed":
+                        break
+
+        # Should have multiple events showing status transitions
+        assert len(events) >= 2
+        statuses = [e["status"] for e in events]
+        assert "running" in statuses or "pending" in statuses
+        assert events[-1]["status"] == "completed"
+
+    @pytest.mark.asyncio
+    async def test_stream_job_status_failed_job(self, client: AsyncClient, app: FastAPI):
+        """Test SSE streaming for failed job."""
+        scheduler = app.state.scheduler
+
+        async def failing_task():
+            raise ValueError("Task failed")
+
+        job_id = await scheduler.add_job(failing_task)
+
+        # Stream SSE events
+        events = []
+        async with client.stream("GET", f"/api/v1/jobs/{job_id}/$stream") as response:
+            assert response.status_code == 200
+
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    import json
+                    data = json.loads(line[6:])
+                    events.append(data)
+                    if data["status"] == "failed":
+                        break
+
+        # Final event should show failed status with error
+        assert events[-1]["status"] == "failed"
+        assert events[-1]["error"] is not None
+        assert "ValueError" in events[-1]["error"]
+
+    @pytest.mark.asyncio
+    async def test_stream_job_status_not_found(self, client: AsyncClient):
+        """Test SSE streaming for non-existent job returns 404."""
+        fake_id = ULID()
+        response = await client.get(f"/api/v1/jobs/{fake_id}/$stream")
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_stream_job_status_invalid_ulid(self, client: AsyncClient):
+        """Test SSE streaming with invalid ULID returns 400."""
+        response = await client.get("/api/v1/jobs/invalid-ulid/$stream")
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Invalid job ID format"
+
+    @pytest.mark.asyncio
+    async def test_stream_job_status_custom_poll_interval(self, client: AsyncClient, app: FastAPI):
+        """Test SSE streaming with custom poll interval."""
+        scheduler = app.state.scheduler
+
+        async def slow_task():
+            await asyncio.sleep(0.5)
+            return "done"
+
+        job_id = await scheduler.add_job(slow_task)
+
+        # Stream with custom poll interval
+        events = []
+        async with client.stream("GET", f"/api/v1/jobs/{job_id}/$stream?poll_interval=0.2") as response:
+            assert response.status_code == 200
+
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    import json
+                    data = json.loads(line[6:])
+                    events.append(data)
+                    if data["status"] == "completed":
+                        break
+
+        # Should have received events and completed
+        assert len(events) >= 1
+        assert events[-1]["status"] == "completed"
+
 
 class TestJobRouterIntegration:
     """Integration tests for job router with ServiceBuilder."""

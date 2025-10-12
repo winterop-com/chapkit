@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 
 import ulid
 from fastapi import Depends, HTTPException, status
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 
 from chapkit.core.api.router import Router
 from chapkit.core.scheduler import JobScheduler
@@ -65,3 +66,58 @@ class JobRouter(Router):
                 return Response(status_code=status.HTTP_204_NO_CONTENT)
             except (ValueError, KeyError):
                 raise HTTPException(status_code=404, detail="Job not found")
+
+        @self.router.get(
+            "/{job_id}/$stream",
+            summary="Stream job status updates via SSE",
+            description="Real-time Server-Sent Events stream of job status changes until terminal state",
+        )
+        async def stream_job_status(
+            job_id: str,
+            scheduler: JobScheduler = scheduler_dependency,
+            poll_interval: float = 0.5,
+        ) -> StreamingResponse:
+            """Stream real-time job status updates using Server-Sent Events."""
+            # Validate job_id format
+            try:
+                ulid_id = ULID.from_str(job_id)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid job ID format")
+
+            # Check job exists before starting stream
+            try:
+                await scheduler.get_record(ulid_id)
+            except KeyError:
+                raise HTTPException(status_code=404, detail="Job not found")
+
+            # SSE event generator
+            async def event_stream():
+                terminal_states = {"completed", "failed", "canceled"}
+
+                while True:
+                    try:
+                        record = await scheduler.get_record(ulid_id)
+                        # Format as SSE: data: {json}\n\n
+                        data = record.model_dump_json()
+                        yield f"data: {data}\n\n".encode("utf-8")
+
+                        # Stop streaming if job reached terminal state
+                        if record.status in terminal_states:
+                            break
+
+                    except KeyError:
+                        # Job was deleted - send final event and close
+                        yield b'data: {"status": "deleted"}\n\n'
+                        break
+
+                    await asyncio.sleep(poll_interval)
+
+            return StreamingResponse(
+                event_stream(),
+                media_type="text/event-stream",
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "X-Accel-Buffering": "no",  # Disable nginx buffering
+                },
+            )
