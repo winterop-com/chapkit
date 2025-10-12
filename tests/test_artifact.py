@@ -11,6 +11,7 @@ from chapkit import (
     ArtifactRepository,
     Database,
     PandasDataFrame,
+    SqliteDatabaseBuilder,
 )
 
 
@@ -19,7 +20,7 @@ class TestArtifactRepository:
 
     async def test_find_by_id_with_children(self) -> None:
         """Test that find_by_id returns artifact with parent_id set."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -50,7 +51,7 @@ class TestArtifactRepository:
 
     async def test_find_subtree_single_node(self) -> None:
         """Test finding subtree with a single node (no children)."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -72,7 +73,7 @@ class TestArtifactRepository:
 
     async def test_find_subtree_with_children(self) -> None:
         """Test finding subtree with parent and children."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -103,7 +104,7 @@ class TestArtifactRepository:
 
     async def test_find_subtree_with_grandchildren(self) -> None:
         """Test finding subtree with multiple levels (grandchildren)."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -145,7 +146,7 @@ class TestArtifactRepository:
 
     async def test_find_subtree_from_middle_node(self) -> None:
         """Test finding subtree starting from a middle node."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -190,7 +191,7 @@ class TestArtifactManager:
 
     async def test_save_artifact(self) -> None:
         """Test saving an artifact through manager."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -244,7 +245,7 @@ class HookAwareArtifactManager(ArtifactManager):
 
 class TestBaseManagerLifecycle:
     async def test_hooks_invoke_during_crud(self) -> None:
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -265,7 +266,7 @@ class TestBaseManagerLifecycle:
         await db.dispose()
 
     async def test_delete_by_id_handles_missing(self) -> None:
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -277,7 +278,7 @@ class TestBaseManagerLifecycle:
         await db.dispose()
 
     async def test_save_all_empty_input(self) -> None:
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -290,7 +291,7 @@ class TestBaseManagerLifecycle:
         await db.dispose()
 
     async def test_delete_all_no_entities(self) -> None:
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -303,7 +304,7 @@ class TestBaseManagerLifecycle:
         await db.dispose()
 
     async def test_compute_level_handles_none_parent(self) -> None:
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -317,7 +318,7 @@ class TestBaseManagerLifecycle:
 
     async def test_save_artifact_with_parent(self) -> None:
         """Test saving an artifact with a parent relationship."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -342,7 +343,7 @@ class TestBaseManagerLifecycle:
 
     async def test_save_all_assigns_levels(self) -> None:
         """Test save_all computes level based on parent relationships."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -363,7 +364,7 @@ class TestBaseManagerLifecycle:
 
     async def test_save_all_updates_existing_entities(self) -> None:
         """save_all should respect hooks when updating existing artifacts."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -399,7 +400,7 @@ class TestBaseManagerLifecycle:
 
     async def test_update_parent_recomputes_levels(self) -> None:
         """Moving an artifact under a new parent updates levels for it and descendants."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -430,7 +431,7 @@ class TestBaseManagerLifecycle:
 
     async def test_update_without_parent_change_preserves_levels(self) -> None:
         """Updating artifact data without changing parent leaves levels untouched."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -451,7 +452,7 @@ class TestBaseManagerLifecycle:
 
     async def test_find_subtree_single_artifact(self) -> None:
         """Test finding subtree through manager with single artifact."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -476,7 +477,7 @@ class TestBaseManagerLifecycle:
 
     async def test_find_subtree_with_hierarchy(self) -> None:
         """Test finding subtree through manager with hierarchical data."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -526,7 +527,7 @@ class TestBaseManagerLifecycle:
         await db.dispose()
 
     async def test_build_tree_returns_nested_structure(self) -> None:
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -558,7 +559,7 @@ class TestBaseManagerLifecycle:
         await db.dispose()
 
     async def test_build_tree_returns_none_for_missing_root(self) -> None:
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -571,7 +572,7 @@ class TestBaseManagerLifecycle:
         await db.dispose()
 
     async def test_manager_without_hierarchy_has_null_labels(self) -> None:
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -587,7 +588,7 @@ class TestBaseManagerLifecycle:
         await db.dispose()
 
     async def test_build_tree_handles_parent_missing_in_db(self) -> None:
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -615,7 +616,7 @@ class TestBaseManagerLifecycle:
 
     async def test_find_subtree_returns_output_schemas(self) -> None:
         """Test that find_subtree returns ArtifactOut schemas."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -643,7 +644,7 @@ class TestBaseManagerLifecycle:
 
     async def test_find_by_id(self) -> None:
         """Test finding artifact by ID through manager."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -673,7 +674,7 @@ class TestBaseManagerLifecycle:
 
     async def test_delete_artifact(self) -> None:
         """Test deleting an artifact through manager."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -698,7 +699,7 @@ class TestBaseManagerLifecycle:
 
     async def test_output_schema_includes_timestamps(self) -> None:
         """Test that ArtifactOut schemas include created_at and updated_at timestamps."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:

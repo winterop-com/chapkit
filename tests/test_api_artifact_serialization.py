@@ -6,7 +6,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from chapkit import ArtifactIn, ArtifactOut, Database
+from chapkit import ArtifactIn, ArtifactOut, SqliteDatabase, SqliteDatabaseBuilder
 from chapkit.api import ArtifactRouter, add_error_handlers, get_artifact_manager
 from chapkit.core.api.dependencies import set_database
 
@@ -29,7 +29,7 @@ class TestArtifactAPIWithNonSerializableData:
         """API should handle artifacts with non-serializable data without crashing."""
         # Setup
         app = FastAPI()
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
         set_database(db)
 
@@ -82,7 +82,7 @@ class TestArtifactAPIWithNonSerializableData:
         """API should handle listing artifacts with both serializable and non-serializable data."""
         # Setup
         app = FastAPI()
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
         set_database(db)
 
@@ -142,7 +142,7 @@ class TestArtifactAPIWithNonSerializableData:
         """Tree operation should handle non-serializable data in nested artifacts."""
         # Setup
         app = FastAPI()
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
         set_database(db)
 

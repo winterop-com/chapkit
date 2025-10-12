@@ -68,7 +68,7 @@ class TestSqliteDatabase:
 
     async def test_init_creates_tables(self) -> None:
         """Test that init() creates all tables."""
-        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         # Verify tables were created by checking metadata
@@ -81,7 +81,7 @@ class TestSqliteDatabase:
 
     async def test_session_context_manager(self) -> None:
         """Test that session() context manager works correctly."""
-        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -95,7 +95,7 @@ class TestSqliteDatabase:
 
     async def test_multiple_sessions(self) -> None:
         """Test that multiple sessions can be created."""
-        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session1:
@@ -110,7 +110,7 @@ class TestSqliteDatabase:
 
     async def test_dispose_closes_engine(self) -> None:
         """Test that dispose() properly closes the engine."""
-        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         # Verify engine is initially usable
@@ -135,7 +135,7 @@ class TestSqliteDatabase:
 
     async def test_wal_mode_enabled(self) -> None:
         """Test that WAL mode is enabled after init()."""
-        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -194,7 +194,7 @@ class TestSqliteDatabase:
 
     async def test_session_factory_configuration(self) -> None:
         """Test that session factory is configured correctly."""
-        db = SqliteDatabase("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         # Verify session factory has expire_on_commit set to False

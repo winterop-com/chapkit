@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from ulid import ULID
 
-from chapkit import Artifact, ArtifactRepository, Config, ConfigIn, ConfigManager, ConfigOut, ConfigRepository, Database
+from chapkit import Artifact, ArtifactRepository, Config, ConfigIn, ConfigManager, ConfigOut, ConfigRepository, SqliteDatabase, SqliteDatabaseBuilder
 
 from .conftest import DemoConfig
 
 
 async def test_config_manager_deserializes_dict_payloads() -> None:
     """ConfigManager should convert raw dict payloads to the configured schema."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -41,7 +41,7 @@ async def test_config_manager_deserializes_dict_payloads() -> None:
 
 async def test_config_manager_save() -> None:
     """Test saving a config through the manager."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -59,7 +59,7 @@ async def test_config_manager_save() -> None:
 
 async def test_config_manager_link_artifact() -> None:
     """Test linking a config to a root artifact."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -90,7 +90,7 @@ async def test_config_manager_link_artifact() -> None:
 
 async def test_config_manager_unlink_artifact() -> None:
     """Test unlinking an artifact from a config."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -120,7 +120,7 @@ async def test_config_manager_unlink_artifact() -> None:
 
 async def test_config_manager_get_config_for_artifact() -> None:
     """Test getting config for an artifact by walking up the tree."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:

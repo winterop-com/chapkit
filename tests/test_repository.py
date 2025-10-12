@@ -1,6 +1,6 @@
 from ulid import ULID
 
-from chapkit import Config, ConfigRepository, Database
+from chapkit import Config, ConfigRepository, SqliteDatabase, SqliteDatabaseBuilder
 from chapkit.core import BaseRepository
 
 from .conftest import DemoConfig
@@ -11,7 +11,7 @@ class TestBaseRepository:
 
     async def test_save_and_find_by_id(self) -> None:
         """Test saving an entity and finding it by ID."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -37,7 +37,7 @@ class TestBaseRepository:
 
     async def test_save_all(self) -> None:
         """Test saving multiple entities."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -61,7 +61,7 @@ class TestBaseRepository:
 
     async def test_find_all(self) -> None:
         """Test finding all entities."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -81,7 +81,7 @@ class TestBaseRepository:
 
     async def test_find_all_by_id(self) -> None:
         """Test finding multiple entities by their IDs."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -106,7 +106,7 @@ class TestBaseRepository:
 
     async def test_find_all_by_id_empty_list(self) -> None:
         """Test finding entities with an empty ID list."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -119,7 +119,7 @@ class TestBaseRepository:
 
     async def test_count(self) -> None:
         """Test counting entities."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -140,7 +140,7 @@ class TestBaseRepository:
 
     async def test_exists_by_id(self) -> None:
         """Test checking if an entity exists by ID."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -163,7 +163,7 @@ class TestBaseRepository:
 
     async def test_delete(self) -> None:
         """Test deleting a single entity."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -187,7 +187,7 @@ class TestBaseRepository:
 
     async def test_delete_by_id(self) -> None:
         """Test deleting a single entity by ID."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -211,7 +211,7 @@ class TestBaseRepository:
 
     async def test_delete_all(self) -> None:
         """Test deleting all entities."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -234,7 +234,7 @@ class TestBaseRepository:
 
     async def test_delete_all_by_id(self) -> None:
         """Test deleting multiple entities by their IDs."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -267,7 +267,7 @@ class TestBaseRepository:
 
     async def test_delete_all_by_id_empty_list(self) -> None:
         """Test deleting with an empty ID list."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -288,7 +288,7 @@ class TestBaseRepository:
 
     async def test_refresh_many(self) -> None:
         """Test refreshing multiple entities."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -310,7 +310,7 @@ class TestBaseRepository:
 
     async def test_commit(self) -> None:
         """Test committing changes."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -337,7 +337,7 @@ class TestBaseRepository:
 
     async def test_config_repository_find_by_name(self) -> None:
         """Test ConfigRepository.find_by_name for existing and missing configs."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:

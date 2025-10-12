@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from chapkit import Config, ConfigRepository, Database
+from chapkit import Config, ConfigRepository, SqliteDatabase, SqliteDatabaseBuilder
 
 from .conftest import DemoConfig
 
 
 async def test_config_repository_find_by_name_round_trip() -> None:
     """ConfigRepository.find_by_name should return matching rows and None otherwise."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:

@@ -8,7 +8,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from chapkit import ArtifactHierarchy, BaseConfig, Database
+from chapkit import ArtifactHierarchy, BaseConfig, SqliteDatabase, SqliteDatabaseBuilder
 from chapkit.api import ServiceBuilder, ServiceInfo
 from chapkit.core.api.routers.health import HealthState
 
@@ -23,7 +23,7 @@ class ExampleConfig(BaseConfig):
 @pytest.fixture
 async def test_database() -> AsyncGenerator[Database, None]:
     """Provide a test database instance."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
     yield db
     await db.dispose()

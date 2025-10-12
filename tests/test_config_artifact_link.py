@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from chapkit import Artifact, ArtifactManager, ArtifactRepository, Config, ConfigManager, ConfigRepository, Database
+from chapkit import Artifact, ArtifactManager, ArtifactRepository, Config, ConfigManager, ConfigRepository, SqliteDatabase, SqliteDatabaseBuilder
 
 from .conftest import DemoConfig
 
 
 async def test_link_artifact_creates_link() -> None:
     """ConfigRepository.link_artifact should create a link between config and root artifact."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -44,7 +44,7 @@ async def test_link_artifact_creates_link() -> None:
 
 async def test_link_artifact_rejects_non_root_artifacts() -> None:
     """ConfigRepository.link_artifact should raise ValueError if artifact has parent."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -77,7 +77,7 @@ async def test_link_artifact_rejects_non_root_artifacts() -> None:
 
 async def test_unlink_artifact_removes_link() -> None:
     """ConfigRepository.unlink_artifact should remove the link."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -113,7 +113,7 @@ async def test_unlink_artifact_removes_link() -> None:
 
 async def test_find_artifacts_for_config_returns_linked_artifacts() -> None:
     """ConfigRepository.find_artifacts_for_config should return all linked root artifacts."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -148,7 +148,7 @@ async def test_find_artifacts_for_config_returns_linked_artifacts() -> None:
 
 async def test_get_root_artifact_walks_up_tree() -> None:
     """ArtifactRepository.get_root_artifact should walk up the tree to find root."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -190,7 +190,7 @@ async def test_get_root_artifact_walks_up_tree() -> None:
 
 async def test_config_manager_get_config_for_artifact() -> None:
     """ConfigManager.get_config_for_artifact should walk up tree and return config."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -230,7 +230,7 @@ async def test_config_manager_get_config_for_artifact() -> None:
 
 async def test_artifact_manager_build_tree_includes_config() -> None:
     """ArtifactManager.build_tree should include config at root node."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -275,7 +275,7 @@ async def test_artifact_manager_build_tree_includes_config() -> None:
 
 async def test_artifact_manager_expand_artifact_includes_config() -> None:
     """ArtifactManager.expand_artifact should include config at root node."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -318,7 +318,7 @@ async def test_artifact_manager_expand_artifact_includes_config() -> None:
 
 async def test_artifact_manager_expand_artifact_without_config() -> None:
     """ArtifactManager.expand_artifact should handle artifacts with no config."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -345,7 +345,7 @@ async def test_artifact_manager_expand_artifact_without_config() -> None:
 
 async def test_artifact_manager_expand_artifact_on_child() -> None:
     """ArtifactManager.expand_artifact on child should not populate config."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -388,7 +388,7 @@ async def test_artifact_manager_expand_artifact_on_child() -> None:
 
 async def test_cascade_delete_config_deletes_artifacts() -> None:
     """Deleting a config should cascade delete linked artifacts."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:

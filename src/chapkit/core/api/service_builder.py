@@ -11,7 +11,7 @@ from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import text
 
-from chapkit.core import Database
+from chapkit.core import Database, SqliteDatabase
 from chapkit.core.logging import configure_logging, get_logger
 
 from .auth import APIKeyMiddleware, load_api_keys_from_env, load_api_keys_from_file
@@ -412,13 +412,23 @@ class BaseServiceBuilder:
                 database = database_instance
                 should_manage_lifecycle = False
             else:
-                database = Database(
-                    database_url,
-                    pool_size=pool_size,
-                    max_overflow=max_overflow,
-                    pool_recycle=pool_recycle,
-                    pool_pre_ping=pool_pre_ping,
-                )
+                # Create appropriate database type based on URL
+                if "sqlite" in database_url.lower():
+                    database = SqliteDatabase(
+                        database_url,
+                        pool_size=pool_size,
+                        max_overflow=max_overflow,
+                        pool_recycle=pool_recycle,
+                        pool_pre_ping=pool_pre_ping,
+                    )
+                else:
+                    database = Database(
+                        database_url,
+                        pool_size=pool_size,
+                        max_overflow=max_overflow,
+                        pool_recycle=pool_recycle,
+                        pool_pre_ping=pool_pre_ping,
+                    )
                 should_manage_lifecycle = True
 
             # Always initialize database (safe to call multiple times)

@@ -10,14 +10,14 @@ from collections.abc import AsyncGenerator
 
 import pytest
 
-from chapkit.core import Database
+from chapkit.core import Database, SqliteDatabaseBuilder
 from examples.core_cli import Product, ProductIn, ProductManager, ProductRepository
 
 
 @pytest.fixture
 async def database() -> AsyncGenerator[Database, None]:
     """Create and initialize in-memory database for testing."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
     try:
         yield db

@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped
 
-from chapkit.core import BaseManager, BaseRepository, Database, Entity, EntityIn, EntityOut
+from chapkit.core import BaseManager, BaseRepository, Database, Entity, EntityIn, EntityOut, SqliteDatabaseBuilder
 from chapkit.core.logging import add_request_context, clear_request_context, get_logger, reset_request_context
 
 
@@ -78,7 +78,7 @@ async def test_database_custom_alembic_dir():
 
 async def test_manager_should_assign_field_returns_false():
     """Test BaseManager when _should_assign_field returns False."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -101,7 +101,7 @@ async def test_manager_should_assign_field_returns_false():
 
 async def test_manager_should_assign_field_returns_false_bulk():
     """Test BaseManager save_all when _should_assign_field returns False."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -131,7 +131,7 @@ async def test_manager_should_assign_field_returns_false_bulk():
 
 async def test_manager_find_paginated():
     """Test manager find_paginated returns tuple correctly."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:

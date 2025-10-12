@@ -1,6 +1,6 @@
 from ulid import ULID
 
-from chapkit import ConfigIn, ConfigManager, ConfigOut, ConfigRepository, Database
+from chapkit import ConfigIn, ConfigManager, ConfigOut, ConfigRepository, SqliteDatabase, SqliteDatabaseBuilder
 
 from .conftest import DemoConfig
 
@@ -10,7 +10,7 @@ class TestBaseManager:
 
     async def test_save_with_input_schema(self) -> None:
         """Test saving an entity using input schema."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -37,7 +37,7 @@ class TestBaseManager:
 
     async def test_save_with_id_none_removes_id(self) -> None:
         """Test that save() removes id field when it's None."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -57,7 +57,7 @@ class TestBaseManager:
 
     async def test_save_preserves_explicit_id(self) -> None:
         """Test that save() keeps a provided non-null ID intact."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -80,7 +80,7 @@ class TestBaseManager:
 
     async def test_save_all(self) -> None:
         """Test saving multiple entities using input schemas."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -106,7 +106,7 @@ class TestBaseManager:
 
     async def test_delete_by_id(self) -> None:
         """Test deleting an entity by ID."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -131,7 +131,7 @@ class TestBaseManager:
 
     async def test_delete_all(self) -> None:
         """Test deleting all entities."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -155,7 +155,7 @@ class TestBaseManager:
 
     async def test_delete_many_by_ids(self) -> None:
         """Test deleting multiple entities by their IDs."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -179,7 +179,7 @@ class TestBaseManager:
 
     async def test_delete_all_by_id_empty_list(self) -> None:
         """Test that delete_all_by_id with empty list does nothing."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -200,7 +200,7 @@ class TestBaseManager:
 
     async def test_count(self) -> None:
         """Test counting entities through manager."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -221,7 +221,7 @@ class TestBaseManager:
 
     async def test_output_schema_validation(self) -> None:
         """Test that output schemas are properly validated from ORM models."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -251,7 +251,7 @@ class TestBaseManager:
 
     async def test_save_all_returns_list_of_output_schemas(self) -> None:
         """Test that save_all returns a list of output schemas."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -274,7 +274,7 @@ class TestBaseManager:
 
     async def test_manager_commits_after_save(self) -> None:
         """Test that manager commits changes after save."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -294,7 +294,7 @@ class TestBaseManager:
 
     async def test_manager_commits_after_delete(self) -> None:
         """Test that manager commits changes after delete."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         # Save in one session
@@ -322,7 +322,7 @@ class TestBaseManager:
 
     async def test_find_by_id(self) -> None:
         """Test finding an entity by ID through manager."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -353,7 +353,7 @@ class TestBaseManager:
 
     async def test_find_all(self) -> None:
         """Test finding all entities through manager."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -377,7 +377,7 @@ class TestBaseManager:
 
     async def test_find_all_by_id(self) -> None:
         """Test finding multiple entities by IDs through manager."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -403,7 +403,7 @@ class TestBaseManager:
 
     async def test_exists_by_id(self) -> None:
         """Test checking if entity exists by ID through manager."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -426,7 +426,7 @@ class TestBaseManager:
 
     async def test_find_by_name_handles_missing(self) -> None:
         """Test that find_by_name returns schema when found and None otherwise."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -449,7 +449,7 @@ class TestBaseManager:
 
     async def test_output_schema_includes_timestamps(self) -> None:
         """Test that output schemas include created_at and updated_at timestamps."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:

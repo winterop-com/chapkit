@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from chapkit import Artifact, ArtifactRepository, Database
+from chapkit import Artifact, ArtifactRepository, SqliteDatabase, SqliteDatabaseBuilder
 
 
 async def test_artifact_repository_find_by_id_eager_loads_children() -> None:
     """find_by_id should eagerly load the artifact children collection."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:
@@ -34,7 +34,7 @@ async def test_artifact_repository_find_by_id_eager_loads_children() -> None:
 
 async def test_artifact_repository_find_subtree_returns_full_hierarchy() -> None:
     """find_subtree should return the start node and all descendants."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     async with db.session() as session:

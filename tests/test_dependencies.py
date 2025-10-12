@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from chapkit import Database
+from chapkit import SqliteDatabase, SqliteDatabaseBuilder
 from chapkit.core.api.dependencies import get_database, get_scheduler, set_database, set_scheduler
 
 
@@ -26,7 +26,7 @@ def test_get_database_uninitialized() -> None:
 
 async def test_set_and_get_database() -> None:
     """Test setting and getting the database instance."""
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     try:
@@ -43,7 +43,7 @@ async def test_get_config_manager() -> None:
     from chapkit.api.dependencies import get_config_manager
     from chapkit.core.api.dependencies import get_session
 
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     try:
@@ -64,7 +64,7 @@ async def test_get_artifact_manager() -> None:
     from chapkit.api.dependencies import get_artifact_manager
     from chapkit.core.api.dependencies import get_session
 
-    db = Database("sqlite+aiosqlite:///:memory:")
+    db = SqliteDatabaseBuilder.in_memory().build()
     await db.init()
 
     try:

@@ -5,7 +5,7 @@ import pytest
 from pydantic_core.core_schema import ValidationInfo
 from ulid import ULID
 
-from chapkit import Config, ConfigOut, Database
+from chapkit import Config, ConfigOut, SqliteDatabase, SqliteDatabaseBuilder
 
 from .conftest import DemoConfig
 
@@ -15,7 +15,7 @@ class DemoConfigModel:
 
     async def test_create_config_with_name_and_data(self) -> None:
         """Test creating a Config with name and data."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -67,7 +67,7 @@ def test_config_out_retains_dict_without_context() -> None:
 class TestConfigModelExtras:
     async def test_create_config_with_empty_data(self) -> None:
         """Test creating a Config with empty dict data."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -84,7 +84,7 @@ class TestConfigModelExtras:
 
     async def test_config_name_is_unique(self) -> None:
         """Test that Config name field is unique."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -108,7 +108,7 @@ class TestConfigModelExtras:
 
     async def test_config_type_preservation(self) -> None:
         """Test Config stores data as dict and can be deserialized by application."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         test_data = DemoConfig(x=10, y=20, z=30, tags=["a", "b"])
@@ -139,7 +139,7 @@ class TestConfigModelExtras:
 
     async def test_config_id_is_ulid(self) -> None:
         """Test that Config ID is a ULID type."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -156,7 +156,7 @@ class TestConfigModelExtras:
 
     async def test_config_timestamps_auto_set(self) -> None:
         """Test that created_at and updated_at are automatically set."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -175,7 +175,7 @@ class TestConfigModelExtras:
 
     async def test_config_update_modifies_data(self) -> None:
         """Test updating Config data field."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -208,7 +208,7 @@ class TestConfigModelExtras:
 
     async def test_config_inherits_from_entity(self) -> None:
         """Test that Config inherits from Entity and has expected fields."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
@@ -230,7 +230,7 @@ class TestConfigModelExtras:
 
     async def test_multiple_configs_different_names(self) -> None:
         """Test creating multiple configs with different names."""
-        db = Database("sqlite+aiosqlite:///:memory:")
+        db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
