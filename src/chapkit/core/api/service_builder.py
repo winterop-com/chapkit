@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from typing import Any, AsyncContextManager, AsyncIterator, Awaitable, Callable, Dict, List, Self
 
 from fastapi import APIRouter, FastAPI
@@ -20,6 +21,42 @@ from .routers import HealthRouter, JobRouter, SystemRouter
 from .routers.health import HealthCheck, HealthState
 
 logger = get_logger(__name__)
+
+
+@dataclass(frozen=True)
+class _HealthOptions:
+    """Configuration for health check endpoints."""
+
+    prefix: str
+    tags: List[str]
+    checks: dict[str, HealthCheck]
+
+
+@dataclass(frozen=True)
+class _SystemOptions:
+    """Configuration for system info endpoints."""
+
+    prefix: str
+    tags: List[str]
+
+
+@dataclass(frozen=True)
+class _JobOptions:
+    """Configuration for job scheduler endpoints."""
+
+    prefix: str
+    tags: List[str]
+    max_concurrency: int | None
+
+
+@dataclass(frozen=True)
+class _AuthOptions:
+    """Configuration for API key authentication."""
+
+    api_keys: set[str]
+    header_name: str
+    unauthenticated_paths: set[str]
+    source: str
 
 
 class ServiceInfo(BaseModel):
@@ -52,22 +89,22 @@ class BaseServiceBuilder:
             self.info = info.model_copy(update={"description": info.summary})
         else:
             self.info = info
-        self._database_url = database_url
-        self._database_instance: Database | None = None
         self._title = self.info.display_name
         self._app_description = self.info.summary or self.info.description or ""
         self._version = self.info.version
+        self._database_url = database_url
+        self._database_instance: Database | None = None
         self._include_error_handlers = include_error_handlers
         self._include_logging = include_logging
         self._include_landing_page = False
-        self._health_options: tuple[str, List[str], dict[str, HealthCheck]] | None = None
-        self._system_options: tuple[str, List[str]] | None = None
-        self._job_options: tuple[str, List[str], int | None] | None = None
+        self._health_options: _HealthOptions | None = None
+        self._system_options: _SystemOptions | None = None
+        self._job_options: _JobOptions | None = None
+        self._auth_options: _AuthOptions | None = None
         self._custom_routers: List[APIRouter] = []
         self._dependency_overrides: Dict[Callable[..., object], Callable[..., object]] = {}
         self._startup_hooks: List[Callable[[FastAPI], Awaitable[None]]] = []
         self._shutdown_hooks: List[Callable[[FastAPI], Awaitable[None]]] = []
-        self._auth_options: tuple[set[str], str, set[str], str] | None = None
 
     # --------------------------------------------------------------------- Fluent configuration
 
@@ -105,7 +142,11 @@ class BaseServiceBuilder:
         if include_database_check:
             health_checks["database"] = self._create_database_health_check()
 
-        self._health_options = (prefix, list(tags) if tags is not None else ["health"], health_checks)
+        self._health_options = _HealthOptions(
+            prefix=prefix,
+            tags=list(tags) if tags is not None else ["health"],
+            checks=health_checks,
+        )
         return self
 
     def with_system(
@@ -115,7 +156,10 @@ class BaseServiceBuilder:
         tags: List[str] | None = None,
     ) -> Self:
         """Add system info endpoint."""
-        self._system_options = (prefix, list(tags) if tags is not None else ["system"])
+        self._system_options = _SystemOptions(
+            prefix=prefix,
+            tags=list(tags) if tags is not None else ["system"],
+        )
         return self
 
     def with_jobs(
@@ -126,7 +170,11 @@ class BaseServiceBuilder:
         max_concurrency: int | None = None,
     ) -> Self:
         """Add job scheduler endpoints."""
-        self._job_options = (prefix, list(tags) if tags is not None else ["jobs"], max_concurrency)
+        self._job_options = _JobOptions(
+            prefix=prefix,
+            tags=list(tags) if tags is not None else ["jobs"],
+            max_concurrency=max_concurrency,
+        )
         return self
 
     def with_auth(
@@ -193,7 +241,12 @@ class BaseServiceBuilder:
         default_unauth = {"/docs", "/redoc", "/openapi.json", "/api/v1/health", "/"}
         unauth_set = set(unauthenticated_paths) if unauthenticated_paths else default_unauth
 
-        self._auth_options = (keys, header_name, unauth_set, auth_source)
+        self._auth_options = _AuthOptions(
+            api_keys=keys,
+            header_name=header_name,
+            unauthenticated_paths=unauth_set,
+            source=auth_source,
+        )
         return self
 
     def include_router(self, router: APIRouter) -> Self:
@@ -242,30 +295,37 @@ class BaseServiceBuilder:
             add_logging_middleware(app)
 
         if self._auth_options:
-            api_keys, header_name, unauth_paths, auth_source = self._auth_options
             app.add_middleware(
                 APIKeyMiddleware,
-                api_keys=api_keys,
-                header_name=header_name,
-                unauthenticated_paths=unauth_paths,
+                api_keys=self._auth_options.api_keys,
+                header_name=self._auth_options.header_name,
+                unauthenticated_paths=self._auth_options.unauthenticated_paths,
             )
             # Store auth_source for logging during startup
-            app.state.auth_source = auth_source
-            app.state.auth_key_count = len(api_keys)
+            app.state.auth_source = self._auth_options.source
+            app.state.auth_key_count = len(self._auth_options.api_keys)
 
         if self._health_options:
-            prefix, tags, checks = self._health_options
-            health_router = HealthRouter.create(prefix=prefix, tags=tags, checks=checks)
+            health_router = HealthRouter.create(
+                prefix=self._health_options.prefix,
+                tags=self._health_options.tags,
+                checks=self._health_options.checks,
+            )
             app.include_router(health_router)
 
         if self._system_options:
-            prefix, tags = self._system_options
-            system_router = SystemRouter.create(prefix=prefix, tags=tags)
+            system_router = SystemRouter.create(
+                prefix=self._system_options.prefix,
+                tags=self._system_options.tags,
+            )
             app.include_router(system_router)
 
         if self._job_options:
-            prefix, tags, _ = self._job_options
-            job_router = JobRouter.create(prefix=prefix, tags=tags, scheduler_factory=get_scheduler)
+            job_router = JobRouter.create(
+                prefix=self._job_options.prefix,
+                tags=self._job_options.tags,
+                scheduler_factory=get_scheduler,
+            )
             app.include_router(job_router)
 
         # Extension point for module-specific routers
@@ -300,8 +360,7 @@ class BaseServiceBuilder:
         """Validate core configuration."""
         # Validate health check names don't contain invalid characters
         if self._health_options:
-            _, _, checks = self._health_options
-            for name in checks.keys():
+            for name in self._health_options.checks.keys():
                 if not name.replace("_", "").replace("-", "").isalnum():
                     raise ValueError(
                         f"Health check name '{name}' contains invalid characters. "
@@ -341,8 +400,7 @@ class BaseServiceBuilder:
             if job_options is not None:
                 from chapkit.core.scheduler import AIOJobScheduler
 
-                _, _, max_concurrency = job_options
-                scheduler = AIOJobScheduler(max_concurrency=max_concurrency)
+                scheduler = AIOJobScheduler(max_concurrency=job_options.max_concurrency)
                 set_scheduler(scheduler)
                 app.state.scheduler = scheduler
 
