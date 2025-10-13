@@ -1,7 +1,5 @@
 """OpenTelemetry monitoring setup with auto-instrumentation."""
 
-from typing import Any
-
 from fastapi import FastAPI
 from opentelemetry import metrics
 from opentelemetry.exporter.prometheus import PrometheusMetricReader
@@ -97,6 +95,6 @@ def teardown_monitoring() -> None:
         logger.warning("monitoring.teardown_failed", error=str(e))
 
 
-def get_meter(name: str) -> Any:
+def get_meter(name: str) -> metrics.Meter:
     """Get a meter for custom metrics."""
     return metrics.get_meter(name)

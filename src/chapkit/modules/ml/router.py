@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import Depends, status
+from opentelemetry.metrics import Counter
 
 from chapkit.core.api.monitoring import get_meter
 from chapkit.core.api.router import Router
@@ -13,15 +14,15 @@ from .manager import MLManager
 from .schemas import PredictRequest, PredictResponse, TrainRequest, TrainResponse
 
 # Lazily initialized counters (initialized after monitoring setup)
-_train_counter = None
-_predict_counter = None
+_train_counter: Counter | None = None
+_predict_counter: Counter | None = None
 
 
-def _get_counters() -> tuple[Any, Any]:
+def _get_counters() -> tuple[Counter, Counter]:
     """Get or create ML metrics counters (lazy initialization)."""
     global _train_counter, _predict_counter
 
-    if _train_counter is None:
+    if _train_counter is None or _predict_counter is None:
         meter = get_meter("chapkit.ml")
         _train_counter = meter.create_counter(
             name="ml_train_jobs_total",
