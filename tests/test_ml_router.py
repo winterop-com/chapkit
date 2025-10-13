@@ -201,3 +201,61 @@ def test_predict_successful_submission() -> None:
     assert data["job_id"] == job_id
     assert data["prediction_artifact_id"] == prediction_artifact_id
     assert "Prediction job submitted" in data["message"]
+
+
+def test_train_runtime_error_returns_409() -> None:
+    """Test that RuntimeError from execute_train returns 409 Conflict."""
+    mock_manager = Mock(spec=MLManager)
+    mock_manager.execute_train = AsyncMock(side_effect=RuntimeError("Scheduler not available"))
+
+    def manager_factory() -> MLManager:
+        return mock_manager
+
+    app = FastAPI()
+    router = MLRouter.create(
+        prefix="/api/v1/ml",
+        tags=["ML"],
+        manager_factory=manager_factory,
+    )
+    app.include_router(router)
+
+    client = TestClient(app)
+
+    train_request = {
+        "config_id": "01K72P5N5KCRM6MD3BRE4P0001",
+        "data": {"columns": ["rainfall", "temperature"], "data": [[1.0, 2.0]]},
+    }
+
+    response = client.post("/api/v1/ml/$train", json=train_request)
+
+    assert response.status_code == 409
+    assert "Scheduler not available" in response.text
+
+
+def test_predict_runtime_error_returns_409() -> None:
+    """Test that RuntimeError from execute_predict returns 409 Conflict."""
+    mock_manager = Mock(spec=MLManager)
+    mock_manager.execute_predict = AsyncMock(side_effect=RuntimeError("Scheduler not initialized"))
+
+    def manager_factory() -> MLManager:
+        return mock_manager
+
+    app = FastAPI()
+    router = MLRouter.create(
+        prefix="/api/v1/ml",
+        tags=["ML"],
+        manager_factory=manager_factory,
+    )
+    app.include_router(router)
+
+    client = TestClient(app)
+
+    predict_request = {
+        "model_artifact_id": "01K72P5N5KCRM6MD3BRE4P0001",
+        "future": {"columns": ["rainfall", "temperature"], "data": [[1.0, 2.0]]},
+    }
+
+    response = client.post("/api/v1/ml/$predict", json=predict_request)
+
+    assert response.status_code == 409
+    assert "Scheduler not initialized" in response.text

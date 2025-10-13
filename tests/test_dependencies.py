@@ -113,3 +113,54 @@ def test_set_and_get_scheduler() -> None:
         import chapkit.core.api.dependencies as deps
 
         deps._scheduler = None
+
+
+async def test_get_task_manager_without_scheduler_and_database() -> None:
+    """Test get_task_manager handles missing scheduler and database gracefully."""
+    from chapkit.api.dependencies import get_task_manager
+    from chapkit.core.api.dependencies import get_session
+
+    db = SqliteDatabaseBuilder.in_memory().build()
+    await db.init()
+
+    try:
+        set_database(db)
+
+        # Reset scheduler and database to trigger RuntimeError paths
+        import chapkit.core.api.dependencies as deps
+
+        original_scheduler = deps._scheduler
+        original_db = deps._database
+        deps._scheduler = None
+        deps._database = None
+
+        # Use the session generator
+        async for session in get_session(db):
+            # Create a mock artifact manager
+            from chapkit import ArtifactManager, ArtifactRepository
+
+            artifact_repo = ArtifactRepository(session)
+            artifact_manager = ArtifactManager(artifact_repo)
+
+            manager = await get_task_manager(session, artifact_manager)
+            # Manager should be created even without scheduler/database
+            assert manager is not None
+            break
+
+        # Restore state
+        deps._scheduler = original_scheduler
+        deps._database = original_db
+    finally:
+        await db.dispose()
+
+
+def test_get_ml_manager_raises_runtime_error() -> None:
+    """Test get_ml_manager raises RuntimeError when not configured."""
+    from chapkit.api.dependencies import get_ml_manager
+
+    with pytest.raises(RuntimeError, match="ML manager dependency not configured"):
+        # This is a sync function that returns a coroutine, but we need to call it
+        # The function itself should raise before returning the coroutine
+        import asyncio
+
+        asyncio.run(get_ml_manager())
