@@ -22,7 +22,7 @@ def test_train_value_error_returns_400() -> None:
     app = FastAPI()
     router = MLRouter.create(
         prefix="/api/v1/ml",
-        tags=["ml"],
+        tags=["ML"],
         manager_factory=manager_factory,
     )
     app.include_router(router)
@@ -55,7 +55,7 @@ def test_predict_value_error_returns_400() -> None:
     app = FastAPI()
     router = MLRouter.create(
         prefix="/api/v1/ml",
-        tags=["ml"],
+        tags=["ML"],
         manager_factory=manager_factory,
     )
     app.include_router(router)
@@ -83,7 +83,7 @@ def test_train_request_missing_required_fields() -> None:
     app = FastAPI()
     router = MLRouter.create(
         prefix="/api/v1/ml",
-        tags=["ml"],
+        tags=["ML"],
         manager_factory=manager_factory,
     )
     app.include_router(router)
@@ -106,7 +106,7 @@ def test_predict_request_missing_required_fields() -> None:
     app = FastAPI()
     router = MLRouter.create(
         prefix="/api/v1/ml",
-        tags=["ml"],
+        tags=["ML"],
         manager_factory=manager_factory,
     )
     app.include_router(router)
@@ -140,7 +140,7 @@ def test_train_successful_submission() -> None:
     app = FastAPI()
     router = MLRouter.create(
         prefix="/api/v1/ml",
-        tags=["ml"],
+        tags=["ML"],
         manager_factory=manager_factory,
     )
     app.include_router(router)
@@ -182,7 +182,7 @@ def test_predict_successful_submission() -> None:
     app = FastAPI()
     router = MLRouter.create(
         prefix="/api/v1/ml",
-        tags=["ml"],
+        tags=["ML"],
         manager_factory=manager_factory,
     )
     app.include_router(router)

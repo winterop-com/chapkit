@@ -23,7 +23,7 @@ def test_execute_task_value_error_returns_400() -> None:
     app = FastAPI()
     router = TaskRouter.create(
         prefix="/api/v1/tasks",
-        tags=["tasks"],
+        tags=["Tasks"],
         entity_in_type=TaskIn,
         entity_out_type=TaskOut,
         manager_factory=manager_factory,
@@ -52,7 +52,7 @@ def test_execute_task_runtime_error_returns_409() -> None:
     app = FastAPI()
     router = TaskRouter.create(
         prefix="/api/v1/tasks",
-        tags=["tasks"],
+        tags=["Tasks"],
         entity_in_type=TaskIn,
         entity_out_type=TaskOut,
         manager_factory=manager_factory,
@@ -80,7 +80,7 @@ def test_execute_task_with_valid_ulid() -> None:
     app = FastAPI()
     router = TaskRouter.create(
         prefix="/api/v1/tasks",
-        tags=["tasks"],
+        tags=["Tasks"],
         entity_in_type=TaskIn,
         entity_out_type=TaskOut,
         manager_factory=manager_factory,

@@ -13,7 +13,7 @@ from chapkit.core.api.routers.health import CheckResult, HealthRouter, HealthSta
 def app_no_checks() -> FastAPI:
     """FastAPI app with health router but no checks."""
     app = FastAPI()
-    health_router = HealthRouter.create(prefix="/health", tags=["health"])
+    health_router = HealthRouter.create(prefix="/health", tags=["Observability"])
     app.include_router(health_router)
     return app
 
@@ -37,7 +37,7 @@ def app_with_checks() -> FastAPI:
     app = FastAPI()
     health_router = HealthRouter.create(
         prefix="/health",
-        tags=["health"],
+        tags=["Observability"],
         checks={
             "healthy_check": check_healthy,
             "degraded_check": check_degraded,
@@ -126,7 +126,7 @@ def test_health_check_aggregation_priority() -> None:
 
     # Only healthy checks -> overall healthy
     app = FastAPI()
-    router = HealthRouter.create(prefix="/health", tags=["health"], checks={"healthy": check_healthy})
+    router = HealthRouter.create(prefix="/health", tags=["Observability"], checks={"healthy": check_healthy})
     app.include_router(router)
 
     client = TestClient(app)
@@ -136,7 +136,7 @@ def test_health_check_aggregation_priority() -> None:
     # Healthy + degraded -> overall degraded
     app2 = FastAPI()
     router2 = HealthRouter.create(
-        prefix="/health", tags=["health"], checks={"healthy": check_healthy, "degraded": check_degraded}
+        prefix="/health", tags=["Observability"], checks={"healthy": check_healthy, "degraded": check_degraded}
     )
     app2.include_router(router2)
 

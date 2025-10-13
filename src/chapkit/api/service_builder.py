@@ -62,7 +62,7 @@ class _ConfigOptions:
 
     schema: type[BaseConfig]
     prefix: str = "/api/v1/configs"
-    tags: List[str] = field(default_factory=lambda: ["config"])
+    tags: List[str] = field(default_factory=lambda: ["Config"])
     permissions: CrudPermissions = field(default_factory=CrudPermissions)
 
 
@@ -72,7 +72,7 @@ class _ArtifactOptions:
 
     hierarchy: ArtifactHierarchy
     prefix: str = "/api/v1/artifacts"
-    tags: List[str] = field(default_factory=lambda: ["artifacts"])
+    tags: List[str] = field(default_factory=lambda: ["Artifacts"])
     enable_config_linking: bool = False
     permissions: CrudPermissions = field(default_factory=CrudPermissions)
 
@@ -82,7 +82,7 @@ class _TaskOptions:
     """Internal task options for ServiceBuilder."""
 
     prefix: str = "/api/v1/tasks"
-    tags: List[str] = field(default_factory=lambda: ["tasks"])
+    tags: List[str] = field(default_factory=lambda: ["Tasks"])
     permissions: CrudPermissions = field(default_factory=CrudPermissions)
 
 
@@ -92,7 +92,7 @@ class _MLOptions:
 
     runner: ModelRunnerProtocol
     prefix: str = "/api/v1/ml"
-    tags: List[str] = field(default_factory=lambda: ["ml"])
+    tags: List[str] = field(default_factory=lambda: ["ML"])
 
 
 class ServiceBuilder(BaseServiceBuilder):
@@ -130,7 +130,7 @@ class ServiceBuilder(BaseServiceBuilder):
         self._config_options = _ConfigOptions(
             schema=schema,
             prefix=prefix,
-            tags=list(tags) if tags else ["config"],
+            tags=list(tags) if tags else ["Config"],
             permissions=perms,
         )
         return self
@@ -158,7 +158,7 @@ class ServiceBuilder(BaseServiceBuilder):
         self._artifact_options = _ArtifactOptions(
             hierarchy=hierarchy,
             prefix=prefix,
-            tags=list(tags) if tags else ["artifacts"],
+            tags=list(tags) if tags else ["Artifacts"],
             enable_config_linking=enable_config_linking,
             permissions=perms,
         )
@@ -185,7 +185,7 @@ class ServiceBuilder(BaseServiceBuilder):
         )
         self._task_options = _TaskOptions(
             prefix=prefix,
-            tags=list(tags) if tags else ["tasks"],
+            tags=list(tags) if tags else ["Tasks"],
             permissions=perms,
         )
         return self
@@ -201,7 +201,7 @@ class ServiceBuilder(BaseServiceBuilder):
         self._ml_options = _MLOptions(
             runner=runner,
             prefix=prefix,
-            tags=list(tags) if tags else ["ml"],
+            tags=list(tags) if tags else ["ML"],
         )
         return self
 

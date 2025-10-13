@@ -162,7 +162,7 @@ By default, these paths don't require authentication:
 - `/docs` - Swagger UI
 - `/redoc` - ReDoc
 - `/openapi.json` - OpenAPI schema
-- `/api/v1/health` - Health check
+- `/health` - Health check
 - `/` - Landing page
 
 ### Custom Unauthenticated Paths
@@ -176,7 +176,7 @@ By default, these paths don't require authentication:
 This **replaces** the default list. To add to the default list:
 
 ```python
-default_paths = ["/docs", "/redoc", "/openapi.json", "/api/v1/health", "/"]
+default_paths = ["/docs", "/redoc", "/openapi.json", "/health", "/"]
 custom_paths = default_paths + ["/public", "/status"]
 
 .with_auth(unauthenticated_paths=custom_paths)
@@ -199,7 +199,7 @@ curl http://localhost:8000/api/v1/configs
 curl -H "X-API-Key: invalid_key" http://localhost:8000/api/v1/configs
 
 # Unauthenticated path (no key needed)
-curl http://localhost:8000/api/v1/health
+curl http://localhost:8000/health
 ```
 
 ### With Python requests
@@ -518,13 +518,13 @@ export CHAPKIT_API_KEYS="sk_dev_test123"
 
 **Problem:** Health check returns 401 instead of 200.
 
-**Solution:** Health checks are unauthenticated by default. If you customized `unauthenticated_paths`, add `/api/v1/health` back:
+**Solution:** Health checks are unauthenticated by default. If you customized `unauthenticated_paths`, add `/health` back:
 
 ```python
 .with_auth(
     unauthenticated_paths=[
         "/docs", "/redoc", "/openapi.json",
-        "/api/v1/health",  # Add this
+        "/health",  # Add this
         "/", "/custom/path"
     ]
 )

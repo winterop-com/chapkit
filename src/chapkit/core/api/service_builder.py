@@ -188,7 +188,7 @@ class BaseServiceBuilder:
 
         self._health_options = _HealthOptions(
             prefix=prefix,
-            tags=list(tags) if tags is not None else ["health"],
+            tags=list(tags) if tags is not None else ["Observability"],
             checks=health_checks,
         )
         return self
@@ -202,7 +202,7 @@ class BaseServiceBuilder:
         """Add system info endpoint."""
         self._system_options = _SystemOptions(
             prefix=prefix,
-            tags=list(tags) if tags is not None else ["system"],
+            tags=list(tags) if tags is not None else ["Observability"],
         )
         return self
 
@@ -216,7 +216,7 @@ class BaseServiceBuilder:
         """Add job scheduler endpoints."""
         self._job_options = _JobOptions(
             prefix=prefix,
-            tags=list(tags) if tags is not None else ["jobs"],
+            tags=list(tags) if tags is not None else ["Jobs"],
             max_concurrency=max_concurrency,
         )
         return self
@@ -304,7 +304,7 @@ class BaseServiceBuilder:
         """Enable OpenTelemetry monitoring with Prometheus endpoint and auto-instrumentation."""
         self._monitoring_options = _MonitoringOptions(
             prefix=prefix,
-            tags=list(tags) if tags is not None else ["monitoring"],
+            tags=list(tags) if tags is not None else ["Observability"],
             service_name=service_name,
             enable_traces=enable_traces,
         )

@@ -35,7 +35,7 @@ def config_app() -> tuple[TestClient, ConfigOut[ExampleConfig]]:
     manager = ConfigManagerStub[ExampleConfig](items={"feature-toggle": record})
     router = ConfigRouter.create(
         prefix="/config",
-        tags=["config"],
+        tags=["Config"],
         manager_factory=singleton_factory(manager),
         entity_in_type=ConfigIn[ExampleConfig],
         entity_out_type=ConfigOut[ExampleConfig],
@@ -65,7 +65,7 @@ def artifact_app() -> tuple[TestClient, ArtifactTreeNode]:
     manager = ArtifactManagerStub(trees={root_id: root})
     router = ArtifactRouter.create(
         prefix="/artifacts",
-        tags=["artifacts"],
+        tags=["Artifacts"],
         manager_factory=singleton_factory(manager),
         entity_in_type=ArtifactIn,
         entity_out_type=ArtifactOut,
@@ -172,7 +172,7 @@ def test_config_router_link_artifact_with_error(config_app: tuple[TestClient, Co
 
     router = ConfigRouter.create(
         prefix="/config",
-        tags=["config"],
+        tags=["Config"],
         manager_factory=singleton_factory(manager),
         entity_in_type=ConfigIn[ExampleConfig],
         entity_out_type=ConfigOut[ExampleConfig],
@@ -221,7 +221,7 @@ def test_config_router_unlink_artifact_with_error(config_app: tuple[TestClient, 
 
     router = ConfigRouter.create(
         prefix="/config",
-        tags=["config"],
+        tags=["Config"],
         manager_factory=singleton_factory(manager),
         entity_in_type=ConfigIn[ExampleConfig],
         entity_out_type=ConfigOut[ExampleConfig],
@@ -269,7 +269,7 @@ def test_config_router_get_linked_artifacts(config_app: tuple[TestClient, Config
 
     router = ConfigRouter.create(
         prefix="/config",
-        tags=["config"],
+        tags=["Config"],
         manager_factory=singleton_factory(manager),
         entity_in_type=ConfigIn[ExampleConfig],
         entity_out_type=ConfigOut[ExampleConfig],
@@ -323,7 +323,7 @@ def test_artifact_router_get_config_returns_config() -> None:
 
     artifact_router = ArtifactRouter.create(
         prefix="/artifacts",
-        tags=["artifacts"],
+        tags=["Artifacts"],
         manager_factory=singleton_factory(artifact_manager),
         entity_in_type=ArtifactIn,
         entity_out_type=ArtifactOut,

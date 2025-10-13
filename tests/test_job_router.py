@@ -435,4 +435,4 @@ class TestJobRouterIntegration:
 
             # Check tags at operation level
             jobs_list_tags = paths["/api/v1/jobs"]["get"]["tags"]
-            assert "jobs" in jobs_list_tags
+            assert "Jobs" in jobs_list_tags

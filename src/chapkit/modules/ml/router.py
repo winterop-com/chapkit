@@ -6,10 +6,35 @@ from typing import Any
 
 from fastapi import Depends, status
 
+from chapkit.core.api.monitoring import get_meter
 from chapkit.core.api.router import Router
 
 from .manager import MLManager
 from .schemas import PredictRequest, PredictResponse, TrainRequest, TrainResponse
+
+# Lazily initialized counters (initialized after monitoring setup)
+_train_counter = None
+_predict_counter = None
+
+
+def _get_counters() -> tuple[Any, Any]:
+    """Get or create ML metrics counters (lazy initialization)."""
+    global _train_counter, _predict_counter
+
+    if _train_counter is None:
+        meter = get_meter("chapkit.ml")
+        _train_counter = meter.create_counter(
+            name="ml_train_jobs_total",
+            description="Total number of ML training jobs submitted",
+            unit="1",
+        )
+        _predict_counter = meter.create_counter(
+            name="ml_predict_jobs_total",
+            description="Total number of ML prediction jobs submitted",
+            unit="1",
+        )
+
+    return _train_counter, _predict_counter
 
 
 class MLRouter(Router):
@@ -45,7 +70,10 @@ class MLRouter(Router):
         ) -> TrainResponse:
             """Train a model asynchronously and return job/artifact IDs."""
             try:
-                return await manager.execute_train(request)
+                response = await manager.execute_train(request)
+                train_counter, _ = _get_counters()
+                train_counter.add(1)
+                return response
             except ValueError as e:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -70,7 +98,10 @@ class MLRouter(Router):
         ) -> PredictResponse:
             """Make predictions asynchronously and return job/artifact IDs."""
             try:
-                return await manager.execute_predict(request)
+                response = await manager.execute_predict(request)
+                _, predict_counter = _get_counters()
+                predict_counter.add(1)
+                return response
             except ValueError as e:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,

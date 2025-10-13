@@ -15,7 +15,7 @@ def test_openapi_schema_with_config_and_artifact_routers() -> None:
 
     config_router = ConfigRouter.create(
         prefix="/config",
-        tags=["config"],
+        tags=["Config"],
         manager_factory=singleton_factory(ConfigManagerStub()),
         entity_in_type=ConfigIn[BaseConfig],
         entity_out_type=ConfigOut[BaseConfig],
@@ -23,7 +23,7 @@ def test_openapi_schema_with_config_and_artifact_routers() -> None:
 
     artifact_router = ArtifactRouter.create(
         prefix="/artifacts",
-        tags=["artifacts"],
+        tags=["Artifacts"],
         manager_factory=singleton_factory(ArtifactManagerStub()),
         entity_in_type=ArtifactIn,
         entity_out_type=ArtifactOut,

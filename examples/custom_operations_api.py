@@ -67,7 +67,7 @@ def create_feature_router() -> APIRouter:
     """Create config router with custom operations."""
     router = CrudRouter[ConfigIn[FeatureConfig], ConfigOut[FeatureConfig]](
         prefix="/api/v1/configs",
-        tags=["config"],
+        tags=["Config"],
         entity_in_type=ConfigIn[FeatureConfig],
         entity_out_type=ConfigOut[FeatureConfig],
         manager_factory=get_config_manager,  # type: ignore[arg-type]

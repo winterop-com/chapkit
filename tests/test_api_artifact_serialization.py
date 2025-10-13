@@ -37,7 +37,7 @@ class TestArtifactAPIWithNonSerializableData:
             # Create router
             artifact_router = ArtifactRouter.create(
                 prefix="/api/v1/artifacts",
-                tags=["artifacts"],
+                tags=["Artifacts"],
                 manager_factory=get_artifact_manager,
                 entity_in_type=ArtifactIn,
                 entity_out_type=ArtifactOut,
@@ -90,7 +90,7 @@ class TestArtifactAPIWithNonSerializableData:
             # Create router
             artifact_router = ArtifactRouter.create(
                 prefix="/api/v1/artifacts",
-                tags=["artifacts"],
+                tags=["Artifacts"],
                 manager_factory=get_artifact_manager,
                 entity_in_type=ArtifactIn,
                 entity_out_type=ArtifactOut,
@@ -150,7 +150,7 @@ class TestArtifactAPIWithNonSerializableData:
             # Create router
             artifact_router = ArtifactRouter.create(
                 prefix="/api/v1/artifacts",
-                tags=["artifacts"],
+                tags=["Artifacts"],
                 manager_factory=get_artifact_manager,
                 entity_in_type=ArtifactIn,
                 entity_out_type=ArtifactOut,

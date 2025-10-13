@@ -61,7 +61,7 @@ No manual instrumentation needed - Chapkit automatically:
 ```python
 .with_monitoring(
     prefix="/custom/metrics",           # Custom endpoint path
-    tags=["observability", "telemetry"], # Custom OpenAPI tags
+    tags=["Observability", "Telemetry"], # Custom OpenAPI tags
     service_name="production-api",       # Override service name
 )
 ```
@@ -259,6 +259,22 @@ db_client_connections_limit
 rate(http_server_requests_total{http_status_code=~"5.."}[5m])
 ```
 
+**ML Training Job Rate:**
+```promql
+rate(ml_train_jobs_total{job="chapkit-services"}[5m])
+```
+
+**ML Prediction Job Rate:**
+```promql
+rate(ml_predict_jobs_total{job="chapkit-services"}[5m])
+```
+
+**Total ML Jobs (Train + Predict):**
+```promql
+sum(rate(ml_train_jobs_total{job="chapkit-services"}[5m])) +
+sum(rate(ml_predict_jobs_total{job="chapkit-services"}[5m]))
+```
+
 ## Available Metrics
 
 ### HTTP Metrics (FastAPI)
@@ -284,6 +300,13 @@ rate(http_server_requests_total{http_status_code=~"5.."}[5m])
 - `python_info` - Python version info
 - `process_cpu_seconds_total` - CPU time
 - `process_resident_memory_bytes` - Memory usage
+
+### ML Metrics (when using `.with_ml()`)
+
+- `ml_train_jobs_total` - Total number of ML training jobs submitted
+- `ml_predict_jobs_total` - Total number of ML prediction jobs submitted
+
+**Labels**: `service_name`
 
 ## Best Practices
 
