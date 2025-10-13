@@ -416,7 +416,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"id\": \"01K79YAHJ7BR4E87VVTG8FNBMA\",\n  \"name\": \"production_config\",\n  \"data\": {\n    \"environment\": \"production\",\n    \"debug\": false\n  }\n}"
+                            "raw": "{\n  \"name\": \"production_config\",\n  \"data\": {\n    \"environment\": \"production\",\n    \"debug\": false\n  }\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/configs",
@@ -444,7 +444,7 @@
                                 ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"id\": \"01K79YAHJ7BR4E87VVTG8FNBMA\",\n  \"name\": \"production_config\",\n  \"data\": {\n    \"environment\": \"production\",\n    \"debug\": false\n  }\n}"
+                                    "raw": "{\n  \"name\": \"production_config\",\n  \"data\": {\n    \"environment\": \"production\",\n    \"debug\": false\n  }\n}"
                                 },
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/configs",
