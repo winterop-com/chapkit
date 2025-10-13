@@ -43,7 +43,7 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("(CURRENT_TIMESTAMP)"), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f("ix_configs_name"), "configs", ["name"], unique=True)
+    op.create_index(op.f("ix_configs_name"), "configs", ["name"], unique=False)
     op.create_table(
         "config_artifacts",
         sa.Column("config_id", chapkit.core.types.ULIDType(length=26), nullable=False),

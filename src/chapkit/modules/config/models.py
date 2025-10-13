@@ -20,7 +20,7 @@ class Config(Entity):
 
     __tablename__ = "configs"
 
-    name: Mapped[str] = mapped_column(unique=True, index=True)
+    name: Mapped[str] = mapped_column(index=True)
     _data_json: Mapped[dict[str, Any]] = mapped_column("data", JSON, nullable=False)
 
     @property

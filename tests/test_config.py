@@ -82,27 +82,27 @@ class TestConfigModelExtras:
 
         await db.dispose()
 
-    async def test_config_name_is_unique(self) -> None:
-        """Test that Config name field is unique."""
+    async def test_config_name_allows_duplicates(self) -> None:
+        """Test that Config name field allows duplicates (no unique constraint)."""
         db = SqliteDatabaseBuilder.in_memory().build()
         await db.init()
 
         async with db.session() as session:
-            config1 = Config(name="unique_name", data=DemoConfig(x=1, y=2, z=3, tags=[]))
+            config1 = Config(name="duplicate_name", data=DemoConfig(x=1, y=2, z=3, tags=[]))
             session.add(config1)
             await session.commit()
+            await session.refresh(config1)
 
-        # Try to create another config with the same name
+        # Create another config with the same name - should succeed
         async with db.session() as session:
-            config2 = Config(name="unique_name", data=DemoConfig(x=4, y=5, z=6, tags=[]))
+            config2 = Config(name="duplicate_name", data=DemoConfig(x=4, y=5, z=6, tags=[]))
             session.add(config2)
+            await session.commit()
+            await session.refresh(config2)
 
-            try:
-                await session.commit()
-                assert False, "Expected unique constraint violation"
-            except Exception as e:
-                # SQLite raises IntegrityError for unique constraint violations
-                assert "UNIQUE constraint failed" in str(e) or "unique" in str(e).lower()
+            # Verify they have different IDs but same name
+            assert config1.id != config2.id
+            assert config1.name == config2.name == "duplicate_name"
 
         await db.dispose()
 

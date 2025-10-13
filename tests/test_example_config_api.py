@@ -154,7 +154,7 @@ def test_create_config(client: TestClient) -> None:
 
 
 def test_create_config_duplicate_name(client: TestClient) -> None:
-    """Test creating config with duplicate name returns 409."""
+    """Test creating config with duplicate name succeeds (no unique constraint)."""
     # First create a config
     first_config = {
         "name": "duplicate-test",
@@ -162,16 +162,21 @@ def test_create_config_duplicate_name(client: TestClient) -> None:
     }
     response1 = client.post("/api/v1/configs", json=first_config)
     assert response1.status_code == 201
+    first_id = response1.json()["id"]
 
-    # Try to create another with the same name
+    # Create another with the same name - should succeed
     duplicate_config = {
         "name": "duplicate-test",
         "data": {"debug": True, "api_host": "127.0.0.1", "api_port": 8000, "max_connections": 500},
     }
 
-    response = client.post("/api/v1/configs", json=duplicate_config)
-    # Should fail with 409 or 400 due to unique constraint
-    assert response.status_code in [400, 409, 500]  # Database constraint error
+    response2 = client.post("/api/v1/configs", json=duplicate_config)
+    assert response2.status_code == 201
+    second_id = response2.json()["id"]
+
+    # Verify they have different IDs but same name
+    assert first_id != second_id
+    assert response1.json()["name"] == response2.json()["name"] == "duplicate-test"
 
 
 def test_update_config(client: TestClient) -> None:
