@@ -1,10 +1,4 @@
-"""Core-only CLI example using Database, Repository, and Manager directly.
-
-Demonstrates using chapkit.core without FastAPI for command-line tools, batch jobs,
-or background workers. Shows direct database operations with custom entities.
-"""
-
-from __future__ import annotations
+"""Core-only CLI example using Database, Repository, and Manager directly."""
 
 import asyncio
 
@@ -13,8 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 from ulid import ULID
 
 from chapkit.core import BaseManager, BaseRepository, Entity, EntityIn, EntityOut, SqliteDatabaseBuilder
-
-# --------------------------------------------------------------------- Domain Model
 
 
 class Product(Entity):
@@ -27,9 +19,6 @@ class Product(Entity):
     price: Mapped[float]
     stock: Mapped[int] = mapped_column(default=0)
     active: Mapped[bool] = mapped_column(default=True)
-
-
-# --------------------------------------------------------------------- Schemas
 
 
 class ProductIn(EntityIn):
@@ -50,9 +39,6 @@ class ProductOut(EntityOut):
     price: float
     stock: int
     active: bool
-
-
-# --------------------------------------------------------------------- Repository
 
 
 class ProductRepository(BaseRepository[Product, ULID]):
@@ -77,9 +63,6 @@ class ProductRepository(BaseRepository[Product, ULID]):
         stmt = select(self.model).where(self.model.stock < threshold).where(self.model.active.is_(True))
         result = await self.s.execute(stmt)
         return list(result.scalars().all())
-
-
-# --------------------------------------------------------------------- Manager
 
 
 class ProductManager(BaseManager[Product, ProductIn, ProductOut, ULID]):
@@ -109,9 +92,6 @@ class ProductManager(BaseManager[Product, ProductIn, ProductOut, ULID]):
         product.stock += quantity
         await self.repo.save(product)
         return self._to_output_schema(product)
-
-
-# --------------------------------------------------------------------- Application Logic
 
 
 async def main() -> None:
