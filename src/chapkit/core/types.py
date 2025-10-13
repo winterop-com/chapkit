@@ -36,7 +36,7 @@ class ULIDType(TypeDecorator[ULID]):
 
 
 def _is_json_serializable(value: Any) -> bool:
-    """Check if a value is JSON-serializable."""
+    """Test if value can be serialized to JSON."""
     try:
         json.dumps(value)
         return True
@@ -45,7 +45,7 @@ def _is_json_serializable(value: Any) -> bool:
 
 
 def _create_serialization_metadata(value: Any, *, is_full_object: bool = True) -> dict[str, str]:
-    """Create metadata dict for non-serializable values."""
+    """Build metadata dict for non-serializable values with type info and truncated repr."""
     value_repr = repr(value)
     max_repr_length = 200
 
@@ -67,25 +67,23 @@ def _create_serialization_metadata(value: Any, *, is_full_object: bool = True) -
 
 
 def _serialize_with_metadata(value: Any) -> Any:
-    """Serialize value, replacing non-JSON-serializable values with metadata.
-
-    For dicts, each field is serialized individually - serializable values pass through,
-    non-serializable values are replaced with metadata dicts containing type information.
-    For non-dict values, returns the value if serializable, otherwise metadata.
-    """
+    """Serialize value, replacing non-serializable values with metadata dicts."""
     # For dicts, serialize each field individually
     if isinstance(value, dict):
         result = {}
+
         for key, val in value.items():
             if _is_json_serializable(val):
                 result[key] = val
             else:
                 result[key] = _create_serialization_metadata(val, is_full_object=False)
+
         return result
 
     # For non-dict values, serialize or return metadata
     if _is_json_serializable(value):
         return value
+
     return _create_serialization_metadata(value, is_full_object=True)
 
 
@@ -93,28 +91,4 @@ SerializableDict = Annotated[
     Any,
     PlainSerializer(_serialize_with_metadata, return_type=Any),
 ]
-"""Pydantic type annotation that serializes values, replacing non-JSON-serializable objects with metadata.
-
-This type is useful for storing flexible data structures that may contain non-serializable objects
-like ML models, functions, or custom classes. During serialization, JSON-serializable values pass
-through unchanged, while non-serializable values are replaced with metadata dicts containing:
-- `_type`: The type name
-- `_module`: The module name
-- `_repr`: String representation (truncated to 200 chars)
-- `_serialization_error`: Error message
-
-Example:
-    ```python
-    from chapkit.core.types import SerializableDict
-
-    class MySchema(BaseModel):
-        data: SerializableDict
-
-    # Serializable values pass through
-    obj = MySchema(data={"name": "test", "count": 42})
-
-    # Non-serializable values become metadata
-    obj = MySchema(data={"model": LinearRegression(), "version": "1.0"})
-    # Serializes to: {"model": {"_type": "LinearRegression", ...}, "version": "1.0"}
-    ```
-"""
+"""Pydantic type that serializes dicts, replacing non-JSON-serializable values with metadata."""
