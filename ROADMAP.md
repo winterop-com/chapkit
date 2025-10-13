@@ -16,3 +16,4 @@
 - [ ] Memory leak detection
 - [ ] Code coverage improvements (target 95%+)
 - [ ] Dependency injection improvements
+- [ ] Create chapkit.client.Client for testing/working with instances
