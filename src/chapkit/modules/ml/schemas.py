@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 import pandas as pd
 from geojson_pydantic import FeatureCollection
@@ -44,6 +44,31 @@ class PredictResponse(BaseModel):
     job_id: str = Field(description="ID of the prediction job in the scheduler")
     prediction_artifact_id: str = Field(description="ID that will contain the prediction artifact")
     message: str = Field(description="Human-readable message")
+
+
+class TrainedModelArtifactData(BaseModel):
+    """Schema for trained model artifact data stored in the artifact system."""
+
+    ml_type: Literal["trained_model"] = Field(description="Artifact type identifier")
+    config_id: str = Field(description="ID of the config used for training")
+    model: Any = Field(description="The trained model object (must be pickleable)")
+    training_started_at: str = Field(description="ISO format timestamp when training started")
+    training_completed_at: str = Field(description="ISO format timestamp when training completed")
+    training_duration_seconds: float = Field(description="Training duration in seconds (rounded to 2 decimals)")
+
+    model_config = {"arbitrary_types_allowed": True}
+
+
+class PredictionArtifactData(BaseModel):
+    """Schema for prediction artifact data stored in the artifact system."""
+
+    ml_type: Literal["prediction"] = Field(description="Artifact type identifier")
+    model_artifact_id: str = Field(description="ID of the trained model artifact used for prediction")
+    config_id: str = Field(description="ID of the config used for prediction")
+    predictions: PandasDataFrame = Field(description="Prediction results as structured DataFrame")
+    prediction_started_at: str = Field(description="ISO format timestamp when prediction started")
+    prediction_completed_at: str = Field(description="ISO format timestamp when prediction completed")
+    prediction_duration_seconds: float = Field(description="Prediction duration in seconds (rounded to 2 decimals)")
 
 
 class ModelRunnerProtocol(Protocol):

@@ -194,7 +194,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n  \"id\": \"{{config_id}}\",\n  \"name\": \"basic_disease_model\",\n  \"data\": {}\n}"
+                            "raw": "{\n  \"name\": \"basic_disease_model\",\n  \"data\": {}\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/v1/configs",
@@ -216,7 +216,7 @@
                                 ],
                                 "body": {
                                     "mode": "raw",
-                                    "raw": "{\n  \"id\": \"01K79YAHJ7BR4E87VVTG8FNBMA\",\n  \"name\": \"basic_disease_model\",\n  \"data\": {}\n}"
+                                    "raw": "{\n  \"name\": \"basic_disease_model\",\n  \"data\": {}\n}"
                                 },
                                 "url": {
                                     "raw": "{{baseUrl}}/api/v1/configs",

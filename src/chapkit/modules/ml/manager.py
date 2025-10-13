@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+import datetime
 
 from ulid import ULID
 
@@ -12,7 +12,15 @@ from chapkit.modules.artifact import ArtifactIn, ArtifactManager, ArtifactReposi
 from chapkit.modules.config import ConfigManager, ConfigRepository
 from chapkit.modules.config.schemas import BaseConfig
 
-from .schemas import ModelRunnerProtocol, PredictRequest, PredictResponse, TrainRequest, TrainResponse
+from .schemas import (
+    ModelRunnerProtocol,
+    PredictionArtifactData,
+    PredictRequest,
+    PredictResponse,
+    TrainedModelArtifactData,
+    TrainRequest,
+    TrainResponse,
+)
 
 
 class MLManager:
@@ -81,12 +89,15 @@ class MLManager:
         # Convert PandasDataFrame to pandas
         data_df = request.data.to_dataframe()
 
-        # Train model
+        # Train model with timing
+        training_started_at = datetime.datetime.now(datetime.UTC)
         trained_model = await self.runner.on_train(
             config=config.data,
             data=data_df,
             geo=request.geo,
         )
+        training_completed_at = datetime.datetime.now(datetime.UTC)
+        training_duration = (training_completed_at - training_started_at).total_seconds()
 
         # Store trained model in artifact with metadata
         async with self.database.session() as session:
@@ -94,16 +105,20 @@ class MLManager:
             artifact_manager = ArtifactManager(artifact_repo)
             config_repo = ConfigRepository(session)
 
-            artifact_data: dict[str, Any] = {
-                "ml_type": "trained_model",
-                "config_id": str(request.config_id),
-                "model": trained_model,
-            }
+            # Create and validate artifact data with Pydantic
+            artifact_data_model = TrainedModelArtifactData(
+                ml_type="trained_model",
+                config_id=str(request.config_id),
+                model=trained_model,
+                training_started_at=training_started_at.isoformat(),
+                training_completed_at=training_completed_at.isoformat(),
+                training_duration_seconds=round(training_duration, 2),
+            )
 
             await artifact_manager.save(
                 ArtifactIn(
                     id=model_artifact_id,
-                    data=artifact_data,
+                    data=artifact_data_model.model_dump(),
                     parent_id=None,
                     level=0,
                 )
@@ -147,7 +162,8 @@ class MLManager:
         future_df = request.future.to_dataframe()
         historic_df = request.historic.to_dataframe() if request.historic else None
 
-        # Make predictions
+        # Make predictions with timing
+        prediction_started_at = datetime.datetime.now(datetime.UTC)
         predictions_df = await self.runner.on_predict(
             config=config.data,
             model=trained_model,
@@ -155,6 +171,8 @@ class MLManager:
             future=future_df,
             geo=request.geo,
         )
+        prediction_completed_at = datetime.datetime.now(datetime.UTC)
+        prediction_duration = (prediction_completed_at - prediction_started_at).total_seconds()
 
         # Store predictions in artifact with parent linkage
         async with self.database.session() as session:
@@ -163,17 +181,21 @@ class MLManager:
 
             from chapkit.modules.artifact.schemas import PandasDataFrame
 
-            artifact_data: dict[str, Any] = {
-                "ml_type": "prediction",
-                "model_artifact_id": str(request.model_artifact_id),
-                "config_id": str(config_id),
-                "predictions": PandasDataFrame.from_dataframe(predictions_df),
-            }
+            # Create and validate artifact data with Pydantic
+            artifact_data_model = PredictionArtifactData(
+                ml_type="prediction",
+                model_artifact_id=str(request.model_artifact_id),
+                config_id=str(config_id),
+                predictions=PandasDataFrame.from_dataframe(predictions_df),
+                prediction_started_at=prediction_started_at.isoformat(),
+                prediction_completed_at=prediction_completed_at.isoformat(),
+                prediction_duration_seconds=round(prediction_duration, 2),
+            )
 
             await artifact_manager.save(
                 ArtifactIn(
                     id=prediction_artifact_id,
-                    data=artifact_data,
+                    data=artifact_data_model.model_dump(),
                     parent_id=request.model_artifact_id,
                     level=1,
                 )

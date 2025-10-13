@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-import json
 from typing import Any, ClassVar, Mapping, Self
 
 import pandas as pd
-from pydantic import BaseModel, Field, field_serializer
-from pydantic_core import core_schema
+from pydantic import BaseModel, Field
 from ulid import ULID
 
 from chapkit.core.schemas import EntityIn, EntityOut
+from chapkit.core.types import SerializableDict
 from chapkit.modules.config.schemas import BaseConfig, ConfigOut
 
 
@@ -25,36 +24,9 @@ class ArtifactIn(EntityIn):
 class ArtifactOut(EntityOut):
     """Output schema for artifact entities."""
 
-    data: Any
+    data: SerializableDict
     parent_id: ULID | None = None
     level: int
-
-    @field_serializer("data")
-    def serialize_data(self, value: Any, _info: core_schema.SerializationInfo) -> Any:
-        """Serialize artifact data to JSON or return metadata for non-serializable types."""
-        try:
-            # Test if the value is JSON-serializable
-            json.dumps(value)
-            return value
-        except (TypeError, ValueError, OverflowError):
-            # Return metadata for non-serializable types
-            type_name = type(value).__name__
-            module_name = type(value).__module__
-            value_repr = repr(value)
-
-            # Truncate repr if too long
-            max_repr_length = 200
-            if len(value_repr) > max_repr_length:
-                value_repr = value_repr[:max_repr_length] + "..."
-
-            return {
-                "_type": type_name,
-                "_module": module_name,
-                "_repr": value_repr,
-                "_serialization_error": (
-                    "Data is not JSON-serializable. Use direct database access to retrieve the full object."
-                ),
-            }
 
 
 class ArtifactTreeNode(ArtifactOut):

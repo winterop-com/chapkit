@@ -3,7 +3,15 @@
 from .manager import MLManager
 from .router import MLRouter
 from .runner import BaseModelRunner, FunctionalModelRunner, ShellModelRunner
-from .schemas import ModelRunnerProtocol, PredictRequest, PredictResponse, TrainRequest, TrainResponse
+from .schemas import (
+    ModelRunnerProtocol,
+    PredictionArtifactData,
+    PredictRequest,
+    PredictResponse,
+    TrainedModelArtifactData,
+    TrainRequest,
+    TrainResponse,
+)
 
 __all__ = [
     "BaseModelRunner",
@@ -13,7 +21,9 @@ __all__ = [
     "ModelRunnerProtocol",
     "PredictRequest",
     "PredictResponse",
+    "PredictionArtifactData",
     "ShellModelRunner",
     "TrainRequest",
     "TrainResponse",
+    "TrainedModelArtifactData",
 ]
