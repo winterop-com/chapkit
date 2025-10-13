@@ -313,11 +313,11 @@
                             },
                             {
                                 "color": "yellow",
-                                "value": 2
+                                "value": 20
                             },
                             {
                                 "color": "red",
-                                "value": 5
+                                "value": 50
                             }
                         ]
                     },
@@ -1228,5 +1228,5 @@
     "timezone": "",
     "title": "Chapkit FastAPI Metrics (GPT-5)",
     "uid": "chapkit-fastapi-metrics-gpt5",
-    "version": 2
+    "version": 4
 }
