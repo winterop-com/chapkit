@@ -10,6 +10,7 @@ from chapkit.core import Database
 from chapkit.core.scheduler import JobScheduler
 from chapkit.modules.artifact import ArtifactIn, ArtifactManager, ArtifactRepository
 from chapkit.modules.config import ConfigManager, ConfigRepository
+from chapkit.modules.config.schemas import BaseConfig
 
 from .schemas import ModelRunnerProtocol, PredictRequest, PredictResponse, TrainRequest, TrainResponse
 
@@ -22,11 +23,13 @@ class MLManager:
         runner: ModelRunnerProtocol,
         scheduler: JobScheduler,
         database: Database,
+        config_schema: type[BaseConfig],
     ) -> None:
-        """Initialize ML manager with runner, scheduler, and database."""
+        """Initialize ML manager with runner, scheduler, database, and config schema."""
         self.runner = runner
         self.scheduler = scheduler
         self.database = database
+        self.config_schema = config_schema
 
     async def execute_train(self, request: TrainRequest) -> TrainResponse:
         """Submit a training job to the scheduler and return job/artifact IDs."""
@@ -69,9 +72,7 @@ class MLManager:
         # Load config
         async with self.database.session() as session:
             config_repo = ConfigRepository(session)
-            from chapkit.modules.config.schemas import BaseConfig
-
-            config_manager: ConfigManager[BaseConfig] = ConfigManager(config_repo, BaseConfig)
+            config_manager: ConfigManager[BaseConfig] = ConfigManager(config_repo, self.config_schema)
             config = await config_manager.find_by_id(request.config_id)
 
             if config is None:
@@ -136,9 +137,7 @@ class MLManager:
         # Load config
         async with self.database.session() as session:
             config_repo = ConfigRepository(session)
-            from chapkit.modules.config.schemas import BaseConfig
-
-            config_manager: ConfigManager[BaseConfig] = ConfigManager(config_repo, BaseConfig)
+            config_manager: ConfigManager[BaseConfig] = ConfigManager(config_repo, self.config_schema)
             config = await config_manager.find_by_id(config_id)
 
             if config is None:

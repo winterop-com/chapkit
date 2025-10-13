@@ -348,15 +348,18 @@ class ServiceBuilder(BaseServiceBuilder):
 
     def _build_ml_dependency(self) -> DependencyFactory:
         ml_runner = self._ml_options.runner if self._ml_options else None
+        config_schema = self._config_options.schema if self._config_options else None
 
         async def _dependency() -> MLManager:
             if ml_runner is None:
                 raise RuntimeError("ML runner not configured")
+            if config_schema is None:
+                raise RuntimeError("Config schema not configured")
 
             runner: ModelRunnerProtocol = ml_runner
             scheduler = get_scheduler()
             database = get_database()
-            return MLManager(runner, scheduler, database)
+            return MLManager(runner, scheduler, database, config_schema)
 
         return _dependency
 
