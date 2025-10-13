@@ -1,6 +1,10 @@
 """Tests for ServiceBuilder validation."""
 
+from typing import Any
+
+import pandas as pd
 import pytest
+from geojson_pydantic import FeatureCollection
 from pydantic import Field
 
 from chapkit import BaseConfig
@@ -19,13 +23,25 @@ class DummyConfig(BaseConfig):
 class DummyRunner(ModelRunnerProtocol):
     """Dummy ML runner for testing."""
 
-    def train(self, data: dict, params: dict) -> dict:
+    async def on_train(
+        self,
+        config: BaseConfig,
+        data: pd.DataFrame,
+        geo: FeatureCollection | None = None,
+    ) -> Any:
         """Train a model."""
         return {"status": "trained"}
 
-    def predict(self, model: dict, input_data: dict) -> dict:
+    async def on_predict(
+        self,
+        config: BaseConfig,
+        model: Any,
+        historic: pd.DataFrame | None,
+        future: pd.DataFrame,
+        geo: FeatureCollection | None = None,
+    ) -> pd.DataFrame:
         """Make predictions."""
-        return {"predictions": []}
+        return pd.DataFrame({"predictions": []})
 
 
 def test_tasks_without_artifacts_raises_error() -> None:
@@ -82,11 +98,7 @@ def test_valid_ml_service_builds_successfully() -> None:
 
     # This should build successfully with all dependencies
     app = (
-        builder.with_config(DummyConfig)
-        .with_artifacts(hierarchy=hierarchy)
-        .with_jobs()
-        .with_ml(runner=runner)
-        .build()
+        builder.with_config(DummyConfig).with_artifacts(hierarchy=hierarchy).with_jobs().with_ml(runner=runner).build()
     )
 
     assert app is not None
