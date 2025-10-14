@@ -350,8 +350,7 @@ app = (
 ```python
 app = (
     ServiceBuilder(info=info)
-    .with_health()         # /health - One-time health check
-                          # /health/$stream - Continuous monitoring (SSE)
+    .with_health()         # /health - Health check endpoint
     .with_system()         # /api/v1/system - System metadata
     .with_monitoring()     # /metrics - Prometheus metrics
     .build()
@@ -412,7 +411,7 @@ For detailed health check configuration and usage, see the [Health Checks Guide]
 - `examples/docs/monitoring_api.postman_collection.json` - Postman collection
 
 For more details, see:
-- [Health Checks Guide](health-checks.md) - Health check configuration and SSE streaming
+- [Health Checks Guide](health-checks.md) - Health check configuration
 - [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
 - [Prometheus Documentation](https://prometheus.io/docs/)
 - [Grafana Documentation](https://grafana.com/docs/)
