@@ -195,3 +195,31 @@ class AppLoader:
             raise NotADirectoryError(f"App path '{subpath}' in package '{package_name}' is not a directory")
 
         return app_dir, True
+
+
+class AppInfo(BaseModel):
+    """App metadata for API responses."""
+
+    name: str = Field(description="Human-readable app name")
+    version: str = Field(description="Semantic version")
+    prefix: str = Field(description="URL prefix for mounting")
+    description: str | None = Field(default=None, description="App description")
+    author: str | None = Field(default=None, description="Author name")
+    entry: str = Field(description="Entry point filename")
+    is_package: bool = Field(description="Whether app is loaded from package resources")
+
+
+class AppManager:
+    """Lightweight manager for app metadata queries."""
+
+    def __init__(self, apps: list[App]):
+        """Initialize with loaded apps."""
+        self._apps = apps
+
+    def list_apps(self) -> list[App]:
+        """Return all installed apps."""
+        return self._apps
+
+    def get_app(self, prefix: str) -> App | None:
+        """Get app by mount prefix."""
+        return next((app for app in self._apps if app.prefix == prefix), None)

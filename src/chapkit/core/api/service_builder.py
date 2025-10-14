@@ -415,6 +415,13 @@ class BaseServiceBuilder:
                     is_package=app_config.is_package,
                 )
 
+        # Initialize app manager for metadata queries (always, even if no apps)
+        from .app import AppManager
+        from .dependencies import set_app_manager
+
+        app_manager = AppManager(self._app_configs)
+        set_app_manager(app_manager)
+
         for dependency, override in self._dependency_overrides.items():
             app.dependency_overrides[dependency] = override
 

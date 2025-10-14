@@ -378,3 +378,67 @@ def test_load_app_from_package_rejects_absolute_subpath():
     """Test loading app from package with absolute subpath fails."""
     with pytest.raises(ValueError, match="subpath must be relative"):
         AppLoader.load_app(("chapkit.core.api", "/etc/passwd"))
+
+
+# AppManager Tests
+
+
+def test_app_manager_list_apps(tmp_path: Path):
+    """Test AppManager lists all apps."""
+    from chapkit.core.api.app import AppManager
+
+    # Create test apps
+    app1_dir = tmp_path / "app1"
+    app1_dir.mkdir()
+    (app1_dir / "manifest.json").write_text(json.dumps({"name": "App 1", "version": "1.0.0", "prefix": "/app1"}))
+    (app1_dir / "index.html").write_text("<html>App 1</html>")
+
+    app2_dir = tmp_path / "app2"
+    app2_dir.mkdir()
+    (app2_dir / "manifest.json").write_text(json.dumps({"name": "App 2", "version": "1.0.0", "prefix": "/app2"}))
+    (app2_dir / "index.html").write_text("<html>App 2</html>")
+
+    # Load apps
+    app1 = AppLoader.load_app(str(app1_dir))
+    app2 = AppLoader.load_app(str(app2_dir))
+
+    # Create manager
+    manager = AppManager([app1, app2])
+
+    # List apps
+    apps = manager.list_apps()
+    assert len(apps) == 2
+    assert apps[0].manifest.name == "App 1"
+    assert apps[1].manifest.name == "App 2"
+
+
+def test_app_manager_get_app_by_prefix(tmp_path: Path):
+    """Test getting app by prefix."""
+    from chapkit.core.api.app import AppManager
+
+    # Create test app
+    app_dir = tmp_path / "test-app"
+    app_dir.mkdir()
+    (app_dir / "manifest.json").write_text(json.dumps({"name": "Test App", "version": "1.0.0", "prefix": "/test"}))
+    (app_dir / "index.html").write_text("<html>Test</html>")
+
+    # Load app and create manager
+    app = AppLoader.load_app(str(app_dir))
+    manager = AppManager([app])
+
+    # Get app by prefix
+    found_app = manager.get_app("/test")
+    assert found_app is not None
+    assert found_app.manifest.name == "Test App"
+
+
+def test_app_manager_get_nonexistent_app():
+    """Test getting nonexistent app returns None."""
+    from chapkit.core.api.app import AppManager
+
+    # Create empty manager
+    manager = AppManager([])
+
+    # Get nonexistent app
+    found_app = manager.get_app("/nonexistent")
+    assert found_app is None

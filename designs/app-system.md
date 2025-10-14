@@ -288,10 +288,38 @@ app_dir = Path(spec.origin).parent / "apps/landing"
 **Known Limitation**:
 Root mounts catch requests that would normally trigger FastAPI's trailing slash redirect. This means `/api/v1/configs/` (with slash) returns 404 if the actual route is `/api/v1/configs` (no slash). Users should use exact paths.
 
+## Implemented Features
+
+### App Metadata Endpoint (implemented 2025-10-14)
+
+**Endpoint**: `GET /api/v1/system/apps`
+
+Lists all installed apps with their metadata. Available when `.with_system()` is called on ServiceBuilder.
+
+**Response Schema** (`AppInfo`):
+```json
+{
+  "name": "Dashboard",
+  "version": "1.0.0",
+  "prefix": "/dashboard",
+  "description": "Interactive data dashboard",
+  "author": "John Doe",
+  "entry": "index.html",
+  "is_package": false
+}
+```
+
+**Implementation**:
+- `AppManager` class: Lightweight manager holding loaded app list
+- Global dependency injection via `get_app_manager()` / `set_app_manager()`
+- Initialized in `ServiceBuilder.build()` (always, even with no apps)
+- New endpoint in `SystemRouter` at `/apps`
+
+**Test Coverage**: 3 unit tests + 3 integration tests
+
 ## Future Enhancements
 
-1. **App Metadata Endpoint**: `GET /api/v1/system/apps` listing installed apps
-2. **Hot Reload**: Watch app directories and reload on change (development mode)
+1. **Hot Reload**: Watch app directories and reload on change (development mode)
 3. **App Assets CDN**: Optional CDN integration for static assets
 4. **App Dependencies**: Declare app dependencies in manifest (e.g., requires specific API version)
 5. **App Permissions**: Fine-grained control over which API endpoints each app can access

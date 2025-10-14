@@ -305,3 +305,75 @@ def test_service_builder_apps_with_custom_routers(app_directory: Path):
         app_response = client.get("/dashboard/")
         assert app_response.status_code == 200
         assert b"Dashboard App" in app_response.content
+
+
+def test_system_apps_endpoint_empty():
+    """Test /api/v1/system/apps with no apps."""
+    app = BaseServiceBuilder(info=ServiceInfo(display_name="Test Service")).with_system().build()
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/system/apps")
+        assert response.status_code == 200
+        assert response.json() == []
+
+
+def test_system_apps_endpoint_with_apps(app_directory: Path):
+    """Test /api/v1/system/apps lists installed apps."""
+    app = (
+        BaseServiceBuilder(info=ServiceInfo(display_name="Test Service"))
+        .with_system()
+        .with_app(str(app_directory / "dashboard"))
+        .with_app(str(app_directory / "admin"))
+        .build()
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/system/apps")
+        assert response.status_code == 200
+        apps = response.json()
+        assert len(apps) == 2
+
+        # Check dashboard app
+        dashboard = next(a for a in apps if a["prefix"] == "/dashboard")
+        assert dashboard["name"] == "Dashboard"
+        assert dashboard["version"] == "1.0.0"
+        assert dashboard["prefix"] == "/dashboard"
+        assert dashboard["entry"] == "index.html"
+        assert dashboard["is_package"] is False
+
+        # Check admin app
+        admin = next(a for a in apps if a["prefix"] == "/admin")
+        assert admin["name"] == "Admin"
+        assert admin["version"] == "2.0.0"
+
+
+def test_system_apps_endpoint_returns_correct_fields(app_directory: Path):
+    """Test AppInfo fields match manifest."""
+    app = (
+        BaseServiceBuilder(info=ServiceInfo(display_name="Test Service"))
+        .with_system()
+        .with_app(str(app_directory / "dashboard"))
+        .build()
+    )
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/system/apps")
+        assert response.status_code == 200
+        apps = response.json()
+        assert len(apps) == 1
+
+        app_info = apps[0]
+        # Check all required fields present
+        assert "name" in app_info
+        assert "version" in app_info
+        assert "prefix" in app_info
+        assert "description" in app_info
+        assert "author" in app_info
+        assert "entry" in app_info
+        assert "is_package" in app_info
+
+        # Check values
+        assert app_info["name"] == "Dashboard"
+        assert app_info["version"] == "1.0.0"
+        assert app_info["prefix"] == "/dashboard"
+        assert app_info["entry"] == "index.html"
