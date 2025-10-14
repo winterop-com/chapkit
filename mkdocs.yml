@@ -122,6 +122,7 @@ nav:
       - Authentication: guides/authentication.md
       - Job Scheduler: guides/job-scheduler.md
       - Monitoring: guides/monitoring.md
+      - Task Execution: guides/task-execution.md
   - API Reference: api-reference.md
 
 extra_css:
