@@ -528,7 +528,7 @@ def test_app_manager_list_apps(tmp_path: Path):
     manager = AppManager([app1, app2])
 
     # List apps
-    apps = manager.list_apps()
+    apps = manager.list()
     assert len(apps) == 2
     assert apps[0].manifest.name == "App 1"
     assert apps[1].manifest.name == "App 2"
@@ -549,7 +549,7 @@ def test_app_manager_get_app_by_prefix(tmp_path: Path):
     manager = AppManager([app])
 
     # Get app by prefix
-    found_app = manager.get_app("/test")
+    found_app = manager.get("/test")
     assert found_app is not None
     assert found_app.manifest.name == "Test App"
 
@@ -562,5 +562,5 @@ def test_app_manager_get_nonexistent_app():
     manager = AppManager([])
 
     # Get nonexistent app
-    found_app = manager.get_app("/nonexistent")
+    found_app = manager.get("/nonexistent")
     assert found_app is None

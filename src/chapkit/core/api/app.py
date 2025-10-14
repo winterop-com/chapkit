@@ -216,10 +216,10 @@ class AppManager:
         """Initialize with loaded apps."""
         self._apps = apps
 
-    def list_apps(self) -> list[App]:
+    def list(self) -> list[App]:
         """Return all installed apps."""
         return self._apps
 
-    def get_app(self, prefix: str) -> App | None:
+    def get(self, prefix: str) -> App | None:
         """Get app by mount prefix."""
         return next((app for app in self._apps if app.prefix == prefix), None)

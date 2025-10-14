@@ -64,7 +64,7 @@ class SystemRouter(Router):
                     entry=app.manifest.entry,
                     is_package=app.is_package,
                 )
-                for app in app_manager.list_apps()
+                for app in app_manager.list()
             ]
 
         @self.router.get(
