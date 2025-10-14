@@ -217,12 +217,31 @@ app_dir = Path(spec.origin).parent / "apps/landing"
 
 ### Security Considerations
 
-1. **Path Traversal**: Pydantic validator rejects `..` in prefixes
-2. **Manifest Validation**: All manifest fields validated via Pydantic
-3. **File Access**: StaticFiles handles path traversal prevention automatically
-4. **API Protection**: `/api/**` prefix explicitly blocked
-5. **Error Handling**: Invalid manifests fail fast during build, not at runtime
-6. **Package Validation**: `importlib.util.find_spec()` safely resolves package locations
+**Path Traversal Protection** (implemented 2025-10-14):
+
+1. **Prefix Field**: Pydantic validator rejects `..` in mount prefixes
+2. **Entry Field**: Pydantic validator rejects:
+   - Path traversal patterns (`..`)
+   - Absolute paths (must be relative to app directory)
+   - Normalized traversal attempts (e.g., `subdir/../../etc/passwd`)
+3. **Package Subpath**: Pre-validation before path joining:
+   - Rejects `..` in subpath parameter
+   - Rejects absolute paths
+   - Post-join verification: ensures resolved path stays within package directory using `relative_to()`
+
+**Validation & Error Handling**:
+
+4. **Strict Schema**: `extra="forbid"` in AppManifest catches typos and unknown fields
+5. **JSON Errors**: Wrapped in helpful `ValueError` with context
+6. **Fail Fast**: All validation happens during `build()`, not at runtime
+7. **API Protection**: `/api/**` prefix explicitly blocked for apps
+
+**Runtime Safety**:
+
+8. **StaticFiles**: Starlette's StaticFiles class provides additional path traversal protection
+9. **Package Resolution**: `importlib.util.find_spec()` safely locates packages without user-controlled imports
+
+**Test Coverage**: 27 unit tests including 7 dedicated security tests covering all path traversal attack vectors
 
 ### Open Questions
 

@@ -7,7 +7,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from chapkit.core.logging import get_logger
 
@@ -16,6 +16,8 @@ logger = get_logger(__name__)
 
 class AppManifest(BaseModel):
     """App manifest configuration."""
+
+    model_config = ConfigDict(extra="forbid")
 
     name: str = Field(description="Human-readable app name")
     version: str = Field(description="Semantic version")
@@ -34,6 +36,20 @@ class AppManifest(BaseModel):
             raise ValueError("prefix cannot contain '..'")
         if v.startswith("/api/") or v == "/api":
             raise ValueError("prefix cannot be '/api' or start with '/api/'")
+        return v
+
+    @field_validator("entry")
+    @classmethod
+    def validate_entry(cls, v: str) -> str:
+        """Validate entry file path for security."""
+        if ".." in v:
+            raise ValueError("entry cannot contain '..'")
+        if v.startswith("/"):
+            raise ValueError("entry must be a relative path")
+        # Normalize and check for path traversal
+        normalized = Path(v).as_posix()
+        if normalized.startswith("../") or "/../" in normalized:
+            raise ValueError("entry cannot contain path traversal")
         return v
 
 
@@ -72,8 +88,12 @@ class AppLoader:
         if not manifest_path.exists():
             raise FileNotFoundError(f"manifest.json not found in: {dir_path}")
 
-        with manifest_path.open() as f:
-            manifest_data = json.load(f)
+        try:
+            with manifest_path.open() as f:
+                manifest_data = json.load(f)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in manifest.json: {e}") from e
+
         manifest = AppManifest(**manifest_data)
 
         # Validate entry file exists
@@ -145,6 +165,12 @@ class AppLoader:
         """Resolve package resource tuple to filesystem path."""
         package_name, subpath = package_tuple
 
+        # Validate subpath for security
+        if ".." in subpath:
+            raise ValueError(f"subpath cannot contain '..' (got: {subpath})")
+        if subpath.startswith("/"):
+            raise ValueError(f"subpath must be relative (got: {subpath})")
+
         try:
             spec = importlib.util.find_spec(package_name)
         except (ModuleNotFoundError, ValueError) as e:
@@ -156,6 +182,12 @@ class AppLoader:
         # Resolve to package directory
         package_dir = Path(spec.origin).parent
         app_dir = package_dir / subpath
+
+        # Verify resolved path is still within package directory
+        try:
+            app_dir.resolve().relative_to(package_dir.resolve())
+        except ValueError as e:
+            raise ValueError(f"App path '{subpath}' escapes package directory") from e
 
         if not app_dir.exists():
             raise FileNotFoundError(f"App path '{subpath}' not found in package '{package_name}'")

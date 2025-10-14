@@ -183,7 +183,7 @@ def test_load_app_invalid_manifest_json(tmp_path: Path):
     (app_dir / "manifest.json").write_text("invalid json{")
     (app_dir / "index.html").write_text("<html>Test</html>")
 
-    with pytest.raises(json.JSONDecodeError):
+    with pytest.raises(ValueError, match="Invalid JSON in manifest.json"):
         AppLoader.load_app(str(app_dir))
 
 
@@ -302,3 +302,79 @@ def test_app_dataclass():
     assert app.directory == Path("/tmp/test")
     assert app.prefix == "/custom"
     assert not app.is_package
+
+
+# Security Tests
+
+
+def test_app_manifest_rejects_entry_path_traversal():
+    """Test manifest validation rejects path traversal in entry field."""
+    with pytest.raises(ValidationError, match="entry cannot contain '..'"):
+        AppManifest(
+            name="Malicious App",
+            version="1.0.0",
+            prefix="/test",
+            entry="../../../etc/passwd",
+        )
+
+
+def test_app_manifest_rejects_entry_absolute_path():
+    """Test manifest validation rejects absolute paths in entry field."""
+    with pytest.raises(ValidationError, match="entry must be a relative path"):
+        AppManifest(
+            name="Malicious App",
+            version="1.0.0",
+            prefix="/test",
+            entry="/etc/passwd",
+        )
+
+
+def test_app_manifest_rejects_entry_normalized_traversal():
+    """Test manifest validation catches normalized path traversal."""
+    with pytest.raises(ValidationError, match="entry cannot contain '..'"):
+        AppManifest(
+            name="Malicious App",
+            version="1.0.0",
+            prefix="/test",
+            entry="subdir/../../etc/passwd",
+        )
+
+
+def test_app_manifest_rejects_extra_fields():
+    """Test manifest validation rejects unknown fields."""
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        AppManifest(
+            name="Test App",
+            version="1.0.0",
+            prefix="/test",
+            unknown_field="malicious",  # type: ignore[call-arg]
+        )
+
+
+def test_load_app_rejects_entry_traversal_in_file(tmp_path: Path):
+    """Test loading app with path traversal in entry field fails at validation."""
+    app_dir = tmp_path / "test-app"
+    app_dir.mkdir()
+
+    manifest = {
+        "name": "Malicious App",
+        "version": "1.0.0",
+        "prefix": "/test",
+        "entry": "../../../etc/passwd",
+    }
+    (app_dir / "manifest.json").write_text(json.dumps(manifest))
+
+    with pytest.raises(ValidationError, match="entry cannot contain '..'"):
+        AppLoader.load_app(str(app_dir))
+
+
+def test_load_app_from_package_rejects_subpath_traversal():
+    """Test loading app from package with path traversal in subpath fails."""
+    with pytest.raises(ValueError, match="subpath cannot contain '..'"):
+        AppLoader.load_app(("chapkit.core.api", "../../../etc"))
+
+
+def test_load_app_from_package_rejects_absolute_subpath():
+    """Test loading app from package with absolute subpath fails."""
+    with pytest.raises(ValueError, match="subpath must be relative"):
+        AppLoader.load_app(("chapkit.core.api", "/etc/passwd"))
