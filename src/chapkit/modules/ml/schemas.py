@@ -51,10 +51,12 @@ class TrainedModelArtifactData(BaseModel):
 
     ml_type: Literal["trained_model"] = Field(description="Artifact type identifier")
     config_id: str = Field(description="ID of the config used for training")
+    started_at: str = Field(description="ISO format timestamp when operation started")
+    completed_at: str = Field(description="ISO format timestamp when operation completed")
+    duration_seconds: float = Field(description="Operation duration in seconds (rounded to 2 decimals)")
     model: Any = Field(description="The trained model object (must be pickleable)")
-    training_started_at: str = Field(description="ISO format timestamp when training started")
-    training_completed_at: str = Field(description="ISO format timestamp when training completed")
-    training_duration_seconds: float = Field(description="Training duration in seconds (rounded to 2 decimals)")
+    model_type: str | None = Field(default=None, description="Fully qualified class name of the model")
+    model_size_bytes: int | None = Field(default=None, description="Serialized pickle size of the model in bytes")
 
     model_config = {"arbitrary_types_allowed": True}
 
@@ -63,12 +65,12 @@ class PredictionArtifactData(BaseModel):
     """Schema for prediction artifact data stored in the artifact system."""
 
     ml_type: Literal["prediction"] = Field(description="Artifact type identifier")
-    model_artifact_id: str = Field(description="ID of the trained model artifact used for prediction")
     config_id: str = Field(description="ID of the config used for prediction")
+    model_artifact_id: str = Field(description="ID of the trained model artifact used for prediction")
+    started_at: str = Field(description="ISO format timestamp when operation started")
+    completed_at: str = Field(description="ISO format timestamp when operation completed")
+    duration_seconds: float = Field(description="Operation duration in seconds (rounded to 2 decimals)")
     predictions: PandasDataFrame = Field(description="Prediction results as structured DataFrame")
-    prediction_started_at: str = Field(description="ISO format timestamp when prediction started")
-    prediction_completed_at: str = Field(description="ISO format timestamp when prediction completed")
-    prediction_duration_seconds: float = Field(description="Prediction duration in seconds (rounded to 2 decimals)")
 
 
 class ModelRunnerProtocol(Protocol):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import pickle
 
 from ulid import ULID
 
@@ -21,6 +22,32 @@ from .schemas import (
     TrainRequest,
     TrainResponse,
 )
+
+
+def _extract_model_type(model: object) -> str | None:
+    """Extract fully qualified type name from model object."""
+    try:
+        # Handle dict models (e.g., ml_class.py pattern with {"model": ..., "scaler": ...})
+        if isinstance(model, dict) and "model" in model:
+            obj = model["model"]
+        else:
+            obj = model
+
+        # Get fully qualified class name
+        module = type(obj).__module__
+        qualname = type(obj).__qualname__
+        return f"{module}.{qualname}"
+    except Exception:
+        return None
+
+
+def _calculate_model_size(model: object) -> int | None:
+    """Calculate serialized pickle size of model in bytes."""
+    try:
+        pickled = pickle.dumps(model, protocol=pickle.HIGHEST_PROTOCOL)
+        return len(pickled)
+    except Exception:
+        return None
 
 
 class MLManager:
@@ -99,6 +126,10 @@ class MLManager:
         training_completed_at = datetime.datetime.now(datetime.UTC)
         training_duration = (training_completed_at - training_started_at).total_seconds()
 
+        # Calculate model metrics
+        model_type = _extract_model_type(trained_model)
+        model_size_bytes = _calculate_model_size(trained_model)
+
         # Store trained model in artifact with metadata
         async with self.database.session() as session:
             artifact_repo = ArtifactRepository(session)
@@ -110,9 +141,11 @@ class MLManager:
                 ml_type="trained_model",
                 config_id=str(request.config_id),
                 model=trained_model,
-                training_started_at=training_started_at.isoformat(),
-                training_completed_at=training_completed_at.isoformat(),
-                training_duration_seconds=round(training_duration, 2),
+                started_at=training_started_at.isoformat(),
+                completed_at=training_completed_at.isoformat(),
+                duration_seconds=round(training_duration, 2),
+                model_type=model_type,
+                model_size_bytes=model_size_bytes,
             )
 
             await artifact_manager.save(
@@ -187,9 +220,9 @@ class MLManager:
                 model_artifact_id=str(request.model_artifact_id),
                 config_id=str(config_id),
                 predictions=PandasDataFrame.from_dataframe(predictions_df),
-                prediction_started_at=prediction_started_at.isoformat(),
-                prediction_completed_at=prediction_completed_at.isoformat(),
-                prediction_duration_seconds=round(prediction_duration, 2),
+                started_at=prediction_started_at.isoformat(),
+                completed_at=prediction_completed_at.isoformat(),
+                duration_seconds=round(prediction_duration, 2),
             )
 
             await artifact_manager.save(
