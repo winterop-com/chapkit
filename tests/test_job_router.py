@@ -383,6 +383,35 @@ class TestJobRouter:
         assert len(events) >= 1
         assert events[-1]["status"] == "completed"
 
+    @pytest.mark.asyncio
+    async def test_jobs_schema_endpoint(self, client: AsyncClient):
+        """Test GET /api/v1/jobs/$schema returns JSON schema."""
+        response = await client.get("/api/v1/jobs/$schema")
+        assert response.status_code == 200
+        schema = response.json()
+
+        # Verify schema structure
+        assert schema["type"] == "array"
+        assert "items" in schema
+        assert "$ref" in schema["items"]
+        assert schema["items"]["$ref"] == "#/$defs/JobRecord"
+
+        # Verify JobRecord definition exists
+        assert "$defs" in schema
+        assert "JobRecord" in schema["$defs"]
+
+        # Verify JobRecord schema has required fields
+        job_record_schema = schema["$defs"]["JobRecord"]
+        assert job_record_schema["type"] == "object"
+        assert "properties" in job_record_schema
+        assert "id" in job_record_schema["properties"]
+        assert "status" in job_record_schema["properties"]
+        assert "submitted_at" in job_record_schema["properties"]
+
+        # Verify required fields (only id is required, others have defaults)
+        assert "required" in job_record_schema
+        assert "id" in job_record_schema["required"]
+
 
 class TestJobRouterIntegration:
     """Integration tests for job router with ServiceBuilder."""

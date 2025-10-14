@@ -119,6 +119,7 @@ plugins:
 nav:
   - Home: index.md
   - Guides:
+      - App Hosting: guides/app-hosting.md
       - Authentication: guides/authentication.md
       - Job Scheduler: guides/job-scheduler.md
       - ML Workflows: guides/ml-workflows.md

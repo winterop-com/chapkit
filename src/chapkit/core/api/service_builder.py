@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, AsyncContextManager, AsyncIterator, Awaitable, Callable, Dict, List, Self
 
 from fastapi import APIRouter, FastAPI
@@ -14,6 +15,7 @@ from sqlalchemy import text
 from chapkit.core import Database, SqliteDatabase
 from chapkit.core.logging import configure_logging, get_logger
 
+from .app import App, AppLoader
 from .auth import APIKeyMiddleware, load_api_keys_from_env, load_api_keys_from_file
 from .dependencies import get_database, get_scheduler, set_database, set_scheduler
 from .middleware import add_error_handlers, add_logging_middleware
@@ -115,12 +117,12 @@ class BaseServiceBuilder:
         self._pool_pre_ping: bool = True
         self._include_error_handlers = include_error_handlers
         self._include_logging = include_logging
-        self._include_landing_page = False
         self._health_options: _HealthOptions | None = None
         self._system_options: _SystemOptions | None = None
         self._job_options: _JobOptions | None = None
         self._auth_options: _AuthOptions | None = None
         self._monitoring_options: _MonitoringOptions | None = None
+        self._app_configs: List[App] = []
         self._custom_routers: List[APIRouter] = []
         self._dependency_overrides: Dict[DependencyOverride, DependencyOverride] = {}
         self._startup_hooks: List[LifecycleHook] = []
@@ -164,8 +166,7 @@ class BaseServiceBuilder:
 
     def with_landing_page(self) -> Self:
         """Enable landing page at root path."""
-        self._include_landing_page = True
-        return self
+        return self.with_app(("chapkit.core.api", "apps/landing"))
 
     def with_logging(self, enabled: bool = True) -> Self:
         """Enable structured logging with request tracing."""
@@ -284,6 +285,18 @@ class BaseServiceBuilder:
         )
         return self
 
+    def with_app(self, path: str | Path | tuple[str, str], prefix: str | None = None) -> Self:
+        """Register static app from filesystem path or package resource tuple."""
+        app = AppLoader.load(path, prefix=prefix)
+        self._app_configs.append(app)
+        return self
+
+    def with_apps(self, path: str | Path | tuple[str, str]) -> Self:
+        """Auto-discover and register all apps in directory."""
+        apps = AppLoader.discover(path)
+        self._app_configs.extend(apps)
+        return self
+
     def include_router(self, router: APIRouter) -> Self:
         """Include a custom router."""
         self._custom_routers.append(router)
@@ -384,13 +397,33 @@ class BaseServiceBuilder:
         for router in self._custom_routers:
             app.include_router(router)
 
-        for dependency, override in self._dependency_overrides.items():
-            app.dependency_overrides[dependency] = override
-
+        # Install route endpoints BEFORE mounting apps (routes take precedence over mounts)
         self._install_info_endpoint(app, info=self.info)
 
-        if self._include_landing_page:
-            self._install_landing_page(app, info=self.info)
+        # Mount apps AFTER all routes (apps act as catch-all for unmatched paths)
+        if self._app_configs:
+            from fastapi.staticfiles import StaticFiles
+
+            for app_config in self._app_configs:
+                static_files = StaticFiles(directory=str(app_config.directory), html=True)
+                app.mount(app_config.prefix, static_files, name=f"app_{app_config.manifest.name}")
+                logger.info(
+                    "app.mounted",
+                    name=app_config.manifest.name,
+                    prefix=app_config.prefix,
+                    directory=str(app_config.directory),
+                    is_package=app_config.is_package,
+                )
+
+        # Initialize app manager for metadata queries (always, even if no apps)
+        from .app import AppManager
+        from .dependencies import set_app_manager
+
+        app_manager = AppManager(self._app_configs)
+        set_app_manager(app_manager)
+
+        for dependency, override in self._dependency_overrides.items():
+            app.dependency_overrides[dependency] = override
 
         return app
 
@@ -416,6 +449,32 @@ class BaseServiceBuilder:
                         f"Health check name '{name}' contains invalid characters. "
                         "Only alphanumeric characters, underscores, and hyphens are allowed."
                     )
+
+        # Validate app configurations
+        if self._app_configs:
+            # Deduplicate apps with same prefix (last one wins)
+            # This allows overriding apps, especially useful for root prefix "/"
+            seen_prefixes: dict[str, int] = {}  # prefix -> last index
+            for i, app in enumerate(self._app_configs):
+                if app.prefix in seen_prefixes:
+                    # Log warning about override
+                    prev_idx = seen_prefixes[app.prefix]
+                    prev_app = self._app_configs[prev_idx]
+                    logger.warning(
+                        "app.prefix.override",
+                        prefix=app.prefix,
+                        replaced_app=prev_app.manifest.name,
+                        new_app=app.manifest.name,
+                    )
+                seen_prefixes[app.prefix] = i
+
+            # Keep only the last app for each prefix
+            self._app_configs = [self._app_configs[i] for i in sorted(set(seen_prefixes.values()))]
+
+            # Validate that non-root prefixes don't have duplicates (shouldn't happen after dedup, but safety check)
+            prefixes = [app.prefix for app in self._app_configs]
+            if len(prefixes) != len(set(prefixes)):
+                raise ValueError("Internal error: duplicate prefixes after deduplication")
 
     def _build_lifespan(self) -> LifespanFactory:
         """Build lifespan context manager for app startup/shutdown."""
@@ -588,20 +647,6 @@ class BaseServiceBuilder:
         @app.get("/api/v1/info", tags=["Service"], include_in_schema=True, response_model=info_type)
         async def get_info() -> ServiceInfo:
             return info
-
-    @staticmethod
-    def _install_landing_page(app: FastAPI, *, info: ServiceInfo) -> None:
-        """Install landing page at root path."""
-        from importlib.resources import files
-
-        from fastapi.responses import HTMLResponse
-
-        # Load the static HTML file from package resources
-        html_content = files("chapkit.core.api").joinpath("landing_page.html").read_text()
-
-        @app.get("/", include_in_schema=False, response_class=HTMLResponse)
-        async def landing_page() -> str:
-            return html_content
 
     # --------------------------------------------------------------------- Convenience
 

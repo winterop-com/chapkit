@@ -1207,8 +1207,8 @@ MLServiceBuilder(..., database_url="postgresql://...")
 }
 
 // Wrong formats:
-// ❌ {"col1": [1, 3], "col2": [2, 4]}  (dict format)
-// ❌ [{"col1": 1, "col2": 2}]  (records format)
+// {"col1": [1, 3], "col2": [2, 4]}  (dict format - not supported)
+// [{"col1": 1, "col2": 2}]  (records format - not supported)
 ```
 
 ---

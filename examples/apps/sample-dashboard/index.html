@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Sample Dashboard</h1>
+            <p class="subtitle">Chapkit App System Demo</p>
+        </header>
+
+        <nav class="nav-links">
+            <a href="/docs">API Documentation</a>
+            <a href="/api/v1/info">Service Info</a>
+            <a href="/health">Health Check</a>
+        </nav>
+
+        <main>
+            <section class="card">
+                <h2>Welcome to the Chapkit App System!</h2>
+                <p>
+                    This is a sample static web application hosted using chapkit's app system.
+                    Apps are mounted at custom URL prefixes and can include HTML, CSS, JavaScript,
+                    and other static assets.
+                </p>
+            </section>
+
+            <section class="card">
+                <h3>Features</h3>
+                <ul>
+                    <li>✅ Static file serving with FastAPI StaticFiles</li>
+                    <li>✅ Convention-based configuration via manifest.json</li>
+                    <li>✅ Support for filesystem and package resources</li>
+                    <li>✅ Auto-discovery with <code>.with_apps()</code></li>
+                    <li>✅ Prefix validation and conflict detection</li>
+                    <li>✅ SPA-style routing (serves index.html for directories)</li>
+                </ul>
+            </section>
+
+            <section class="card">
+                <h3>Service Information</h3>
+                <div id="service-info">Loading...</div>
+            </section>
+
+            <section class="card">
+                <h3>Example Usage</h3>
+                <pre><code>from chapkit.api import ServiceBuilder, ServiceInfo
+
+app = (
+    ServiceBuilder(info=ServiceInfo(display_name="My Service"))
+    .with_health()
+    .with_app("apps/dashboard")  # Mount this app
+    .build()
+)</code></pre>
+            </section>
+        </main>
+
+        <footer>
+            <p>Powered by <a href="https://github.com/winterop-com/chapkit" target="_blank">Chapkit</a></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
