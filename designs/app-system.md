@@ -146,12 +146,12 @@ app = (
 
 **Validation rules (fail fast during `build()`):**
 
-1. ✅ Apps cannot mount at `/api/**` (reserved for API routes)
-2. ✅ Duplicate prefixes use "last wins" semantics (later calls override earlier ones)
-3. ✅ Prefix must start with `/`
-4. ✅ Prefix cannot contain `..` or path traversal attempts
-5. ✅ App directory must exist and contain `manifest.json`
-6. ✅ Manifest must be valid JSON matching schema
+1. Apps cannot mount at `/api/**` (reserved for API routes)
+2. Duplicate prefixes use "last wins" semantics (later calls override earlier ones)
+3. Prefix must start with `/`
+4. Prefix cannot contain `..` or path traversal attempts
+5. App directory must exist and contain `manifest.json`
+6. Manifest must be valid JSON matching schema
 
 **Important**: Root apps (`prefix="/"`) ARE fully supported. `.with_landing_page()` internally mounts a built-in app at `/`, which can be overridden by calling `.with_app(..., prefix="/")` afterward.
 
