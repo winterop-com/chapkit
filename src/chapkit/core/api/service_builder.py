@@ -116,6 +116,8 @@ class BaseServiceBuilder:
         self._include_error_handlers = include_error_handlers
         self._include_logging = include_logging
         self._include_landing_page = False
+        self._landing_page_template = "landing_page_base.html"
+        self._landing_page_additional_dirs: list[str] | None = None
         self._health_options: _HealthOptions | None = None
         self._system_options: _SystemOptions | None = None
         self._job_options: _JobOptions | None = None
@@ -162,9 +164,15 @@ class BaseServiceBuilder:
         self._pool_pre_ping = pool_pre_ping
         return self
 
-    def with_landing_page(self) -> Self:
+    def with_landing_page(
+        self,
+        template_name: str = "landing_page_base.html",
+        additional_template_dirs: list[str] | None = None,
+    ) -> Self:
         """Enable landing page at root path."""
         self._include_landing_page = True
+        self._landing_page_template = template_name
+        self._landing_page_additional_dirs = additional_template_dirs
         return self
 
     def with_logging(self, enabled: bool = True) -> Self:
@@ -390,7 +398,12 @@ class BaseServiceBuilder:
         self._install_info_endpoint(app, info=self.info)
 
         if self._include_landing_page:
-            self._install_landing_page(app, info=self.info)
+            self._install_landing_page(
+                app,
+                info=self.info,
+                template_name=self._landing_page_template,
+                additional_template_dirs=self._landing_page_additional_dirs,
+            )
 
         return app
 
@@ -590,17 +603,43 @@ class BaseServiceBuilder:
             return info
 
     @staticmethod
-    def _install_landing_page(app: FastAPI, *, info: ServiceInfo) -> None:
+    def _install_landing_page(
+        app: FastAPI,
+        *,
+        info: ServiceInfo,
+        template_name: str = "landing_page_base.html",
+        additional_template_dirs: list[str] | None = None,
+    ) -> None:
         """Install landing page at root path."""
         from importlib.resources import files
+        from pathlib import Path
 
         from fastapi.responses import HTMLResponse
+        from fastapi.templating import Jinja2Templates
+        from jinja2 import ChoiceLoader, FileSystemLoader
 
-        template_content = files("chapkit.core.api.templates").joinpath("landing_page.html").read_text()
+        # Get the core templates directory path from the package
+        core_templates_dir = str(files("chapkit.core.api.templates"))
+
+        # Build list of template directories (additional dirs searched first, then core)
+        template_dirs = []
+        if additional_template_dirs:
+            template_dirs.extend(additional_template_dirs)
+        template_dirs.append(core_templates_dir)
+
+        # Create Jinja2 environment with multiple loaders
+        loaders = [FileSystemLoader(str(Path(dir))) for dir in template_dirs]
+        loader = ChoiceLoader(loaders)
+        env = Jinja2Templates(directory=core_templates_dir).env
+        env.loader = loader
+
+        # Pre-render the template (it's static content)
+        template = env.get_template(template_name)
+        rendered_html = template.render(service_info=info.model_dump())
 
         @app.get("/", include_in_schema=False, response_class=HTMLResponse)
         async def landing_page() -> str:
-            return template_content
+            return rendered_html
 
     # --------------------------------------------------------------------- Convenience
 

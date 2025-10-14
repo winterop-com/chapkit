@@ -36,16 +36,7 @@ async def on_train(
     data: pd.DataFrame,
     geo: FeatureCollection | None = None,
 ) -> Any:
-    """Train a linear regression model for disease prediction.
-
-    Args:
-        config: Model configuration
-        data: Training data with features and target
-        geo: Optional geospatial data
-
-    Returns:
-        Trained sklearn model (must be pickleable)
-    """
+    """Train a linear regression model for disease prediction."""
     features = ["rainfall", "mean_temperature"]
 
     X = data[features]
@@ -67,18 +58,7 @@ async def on_predict(
     future: pd.DataFrame,
     geo: FeatureCollection | None = None,
 ) -> pd.DataFrame:
-    """Make predictions using the trained model.
-
-    Args:
-        config: Model configuration
-        model: Trained sklearn model
-        historic: Historic data (not used in this example)
-        future: Future data to make predictions on
-        geo: Optional geospatial data
-
-    Returns:
-        DataFrame with predictions added as 'sample_0' column
-    """
+    """Make predictions using the trained model."""
     X = future[["rainfall", "mean_temperature"]]
 
     y_pred = model.predict(X)
