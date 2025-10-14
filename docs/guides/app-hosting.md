@@ -578,7 +578,7 @@ app = (
 )
 ```
 
-**Test:**
+**List apps:**
 ```bash
 curl http://localhost:8000/api/v1/system/apps
 ```
@@ -597,6 +597,13 @@ curl http://localhost:8000/api/v1/system/apps
   }
 ]
 ```
+
+**Get apps schema:**
+```bash
+curl http://localhost:8000/api/v1/system/apps/\$schema
+```
+
+Returns the JSON schema for the apps list response, useful for validation and code generation.
 
 ---
 
