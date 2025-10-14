@@ -60,13 +60,8 @@ class HealthRouter(Router):
         """Register health check endpoint."""
         checks = self.checks
 
-        @self.router.get(
-            "",
-            summary="Health check",
-            response_model=HealthStatus,
-            response_model_exclude_none=self.default_response_model_exclude_none,
-        )
-        async def health_check() -> HealthStatus:
+        async def run_health_checks() -> HealthStatus:
+            """Run all health checks and aggregate results."""
             if not checks:
                 return HealthStatus(status=HealthState.HEALTHY)
 
@@ -90,6 +85,15 @@ class HealthRouter(Router):
             return HealthStatus(status=overall_state, checks=check_results)
 
         @self.router.get(
+            "",
+            summary="Health check",
+            response_model=HealthStatus,
+            response_model_exclude_none=self.default_response_model_exclude_none,
+        )
+        async def health_check() -> HealthStatus:
+            return await run_health_checks()
+
+        @self.router.get(
             "/$stream",
             summary="Stream health status updates via SSE",
             description="Real-time Server-Sent Events stream of health status at regular intervals",
@@ -99,34 +103,8 @@ class HealthRouter(Router):
 
             async def event_stream() -> AsyncGenerator[bytes, None]:
                 while True:
-                    # Run the same health check logic
-                    if not checks:
-                        status = HealthStatus(status=HealthState.HEALTHY)
-                    else:
-                        check_results: dict[str, CheckResult] = {}
-                        overall_state = HealthState.HEALTHY
-
-                        for name, check_fn in checks.items():
-                            try:
-                                state, message = await check_fn()
-                                check_results[name] = CheckResult(state=state, message=message)
-
-                                if state == HealthState.UNHEALTHY:
-                                    overall_state = HealthState.UNHEALTHY
-                                elif state == HealthState.DEGRADED and overall_state == HealthState.HEALTHY:
-                                    overall_state = HealthState.DEGRADED
-
-                            except Exception as e:
-                                check_results[name] = CheckResult(
-                                    state=HealthState.UNHEALTHY, message=f"Check failed: {str(e)}"
-                                )
-                                overall_state = HealthState.UNHEALTHY
-
-                        status = HealthStatus(status=overall_state, checks=check_results)
-
-                    # Format as SSE event
+                    status = await run_health_checks()
                     yield format_sse_model_event(status, exclude_none=self.default_response_model_exclude_none)
-
                     await asyncio.sleep(poll_interval)
 
             return StreamingResponse(
