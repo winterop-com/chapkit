@@ -2,6 +2,56 @@
 
 This file provides guidance to Claude Code when working with code in this repository.
 
+## Documentation Standards
+
+**IMPORTANT: All code must follow these documentation requirements:**
+
+- **Every Python file**: One-line module docstring at top
+- **Every class**: One-line docstring
+- **Every method/function**: One-line docstring
+- **Format**: Use triple quotes `"""docstring"""`
+- **Style**: Keep concise - one line preferred
+
+**Example:**
+```python
+"""Module for handling user authentication."""
+
+class AuthManager:
+    """Manages user authentication and authorization."""
+
+    def verify_token(self, token: str) -> bool:
+        """Verify JWT token validity."""
+        ...
+```
+
+## Git Workflow
+
+**Branch + PR workflow is highly recommended. Ask user before creating branches/PRs.**
+
+**Branch naming:**
+- `feat/*` - New features (aligns with `feat:` commits)
+- `fix/*` - Bug fixes (aligns with `fix:` commits)
+- `refactor/*` - Code refactoring (aligns with `refactor:` commits)
+- `docs/*` - Documentation changes (aligns with `docs:` commits)
+- `test/*` - Test additions/corrections (aligns with `test:` commits)
+- `chore/*` - Dependencies, tooling, maintenance (aligns with `chore:` commits)
+
+**Process:**
+1. **Ask user** if they want a branch + PR for the change
+2. Create branch from `main`: `git checkout -b feat/my-feature`
+3. Make changes and commit: `git commit -m "feat: add new feature"`
+4. Push: `git push -u origin feat/my-feature`
+5. Create PR: `gh pr create --title "..." --body "..."`
+6. Wait for manual review and merge
+
+**Commit message prefixes:** `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
+
+**PR requirements:**
+- All tests must pass (`make test`)
+- All linting must pass (`make lint`)
+- Code coverage should not decrease
+- Descriptive PR title and body
+
 ## Project Overview
 
 `chapkit` is an async SQLAlchemy database library for Python 3.13+ with FastAPI integration. Vertical slice architecture with framework-agnostic core, FastAPI layer, and domain modules.
@@ -307,32 +357,6 @@ uv lock --upgrade         # Update all
 ```
 
 **Never manually edit `pyproject.toml`**
-
-## Git Workflow
-
-**All changes must go through the branch + PR workflow.**
-
-**Branch naming:**
-- `feature/description` - New features
-- `fix/description` - Bug fixes
-- `chore/description` - Maintenance tasks
-- `docs/description` - Documentation updates
-- `github/description` - GitHub-specific changes
-
-**Process:**
-1. Create branch from `main`: `git checkout -b feature/my-feature`
-2. Make changes and commit: `git commit -m "feat: add new feature"`
-3. Push: `git push -u origin feature/my-feature`
-4. Create PR: `gh pr create --title "..." --body "..."`
-5. Wait for manual review and merge
-
-**Commit message prefixes:** `feat:`, `fix:`, `chore:`, `docs:`, `test:`, `refactor:`
-
-**PR requirements:**
-- All tests must pass (`make test`)
-- All linting must pass (`make lint`)
-- Code coverage should not decrease
-- Descriptive PR title and body
 
 ## Key Dependencies
 
