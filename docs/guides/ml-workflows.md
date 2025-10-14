@@ -172,7 +172,7 @@ class MyRunner(BaseModelRunner):
 **Key Points:**
 - Model must be pickleable (stored in artifact)
 - Return value from `on_train` is passed to `on_predict` as `model` parameter
-- `historic` parameter is optional (may be None)
+- `historic` parameter is required (must be provided, can be empty DataFrame)
 - GeoJSON support via `geo` parameter
 
 ### FunctionalModelRunner
@@ -217,7 +217,7 @@ runner = ShellModelRunner(
 - `{data_file}` - Training data CSV
 - `{model_file}` - Model file (format specified)
 - `{future_file}` - Future data CSV
-- `{historic_file}` - Historic data CSV (if provided)
+- `{historic_file}` - Historic data CSV (required)
 - `{output_file}` - Predictions output CSV
 - `{geo_file}` - GeoJSON file (if provided)
 
@@ -406,6 +406,10 @@ Make predictions using a trained model.
 ```json
 {
   "model_artifact_id": "01MODEL456...",
+  "historic": {
+    "columns": ["feature1", "feature2"],
+    "data": []
+  },
   "future": {
     "columns": ["feature1", "feature2"],
     "data": [
@@ -413,7 +417,6 @@ Make predictions using a trained model.
       [2.5, 3.5]
     ]
   },
-  "historic": null,
   "geo": null
 }
 ```
@@ -434,6 +437,10 @@ curl -X POST http://localhost:8000/api/v1/ml/\$predict \
   -H "Content-Type: application/json" \
   -d '{
     "model_artifact_id": "'$MODEL_ARTIFACT_ID'",
+    "historic": {
+      "columns": ["rainfall", "temperature"],
+      "data": []
+    },
     "future": {
       "columns": ["rainfall", "temperature"],
       "data": [[12.0, 26.0], [18.0, 29.0]]
@@ -616,6 +623,10 @@ PREDICT_RESPONSE=$(curl -s -X POST http://localhost:8000/api/v1/ml/\$predict \
   -H "Content-Type: application/json" \
   -d '{
     "model_artifact_id": "'$MODEL_ARTIFACT_ID'",
+    "historic": {
+      "columns": ["rainfall", "mean_temperature"],
+      "data": []
+    },
     "future": {
       "columns": ["rainfall", "mean_temperature"],
       "data": [
@@ -767,6 +778,7 @@ curl http://localhost:8000/api/v1/jobs/$JOB_ID | jq '.status'
 # Predict
 PRED=$(curl -s -X POST http://localhost:8000/api/v1/ml/\$predict -d '{
   "model_artifact_id":"'$MODEL_ID'",
+  "historic":{"columns":["a","b"],"data":[]},
   "future":{"columns":["a","b"],"data":[[1.5,2.5],[2.5,3.5]]}
 }')
 
@@ -829,6 +841,10 @@ def test_train_predict_workflow(client: TestClient):
     # Predict
     pred_resp = client.post("/api/v1/ml/$predict", json={
         "model_artifact_id": model_id,
+        "historic": {
+            "columns": ["x1", "x2"],
+            "data": []
+        },
         "future": {
             "columns": ["x1", "x2"],
             "data": [[1.5, 2.5], [2.5, 3.5]]

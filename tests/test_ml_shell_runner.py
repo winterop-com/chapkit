@@ -52,10 +52,11 @@ async def test_shell_runner_predict_basic() -> None:
 
     config = MockConfig()
     model = "mock_model"
+    historic = pd.DataFrame({"feature1": []})
     future = pd.DataFrame({"feature1": [1, 2]})
 
     # Predict should execute command and load results
-    predictions = await runner.on_predict(config, model, None, future)
+    predictions = await runner.on_predict(config, model, historic, future)
 
     assert len(predictions) == 2
     assert "prediction" in predictions.columns
@@ -154,9 +155,10 @@ print("Prediction completed")
 
         config = MockConfig()
         model = 100  # Model is just a number
+        historic = pd.DataFrame({"feature1": []})
         future = pd.DataFrame({"feature1": [1, 2, 3]})
 
-        predictions = await runner.on_predict(config, model, None, future)
+        predictions = await runner.on_predict(config, model, historic, future)
 
         assert len(predictions) == 3
         assert "prediction" in predictions.columns
@@ -197,10 +199,11 @@ async def test_shell_runner_predict_failure() -> None:
 
     config = MockConfig()
     model = "mock_model"
+    historic = pd.DataFrame({"feature1": []})
     future = pd.DataFrame({"feature1": [1, 2]})
 
     with pytest.raises(RuntimeError, match="Prediction script failed with exit code 2"):
-        await runner.on_predict(config, model, None, future)
+        await runner.on_predict(config, model, historic, future)
 
 
 @pytest.mark.asyncio
@@ -234,10 +237,11 @@ async def test_shell_runner_missing_output_file() -> None:
 
     config = MockConfig()
     model = "mock_model"
+    historic = pd.DataFrame({"feature1": []})
     future = pd.DataFrame({"feature1": [1, 2]})
 
     with pytest.raises(RuntimeError, match="Prediction script did not create output file"):
-        await runner.on_predict(config, model, None, future)
+        await runner.on_predict(config, model, historic, future)
 
 
 @pytest.mark.asyncio
@@ -261,8 +265,9 @@ async def test_shell_runner_variable_substitution() -> None:
     assert model == "model"
 
     # Predict - this will verify {output_file} substitution works
+    historic = pd.DataFrame({"feature1": []})
     future = pd.DataFrame({"feature1": [1]})
-    predictions = await runner.on_predict(config, model, None, future)
+    predictions = await runner.on_predict(config, model, historic, future)
     assert len(predictions) == 1
     assert "prediction" in predictions.columns
 

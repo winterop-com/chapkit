@@ -63,7 +63,7 @@ async def on_train(
 async def on_predict(
     config: DiseaseConfig,
     model: Any,
-    historic: pd.DataFrame | None,
+    historic: pd.DataFrame,
     future: pd.DataFrame,
     geo: FeatureCollection | None = None,
 ) -> pd.DataFrame:
@@ -72,7 +72,7 @@ async def on_predict(
     Args:
         config: Model configuration
         model: Trained sklearn model
-        historic: Optional historic data (not used in this example)
+        historic: Historic data (not used in this example)
         future: Future data to make predictions on
         geo: Optional geospatial data
 

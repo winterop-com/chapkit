@@ -40,7 +40,7 @@ curl http://127.0.0.1:8000/health
 ### 2. View System Info
 
 ```bash
-curl http://127.0.0.1:8000/system
+curl http://127.0.0.1:8000/api/v1/system
 ```
 
 **Response:**
@@ -220,6 +220,10 @@ curl -X POST http://127.0.0.1:8000/api/v1/ml/\$predict \
   -H "Content-Type: application/json" \
   -d '{
     "model_artifact_id": "01K79YAHJ7BR4E87VVTG8FNBMC",
+    "historic": {
+      "columns": ["rainfall", "mean_temperature"],
+      "data": []
+    },
     "future": {
       "columns": ["rainfall", "mean_temperature"],
       "data": [

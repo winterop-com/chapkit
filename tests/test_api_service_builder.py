@@ -310,7 +310,7 @@ def test_service_builder_with_system(service_info: ServiceInfo) -> None:
     app = ServiceBuilder(info=service_info).with_system().build()
 
     with TestClient(app) as client:
-        response = client.get("/system/")
+        response = client.get("/api/v1/system/")
 
         assert response.status_code == 200
         data = response.json()

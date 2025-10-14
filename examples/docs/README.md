@@ -98,6 +98,10 @@ curl -X POST http://127.0.0.1:8000/api/v1/ml/\$predict \
   -H "Content-Type: application/json" \
   -d '{
     "model_artifact_id": "YOUR_MODEL_ARTIFACT_ID",
+    "historic": {
+      "columns": ["rainfall", "mean_temperature"],
+      "data": []
+    },
     "future": {
       "columns": ["rainfall", "mean_temperature"],
       "data": [
@@ -122,7 +126,7 @@ All ML services provide these endpoints:
 
 ### Health & Info
 - `GET /health` - Health check
-- `GET /system` - System information (if `.with_system()` enabled)
+- `GET /api/v1/system` - System information (if `.with_system()` enabled)
 
 ### Configuration
 - `POST /api/v1/configs` - Create config

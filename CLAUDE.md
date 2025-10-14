@@ -79,9 +79,9 @@ app = (
 **MLServiceBuilder** (in `chapkit.api`): Specialized builder that bundles health, config, artifacts, jobs, ml
 
 **Key methods:**
-- `.with_health()` - Health check endpoint at `/health` (operational)
-- `.with_system()` - System info endpoint at `/system` (operational)
-- `.with_monitoring()` - Prometheus metrics at `/metrics` (operational)
+- `.with_health()` - Health check endpoint at `/health` (operational monitoring)
+- `.with_system()` - System info endpoint at `/api/v1/system` (service metadata)
+- `.with_monitoring()` - Prometheus metrics at `/metrics` (operational monitoring)
 - `.with_config(schema)` - Config CRUD endpoints at `/api/v1/configs`
 - `.with_artifacts(hierarchy)` - Artifact CRUD at `/api/v1/artifacts`
 - `.with_jobs()` - Job scheduler at `/api/v1/jobs`
@@ -95,8 +95,8 @@ app = (
 - `.build()` - Returns FastAPI app
 
 **Endpoint Design:**
-- **Operational endpoints** (root level): `/health`, `/system`, `/metrics` - infrastructure/monitoring concerns
-- **API endpoints** (versioned): `/api/v1/*` - business logic and domain resources
+- **Operational monitoring** (root level): `/health`, `/metrics` - infrastructure/monitoring concerns for Kubernetes and Prometheus
+- **API endpoints** (versioned): `/api/v1/*` - business logic, domain resources, and service metadata
 
 ## Common Endpoints
 

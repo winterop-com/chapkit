@@ -58,7 +58,7 @@ def test_health_endpoint(client: TestClient) -> None:
 
 def test_system_endpoint(client: TestClient) -> None:
     """Test system info endpoint returns metadata."""
-    response = client.get("/system")
+    response = client.get("/api/v1/system")
     assert response.status_code == 200
     data = response.json()
 
@@ -478,7 +478,7 @@ def test_openapi_schema(client: TestClient) -> None:
 
     # Verify all major endpoint groups are present
     assert "/health" in paths
-    assert "/system" in paths
+    assert "/api/v1/system" in paths
     assert "/api/v1/configs" in paths
     assert "/api/v1/artifacts" in paths
     assert "/api/v1/tasks" in paths

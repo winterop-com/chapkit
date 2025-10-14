@@ -192,8 +192,8 @@ class MLManager:
                 raise ValueError(f"Config {config_id} not found")
 
         # Convert PandasDataFrames to pandas
+        historic_df = request.historic.to_dataframe()
         future_df = request.future.to_dataframe()
-        historic_df = request.historic.to_dataframe() if request.historic else None
 
         # Make predictions with timing
         prediction_started_at = datetime.datetime.now(datetime.UTC)

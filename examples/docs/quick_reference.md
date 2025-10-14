@@ -48,6 +48,10 @@ curl -X POST http://127.0.0.1:8000/api/v1/ml/\$predict \
   -H "Content-Type: application/json" \
   -d '{
     "model_artifact_id": "MODEL_ID",
+    "historic": {
+      "columns": ["feature1", "feature2"],
+      "data": []
+    },
     "future": {
       "columns": ["feature1", "feature2"],
       "data": [[7, 8], [9, 10]]
@@ -114,7 +118,7 @@ curl http://127.0.0.1:8000/api/v1/artifacts/ARTIFACT_ID
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check |
-| GET | `/system` | Service info |
+| GET | `/api/v1/system` | Service info |
 | POST | `/api/v1/configs` | Create config |
 | GET | `/api/v1/configs` | List configs |
 | GET | `/api/v1/configs/{id}` | Get config |
@@ -197,6 +201,10 @@ PRED_RESPONSE=$(curl -s -X POST http://127.0.0.1:8000/api/v1/ml/\$predict \
   -H "Content-Type: application/json" \
   -d "{
     \"model_artifact_id\": \"$MODEL_ID\",
+    \"historic\": {
+      \"columns\": [\"rainfall\", \"mean_temperature\"],
+      \"data\": []
+    },
     \"future\": {
       \"columns\": [\"rainfall\", \"mean_temperature\"],
       \"data\": [[110, 26], [90, 28]]

@@ -166,6 +166,7 @@ async def test_prediction_timing_metadata_captured(
     # Submit prediction job
     predict_request = PredictRequest(
         model_artifact_id=ULID.from_str(train_response.model_artifact_id),
+        historic=PandasDataFrame.from_dataframe(pd.DataFrame({"feature1": [], "feature2": []})),
         future=PandasDataFrame.from_dataframe(predict_df),
     )
     predict_response = await ml_manager.execute_predict(predict_request)
@@ -292,6 +293,7 @@ async def test_original_metadata_preserved(ml_manager: MLManager, setup_data: tu
     # Predict
     predict_request = PredictRequest(
         model_artifact_id=ULID.from_str(train_response.model_artifact_id),
+        historic=PandasDataFrame.from_dataframe(pd.DataFrame({"feature1": [], "feature2": []})),
         future=PandasDataFrame.from_dataframe(predict_df),
     )
     predict_response = await ml_manager.execute_predict(predict_request)

@@ -351,13 +351,13 @@ app = (
 app = (
     ServiceBuilder(info=info)
     .with_health()         # /health - Kubernetes liveness/readiness
-    .with_system()         # /system - System info
+    .with_system()         # /api/v1/system - System metadata
     .with_monitoring()     # /metrics - Prometheus metrics
     .build()
 )
 ```
 
-All operational endpoints (`/health`, `/system`, `/metrics`) use root-level paths for easy discovery and configuration.
+Operational monitoring endpoints (`/health`, `/metrics`) use root-level paths for easy discovery by Kubernetes and Prometheus. Service metadata endpoints (`/api/v1/system`, `/api/v1/info`) use versioned API paths.
 
 ## Troubleshooting
 

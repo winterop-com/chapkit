@@ -21,7 +21,7 @@ ConfigT = TypeVar("ConfigT", bound=BaseConfig)
 # Type aliases for ML runner functions
 type TrainFunction[ConfigT] = Callable[[ConfigT, pd.DataFrame, FeatureCollection | None], Awaitable[Any]]
 type PredictFunction[ConfigT] = Callable[
-    [ConfigT, Any, pd.DataFrame | None, pd.DataFrame, FeatureCollection | None], Awaitable[pd.DataFrame]
+    [ConfigT, Any, pd.DataFrame, pd.DataFrame, FeatureCollection | None], Awaitable[pd.DataFrame]
 ]
 
 logger = get_logger(__name__)
@@ -53,7 +53,7 @@ class BaseModelRunner(ABC):
         self,
         config: BaseConfig,
         model: Any,
-        historic: pd.DataFrame | None,
+        historic: pd.DataFrame,
         future: pd.DataFrame,
         geo: FeatureCollection | None = None,
     ) -> pd.DataFrame:
@@ -86,7 +86,7 @@ class FunctionalModelRunner(BaseModelRunner, Generic[ConfigT]):
         self,
         config: BaseConfig,
         model: Any,
-        historic: pd.DataFrame | None,
+        historic: pd.DataFrame,
         future: pd.DataFrame,
         geo: FeatureCollection | None = None,
     ) -> pd.DataFrame:
@@ -182,7 +182,7 @@ class ShellModelRunner(BaseModelRunner):
         self,
         config: BaseConfig,
         model: Any,
-        historic: pd.DataFrame | None,
+        historic: pd.DataFrame,
         future: pd.DataFrame,
         geo: FeatureCollection | None = None,
     ) -> pd.DataFrame:
@@ -199,11 +199,9 @@ class ShellModelRunner(BaseModelRunner):
             with open(model_file, "wb") as f:
                 pickle.dump(model, f)
 
-            # Write historic data if provided
-            historic_file = temp_dir / "historic.csv" if historic is not None else None
-            if historic is not None:
-                assert historic_file is not None  # For type checker
-                historic.to_csv(historic_file, index=False)
+            # Write historic data
+            historic_file = temp_dir / "historic.csv"
+            historic.to_csv(historic_file, index=False)
 
             # Write future data to CSV
             future_file = temp_dir / "future.csv"
@@ -222,7 +220,7 @@ class ShellModelRunner(BaseModelRunner):
             command = self.predict_command.format(
                 config_file=str(config_file),
                 model_file=str(model_file),
-                historic_file=str(historic_file) if historic_file else "",
+                historic_file=str(historic_file),
                 future_file=str(future_file),
                 output_file=str(output_file),
                 geo_file=str(geo_file) if geo_file else "",

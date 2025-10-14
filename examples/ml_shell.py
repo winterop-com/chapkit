@@ -35,6 +35,7 @@ class DiseaseConfig(BaseConfig):
 #   {config_file} - JSON config
 #   {data_file} - Training data CSV
 #   {model_file} - Model pickle file
+#   {historic_file} - Historic data CSV
 #   {future_file} - Future data CSV
 #   {output_file} - Predictions CSV
 
@@ -51,6 +52,7 @@ predict_command = (
     f"{sys.executable} {SCRIPTS_DIR}/predict_model.py "
     "--config {config_file} "
     "--model {model_file} "
+    "--historic {historic_file} "
     "--future {future_file} "
     "--output {output_file}"
 )

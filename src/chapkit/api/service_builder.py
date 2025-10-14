@@ -392,4 +392,5 @@ class MLServiceBuilder(ServiceBuilder):
         self.with_config(config_schema)
         self.with_artifacts(hierarchy=hierarchy, enable_config_linking=True)
         self.with_jobs()
+        self.with_landing_page()
         self.with_ml(runner=runner)

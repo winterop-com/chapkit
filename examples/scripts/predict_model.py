@@ -25,7 +25,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Make predictions using trained model")
     parser.add_argument("--config", required=True, help="Path to config JSON file")
     parser.add_argument("--model", required=True, help="Path to trained model file")
-    parser.add_argument("--historic", default="", help="Path to historic data CSV (optional)")
+    parser.add_argument("--historic", required=True, help="Path to historic data CSV")
     parser.add_argument("--future", required=True, help="Path to future data CSV")
     parser.add_argument("--output", required=True, help="Path to save predictions CSV")
     parser.add_argument("--geo", default="", help="Path to GeoJSON file (optional)")

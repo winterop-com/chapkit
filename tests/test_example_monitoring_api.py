@@ -34,7 +34,7 @@ def test_health_endpoint(client: TestClient) -> None:
 
 def test_system_endpoint(client: TestClient) -> None:
     """Test system info endpoint returns system metadata."""
-    response = client.get("/system")
+    response = client.get("/api/v1/system")
     assert response.status_code == 200
     data = response.json()
     assert "python_version" in data
@@ -109,7 +109,7 @@ def test_openapi_schema(client: TestClient) -> None:
 
     # Verify operational endpoints at root level
     assert "/health" in paths
-    assert "/system" in paths
+    assert "/api/v1/system" in paths
     assert "/metrics" in paths
 
     # Verify API endpoints are versioned

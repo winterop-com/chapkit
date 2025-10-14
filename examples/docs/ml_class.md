@@ -31,7 +31,7 @@ curl http://127.0.0.1:8000/health
 ### 2. View System Info
 
 ```bash
-curl http://127.0.0.1:8000/system
+curl http://127.0.0.1:8000/api/v1/system
 ```
 
 **Response:**
@@ -212,6 +212,10 @@ curl -X POST http://127.0.0.1:8000/api/v1/ml/\$predict \
   -H "Content-Type: application/json" \
   -d '{
     "model_artifact_id": "01JAABC789GHI345...",
+    "historic": {
+      "columns": ["rainfall", "mean_temperature", "humidity"],
+      "data": []
+    },
     "future": {
       "columns": ["rainfall", "mean_temperature", "humidity"],
       "data": [
@@ -427,8 +431,8 @@ curl -X POST http://127.0.0.1:8000/api/v1/configs -d '{"name":"raw","data":{"nor
 # Train and save model_artifact_id as MODEL_RAW
 
 # 3. Predict with same test data using both models
-curl -X POST http://127.0.0.1:8000/api/v1/ml/\$predict -d '{"model_artifact_id":"MODEL_NORM","future":{...}}'
-curl -X POST http://127.0.0.1:8000/api/v1/ml/\$predict -d '{"model_artifact_id":"MODEL_RAW","future":{...}}'
+curl -X POST http://127.0.0.1:8000/api/v1/ml/\$predict -d '{"model_artifact_id":"MODEL_NORM","historic":{...},"future":{...}}'
+curl -X POST http://127.0.0.1:8000/api/v1/ml/\$predict -d '{"model_artifact_id":"MODEL_RAW","historic":{...},"future":{...}}'
 
 # 4. Compare prediction accuracy
 ```

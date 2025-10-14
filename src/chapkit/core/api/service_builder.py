@@ -196,13 +196,13 @@ class BaseServiceBuilder:
     def with_system(
         self,
         *,
-        prefix: str = "/system",
+        prefix: str = "/api/v1/system",
         tags: List[str] | None = None,
     ) -> Self:
         """Add system info endpoint."""
         self._system_options = _SystemOptions(
             prefix=prefix,
-            tags=list(tags) if tags is not None else ["Observability"],
+            tags=list(tags) if tags is not None else ["Service"],
         )
         return self
 
@@ -230,33 +230,7 @@ class BaseServiceBuilder:
         header_name: str = "X-API-Key",
         unauthenticated_paths: List[str] | None = None,
     ) -> Self:
-        """Enable API key authentication.
-
-        Priority (first non-None wins):
-        1. api_keys (direct list - for examples/dev only)
-        2. api_key_file (read from file - Docker secrets)
-        3. env_var (read from environment - default behavior)
-
-        Args:
-            api_keys: Direct list of API keys (NOT recommended for production)
-            api_key_file: Path to file containing keys (one per line)
-            env_var: Environment variable name (default: CHAPKIT_API_KEYS)
-            header_name: HTTP header name for API key (default: X-API-Key)
-            unauthenticated_paths: Paths that don't require authentication
-
-        Returns:
-            Self for method chaining
-
-        Example:
-            # Production (environment variable)
-            .with_auth()
-
-            # Docker secrets
-            .with_auth(api_key_file="/run/secrets/api_keys")
-
-            # Development only
-            .with_auth(api_keys=["sk_dev_test123"])
-        """
+        """Enable API key authentication."""
         keys: set[str] = set()
         auth_source: str = ""  # Track source for later logging
 
@@ -611,7 +585,7 @@ class BaseServiceBuilder:
         """Install service info endpoint."""
         info_type = type(info)
 
-        @app.get("/api/v1/info", include_in_schema=False, response_model=info_type)
+        @app.get("/api/v1/info", tags=["Service"], include_in_schema=True, response_model=info_type)
         async def get_info() -> ServiceInfo:
             return info
 

@@ -123,7 +123,7 @@ class WeatherModelRunner(BaseModelRunner):
         self,
         config: BaseConfig,
         model: Any,
-        historic: pd.DataFrame | None,
+        historic: pd.DataFrame,
         future: pd.DataFrame,
         geo: FeatureCollection | None = None,
     ) -> pd.DataFrame:
@@ -132,7 +132,7 @@ class WeatherModelRunner(BaseModelRunner):
         Args:
             config: Model configuration
             model: Trained model artifacts (dict with model, scaler, etc.)
-            historic: Optional historic data (not used in this example)
+            historic: Historic data (not used in this example)
             future: Future data to make predictions on
             geo: Optional geospatial data
 

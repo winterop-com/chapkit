@@ -33,8 +33,8 @@ class PredictRequest(BaseModel):
     """Request schema for making predictions."""
 
     model_artifact_id: ULID = Field(description="ID of the artifact containing the trained model")
+    historic: PandasDataFrame = Field(description="Historic data as pandas DataFrame")
     future: PandasDataFrame = Field(description="Future/prediction data as pandas DataFrame")
-    historic: PandasDataFrame | None = Field(default=None, description="Optional historic data")
     geo: FeatureCollection | None = Field(default=None, description="Optional geospatial data")
 
 
@@ -89,7 +89,7 @@ class ModelRunnerProtocol(Protocol):
         self,
         config: BaseConfig,
         model: Any,
-        historic: pd.DataFrame | None,
+        historic: pd.DataFrame,
         future: pd.DataFrame,
         geo: FeatureCollection | None = None,
     ) -> pd.DataFrame:

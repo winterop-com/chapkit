@@ -59,7 +59,7 @@ curl http://127.0.0.1:8000/api/v1/configs
 
 ```bash
 curl -H "X-API-Key: sk_ml_train_abc123" \
-  http://127.0.0.1:8000/system
+  http://127.0.0.1:8000/api/v1/system
 ```
 
 **Response:**
@@ -181,6 +181,10 @@ curl -X POST http://127.0.0.1:8000/api/v1/ml/\$predict \
   -H "Content-Type: application/json" \
   -d '{
     "model_artifact_id": "01K7CXYHJ7BR4E87VVTG8FNBMC",
+    "historic": {
+      "columns": ["rainfall", "mean_temperature"],
+      "data": []
+    },
     "future": {
       "columns": ["rainfall", "mean_temperature"],
       "data": [
@@ -334,7 +338,7 @@ POST   /api/v1/ml/$train
 POST   /api/v1/ml/$predict
 
 # System endpoints
-GET    /system
+GET    /api/v1/system
 ```
 
 ### Public (No Auth) ⭐
