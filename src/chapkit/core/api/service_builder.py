@@ -290,36 +290,13 @@ class BaseServiceBuilder:
         return self
 
     def with_app(self, path: str | Path | tuple[str, str], prefix: str | None = None) -> Self:
-        """Register a single static app.
-
-        Args:
-            path: Filesystem path (str/Path) or package resource tuple (package_name, subpath)
-            prefix: Optional prefix override (uses manifest prefix if None)
-
-        Returns:
-            Self for fluent chaining
-
-        Example:
-            .with_app("apps/dashboard")  # Filesystem
-            .with_app(("chapkit.core.api", "apps/landing"), prefix="/")  # Package
-        """
+        """Register static app from filesystem path or package resource tuple."""
         app = AppLoader.load_app(path, prefix=prefix)
         self._app_configs.append(app)
         return self
 
     def with_apps(self, path: str | Path | tuple[str, str]) -> Self:
-        """Auto-discover and register all apps in a directory.
-
-        Args:
-            path: Filesystem directory path or package resource tuple
-
-        Returns:
-            Self for fluent chaining
-
-        Example:
-            .with_apps("apps")  # Discover all apps in ./apps/
-            .with_apps(("mypackage", "apps"))  # Discover in package
-        """
+        """Auto-discover and register all apps in directory."""
         apps = AppLoader.discover_apps(path)
         self._app_configs.extend(apps)
         return self

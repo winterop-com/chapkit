@@ -52,19 +52,7 @@ class AppLoader:
 
     @staticmethod
     def load_app(path: str | Path | tuple[str, str], prefix: str | None = None) -> App:
-        """Load a single app from filesystem or package resources.
-
-        Args:
-            path: Filesystem path (str/Path) or package resource tuple (package_name, subpath)
-            prefix: Optional prefix override (uses manifest prefix if None)
-
-        Returns:
-            App instance with validated manifest
-
-        Raises:
-            FileNotFoundError: If app directory or manifest not found
-            ValueError: If manifest is invalid
-        """
+        """Load and validate app from filesystem path or package resource tuple."""
         # Detect source type and resolve to directory
         if isinstance(path, tuple):
             # Package resource
@@ -114,18 +102,7 @@ class AppLoader:
 
     @staticmethod
     def discover_apps(path: str | Path | tuple[str, str]) -> list[App]:
-        """Discover all apps in a directory.
-
-        Args:
-            path: Filesystem directory path or package resource tuple
-
-        Returns:
-            List of discovered App instances
-
-        Raises:
-            FileNotFoundError: If directory doesn't exist
-            NotADirectoryError: If path is not a directory
-        """
+        """Discover all apps with manifest.json in directory."""
         # Resolve directory
         if isinstance(path, tuple):
             dir_path, _ = AppLoader._resolve_package_path(path)
@@ -165,17 +142,7 @@ class AppLoader:
 
     @staticmethod
     def _resolve_package_path(package_tuple: tuple[str, str]) -> tuple[Path, bool]:
-        """Resolve package resource tuple to filesystem path.
-
-        Args:
-            package_tuple: (package_name, subpath) tuple
-
-        Returns:
-            Tuple of (resolved_path, is_package=True)
-
-        Raises:
-            ValueError: If package cannot be found
-        """
+        """Resolve package resource tuple to filesystem path."""
         package_name, subpath = package_tuple
 
         try:
