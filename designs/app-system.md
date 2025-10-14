@@ -341,7 +341,7 @@ Auto-discover multiple apps from package resources using tuple format `(package_
 ```
 
 **Implementation**:
-- `AppLoader.discover_apps()` detects tuple format and resolves package path
+- `AppLoader.discover()` detects tuple format and resolves package path
 - Scans package subdirectories for `manifest.json` files
 - Loads each discovered app using package resource loading
 - All discovered apps marked with `is_package=True`

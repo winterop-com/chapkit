@@ -67,7 +67,7 @@ class AppLoader:
     """Loads and validates apps from filesystem or package resources."""
 
     @staticmethod
-    def load_app(path: str | Path | tuple[str, str], prefix: str | None = None) -> App:
+    def load(path: str | Path | tuple[str, str], prefix: str | None = None) -> App:
         """Load and validate app from filesystem path or package resource tuple."""
         # Detect source type and resolve to directory
         if isinstance(path, tuple):
@@ -121,7 +121,7 @@ class AppLoader:
         )
 
     @staticmethod
-    def discover_apps(path: str | Path | tuple[str, str]) -> list[App]:
+    def discover(path: str | Path | tuple[str, str]) -> list[App]:
         """Discover all apps with manifest.json in directory."""
         # Resolve directory
         if isinstance(path, tuple):
@@ -146,9 +146,9 @@ class AppLoader:
                         base_path: str = path[1]
                         subdir_name = subdir.name
                         subpath = f"{base_path}/{subdir_name}" if base_path else subdir_name
-                        app = AppLoader.load_app((package_name, subpath))
+                        app = AppLoader.load((package_name, subpath))
                     else:
-                        app = AppLoader.load_app(subdir)
+                        app = AppLoader.load(subdir)
                     apps.append(app)
                 except Exception as e:
                     # Log but don't fail discovery for invalid apps

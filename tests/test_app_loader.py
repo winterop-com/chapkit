@@ -94,7 +94,7 @@ def test_load_app_from_filesystem(tmp_path: Path):
     (app_dir / "index.html").write_text("<html>Test</html>")
 
     # Load app
-    app = AppLoader.load_app(str(app_dir))
+    app = AppLoader.load(str(app_dir))
 
     assert app.manifest.name == "Test App"
     assert app.manifest.prefix == "/test"
@@ -117,7 +117,7 @@ def test_load_app_with_prefix_override(tmp_path: Path):
     (app_dir / "index.html").write_text("<html>Test</html>")
 
     # Load with override
-    app = AppLoader.load_app(str(app_dir), prefix="/overridden")
+    app = AppLoader.load(str(app_dir), prefix="/overridden")
 
     assert app.manifest.prefix == "/original"  # Original unchanged
     assert app.prefix == "/overridden"  # Override applied
@@ -138,7 +138,7 @@ def test_load_app_custom_entry(tmp_path: Path):
     (app_dir / "main.html").write_text("<html>Test</html>")
 
     # Load app
-    app = AppLoader.load_app(str(app_dir))
+    app = AppLoader.load(str(app_dir))
 
     assert app.manifest.entry == "main.html"
 
@@ -146,7 +146,7 @@ def test_load_app_custom_entry(tmp_path: Path):
 def test_load_app_missing_directory(tmp_path: Path):
     """Test loading app from non-existent directory."""
     with pytest.raises(FileNotFoundError, match="App directory not found"):
-        AppLoader.load_app(str(tmp_path / "nonexistent"))
+        AppLoader.load(str(tmp_path / "nonexistent"))
 
 
 def test_load_app_missing_manifest(tmp_path: Path):
@@ -155,7 +155,7 @@ def test_load_app_missing_manifest(tmp_path: Path):
     app_dir.mkdir()
 
     with pytest.raises(FileNotFoundError, match="manifest.json not found"):
-        AppLoader.load_app(str(app_dir))
+        AppLoader.load(str(app_dir))
 
 
 def test_load_app_missing_entry_file(tmp_path: Path):
@@ -172,7 +172,7 @@ def test_load_app_missing_entry_file(tmp_path: Path):
     # No index.html created
 
     with pytest.raises(FileNotFoundError, match="Entry file 'index.html' not found"):
-        AppLoader.load_app(str(app_dir))
+        AppLoader.load(str(app_dir))
 
 
 def test_load_app_invalid_manifest_json(tmp_path: Path):
@@ -184,7 +184,7 @@ def test_load_app_invalid_manifest_json(tmp_path: Path):
     (app_dir / "index.html").write_text("<html>Test</html>")
 
     with pytest.raises(ValueError, match="Invalid JSON in manifest.json"):
-        AppLoader.load_app(str(app_dir))
+        AppLoader.load(str(app_dir))
 
 
 def test_load_app_invalid_manifest_schema(tmp_path: Path):
@@ -200,7 +200,7 @@ def test_load_app_invalid_manifest_schema(tmp_path: Path):
     (app_dir / "index.html").write_text("<html>Test</html>")
 
     with pytest.raises(ValidationError):
-        AppLoader.load_app(str(app_dir))
+        AppLoader.load(str(app_dir))
 
 
 def test_discover_apps(tmp_path: Path):
@@ -221,7 +221,7 @@ def test_discover_apps(tmp_path: Path):
     (app2_dir / "index.html").write_text("<html>App 2</html>")
 
     # Discover apps
-    apps = AppLoader.discover_apps(str(apps_dir))
+    apps = AppLoader.discover(str(apps_dir))
 
     assert len(apps) == 2
     app_names = {app.manifest.name for app in apps}
@@ -253,7 +253,7 @@ def test_discover_apps_ignores_invalid(tmp_path: Path):
     (no_manifest_dir / "index.html").write_text("<html>No Manifest</html>")
 
     # Discover apps (should only find valid app)
-    apps = AppLoader.discover_apps(str(apps_dir))
+    apps = AppLoader.discover(str(apps_dir))
 
     assert len(apps) == 1
     assert apps[0].manifest.name == "Valid"
@@ -264,7 +264,7 @@ def test_discover_apps_empty_directory(tmp_path: Path):
     apps_dir = tmp_path / "apps"
     apps_dir.mkdir()
 
-    apps = AppLoader.discover_apps(str(apps_dir))
+    apps = AppLoader.discover(str(apps_dir))
 
     assert len(apps) == 0
 
@@ -272,7 +272,7 @@ def test_discover_apps_empty_directory(tmp_path: Path):
 def test_discover_apps_missing_directory(tmp_path: Path):
     """Test discovering apps in non-existent directory."""
     with pytest.raises(FileNotFoundError, match="Apps directory not found"):
-        AppLoader.discover_apps(str(tmp_path / "nonexistent"))
+        AppLoader.discover(str(tmp_path / "nonexistent"))
 
 
 def test_discover_apps_from_package(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -305,7 +305,7 @@ def test_discover_apps_from_package(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     monkeypatch.syspath_prepend(str(tmp_path))
 
     # Discover apps from package
-    apps = AppLoader.discover_apps(("test_package", "web_apps"))
+    apps = AppLoader.discover(("test_package", "web_apps"))
 
     assert len(apps) == 2
     app_names = {app.manifest.name for app in apps}
@@ -329,7 +329,7 @@ def test_discover_apps_from_package_empty(tmp_path: Path, monkeypatch: pytest.Mo
     monkeypatch.syspath_prepend(str(tmp_path))
 
     # Discover apps (should return empty list)
-    apps = AppLoader.discover_apps(("test_package", "empty_apps"))
+    apps = AppLoader.discover(("test_package", "empty_apps"))
 
     assert len(apps) == 0
 
@@ -363,7 +363,7 @@ def test_discover_apps_from_package_ignores_invalid(tmp_path: Path, monkeypatch:
     monkeypatch.syspath_prepend(str(tmp_path))
 
     # Discover apps (should only find valid app)
-    apps = AppLoader.discover_apps(("test_package", "apps"))
+    apps = AppLoader.discover(("test_package", "apps"))
 
     assert len(apps) == 1
     assert apps[0].manifest.name == "Valid"
@@ -372,7 +372,7 @@ def test_discover_apps_from_package_ignores_invalid(tmp_path: Path, monkeypatch:
 def test_discover_apps_from_nonexistent_package():
     """Test discovering apps from non-existent package fails."""
     with pytest.raises(ValueError, match="Package .* could not be found"):
-        AppLoader.discover_apps(("nonexistent.package", "apps"))
+        AppLoader.discover(("nonexistent.package", "apps"))
 
 
 def test_discover_apps_from_package_nonexistent_subpath(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -388,13 +388,13 @@ def test_discover_apps_from_package_nonexistent_subpath(tmp_path: Path, monkeypa
 
     # Try to discover from non-existent subpath
     with pytest.raises(FileNotFoundError, match="App path .* not found in package"):
-        AppLoader.discover_apps(("test_package", "nonexistent_apps"))
+        AppLoader.discover(("test_package", "nonexistent_apps"))
 
 
 def test_discover_apps_from_package_rejects_traversal():
     """Test package discovery rejects path traversal in subpath."""
     with pytest.raises(ValueError, match="subpath cannot contain '..'"):
-        AppLoader.discover_apps(("chapkit.core.api", "../../../etc"))
+        AppLoader.discover(("chapkit.core.api", "../../../etc"))
 
 
 def test_load_app_from_package():
@@ -402,7 +402,7 @@ def test_load_app_from_package():
     # Load from chapkit.core.api package (we know this exists)
     # We'll create a test by using an invalid package to test error handling
     with pytest.raises(ValueError, match="Package .* could not be found"):
-        AppLoader.load_app(("nonexistent.package", "apps/test"))
+        AppLoader.load(("nonexistent.package", "apps/test"))
 
 
 def test_app_dataclass():
@@ -487,19 +487,19 @@ def test_load_app_rejects_entry_traversal_in_file(tmp_path: Path):
     (app_dir / "manifest.json").write_text(json.dumps(manifest))
 
     with pytest.raises(ValidationError, match="entry cannot contain '..'"):
-        AppLoader.load_app(str(app_dir))
+        AppLoader.load(str(app_dir))
 
 
 def test_load_app_from_package_rejects_subpath_traversal():
     """Test loading app from package with path traversal in subpath fails."""
     with pytest.raises(ValueError, match="subpath cannot contain '..'"):
-        AppLoader.load_app(("chapkit.core.api", "../../../etc"))
+        AppLoader.load(("chapkit.core.api", "../../../etc"))
 
 
 def test_load_app_from_package_rejects_absolute_subpath():
     """Test loading app from package with absolute subpath fails."""
     with pytest.raises(ValueError, match="subpath must be relative"):
-        AppLoader.load_app(("chapkit.core.api", "/etc/passwd"))
+        AppLoader.load(("chapkit.core.api", "/etc/passwd"))
 
 
 # AppManager Tests
@@ -521,8 +521,8 @@ def test_app_manager_list_apps(tmp_path: Path):
     (app2_dir / "index.html").write_text("<html>App 2</html>")
 
     # Load apps
-    app1 = AppLoader.load_app(str(app1_dir))
-    app2 = AppLoader.load_app(str(app2_dir))
+    app1 = AppLoader.load(str(app1_dir))
+    app2 = AppLoader.load(str(app2_dir))
 
     # Create manager
     manager = AppManager([app1, app2])
@@ -545,7 +545,7 @@ def test_app_manager_get_app_by_prefix(tmp_path: Path):
     (app_dir / "index.html").write_text("<html>Test</html>")
 
     # Load app and create manager
-    app = AppLoader.load_app(str(app_dir))
+    app = AppLoader.load(str(app_dir))
     manager = AppManager([app])
 
     # Get app by prefix

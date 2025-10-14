@@ -287,13 +287,13 @@ class BaseServiceBuilder:
 
     def with_app(self, path: str | Path | tuple[str, str], prefix: str | None = None) -> Self:
         """Register static app from filesystem path or package resource tuple."""
-        app = AppLoader.load_app(path, prefix=prefix)
+        app = AppLoader.load(path, prefix=prefix)
         self._app_configs.append(app)
         return self
 
     def with_apps(self, path: str | Path | tuple[str, str]) -> Self:
         """Auto-discover and register all apps in directory."""
-        apps = AppLoader.discover_apps(path)
+        apps = AppLoader.discover(path)
         self._app_configs.extend(apps)
         return self
 
