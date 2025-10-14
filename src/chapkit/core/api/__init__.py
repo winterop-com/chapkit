@@ -1,5 +1,6 @@
 """FastAPI framework layer - routers, middleware, utilities."""
 
+from .app import App, AppLoader, AppManifest
 from .auth import APIKeyMiddleware, load_api_keys_from_env, load_api_keys_from_file, validate_api_key_format
 from .crud import CrudPermissions, CrudRouter
 from .dependencies import get_database, get_scheduler, get_session, set_database, set_scheduler
@@ -18,6 +19,10 @@ __all__ = [
     # Service builder
     "BaseServiceBuilder",
     "ServiceInfo",
+    # App system
+    "App",
+    "AppLoader",
+    "AppManifest",
     # Authentication
     "APIKeyMiddleware",
     "load_api_keys_from_env",

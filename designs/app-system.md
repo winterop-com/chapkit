@@ -147,12 +147,14 @@ app = (
 **Validation rules (fail fast during `build()`):**
 
 1. ✅ Apps cannot mount at `/api/**` (reserved for API routes)
-2. ✅ Only one app can mount at `/` (landing page)
+2. ✅ Apps cannot mount at `/` (conflicts with `.with_landing_page()`)
 3. ✅ No prefix conflicts between apps
 4. ✅ Prefix must start with `/`
 5. ✅ Prefix cannot contain `..` or path traversal attempts
 6. ✅ App directory must exist and contain `manifest.json`
 7. ✅ Manifest must be valid JSON matching schema
+
+**Important**: Apps mounted at `/` will intercept ALL routes, including API endpoints. For this reason, root-mounted apps are not supported. Use `.with_landing_page()` for the service landing page instead.
 
 **Mount order:**
 
@@ -228,27 +230,22 @@ app_dir = Path(spec.origin).parent / "apps/landing"
 2. Should apps have access to service metadata (ServiceInfo)?
    - **Recommendation**: Yes, via existing `/api/v1/info` endpoint
 
-3. Should we migrate `.with_landing_page()` to use the app system internally?
-   - **Recommendation**: Yes, but keep `.with_landing_page()` as convenience method that uses `.with_app("package:chapkit.core.api:apps/landing", prefix="/")`
+3. ~~Should we migrate `.with_landing_page()` to use the app system internally?~~
+   - **Decision**: No. Root-mounted apps intercept all routes. Landing page stays as endpoint.
 
-## Migration Path
+## Design Decision: No Root-Mounted Apps
 
-The existing `.with_landing_page()` can be migrated to use the app system:
+After implementation and testing, we discovered that mounting apps at `/` with StaticFiles causes them to intercept ALL routes, including API endpoints. This breaks the fundamental design where APIs should always be accessible.
 
-**Current**:
-```python
-app = ServiceBuilder(info=info).with_landing_page().build()
-```
+**Decision**: Apps cannot be mounted at `/`. The existing `.with_landing_page()` remains as an endpoint (not an app mount) to avoid this issue.
 
-**New (using bundled landing app)**:
-```python
-app = ServiceBuilder(info=info).with_app(("chapkit.core.api", "apps/landing"), prefix="/").build()
-```
+**Rationale**:
+- FastAPI/Starlette mounts catch ALL traffic under their prefix
+- A mount at `/` intercepts everything, including `/api/**` routes
+- Routers registered before mounts still get intercepted for 404 responses
+- This would break the core promise that `/api/**` is reserved for APIs
 
-**Backwards Compatibility**: Keep `.with_landing_page()` as a convenience method that internally calls:
-```python
-self.with_app(("chapkit.core.api", "apps/landing"), prefix="/")
-```
+**Alternative considered**: Mount apps before routers - rejected because it's confusing and breaks the design principle that APIs have priority.
 
 ## Future Enhancements
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, AsyncContextManager, AsyncIterator, Awaitable, Callable, Dict, List, Self
 
 from fastapi import APIRouter, FastAPI
@@ -14,6 +15,7 @@ from sqlalchemy import text
 from chapkit.core import Database, SqliteDatabase
 from chapkit.core.logging import configure_logging, get_logger
 
+from .app import App, AppLoader
 from .auth import APIKeyMiddleware, load_api_keys_from_env, load_api_keys_from_file
 from .dependencies import get_database, get_scheduler, set_database, set_scheduler
 from .middleware import add_error_handlers, add_logging_middleware
@@ -121,6 +123,7 @@ class BaseServiceBuilder:
         self._job_options: _JobOptions | None = None
         self._auth_options: _AuthOptions | None = None
         self._monitoring_options: _MonitoringOptions | None = None
+        self._app_configs: List[App] = []
         self._custom_routers: List[APIRouter] = []
         self._dependency_overrides: Dict[DependencyOverride, DependencyOverride] = {}
         self._startup_hooks: List[LifecycleHook] = []
@@ -284,6 +287,41 @@ class BaseServiceBuilder:
         )
         return self
 
+    def with_app(self, path: str | Path | tuple[str, str], prefix: str | None = None) -> Self:
+        """Register a single static app.
+
+        Args:
+            path: Filesystem path (str/Path) or package resource tuple (package_name, subpath)
+            prefix: Optional prefix override (uses manifest prefix if None)
+
+        Returns:
+            Self for fluent chaining
+
+        Example:
+            .with_app("apps/dashboard")  # Filesystem
+            .with_app(("chapkit.core.api", "apps/landing"), prefix="/")  # Package
+        """
+        app = AppLoader.load_app(path, prefix=prefix)
+        self._app_configs.append(app)
+        return self
+
+    def with_apps(self, path: str | Path | tuple[str, str]) -> Self:
+        """Auto-discover and register all apps in a directory.
+
+        Args:
+            path: Filesystem directory path or package resource tuple
+
+        Returns:
+            Self for fluent chaining
+
+        Example:
+            .with_apps("apps")  # Discover all apps in ./apps/
+            .with_apps(("mypackage", "apps"))  # Discover in package
+        """
+        apps = AppLoader.discover_apps(path)
+        self._app_configs.extend(apps)
+        return self
+
     def include_router(self, router: APIRouter) -> Self:
         """Include a custom router."""
         self._custom_routers.append(router)
@@ -381,6 +419,21 @@ class BaseServiceBuilder:
         # Extension point for module-specific routers
         self._register_module_routers(app)
 
+        # Mount apps
+        if self._app_configs:
+            from fastapi.staticfiles import StaticFiles
+
+            for app_config in self._app_configs:
+                static_files = StaticFiles(directory=str(app_config.directory), html=True)
+                app.mount(app_config.prefix, static_files, name=f"app_{app_config.manifest.name}")
+                logger.info(
+                    "app.mounted",
+                    name=app_config.manifest.name,
+                    prefix=app_config.prefix,
+                    directory=str(app_config.directory),
+                    is_package=app_config.is_package,
+                )
+
         for router in self._custom_routers:
             app.include_router(router)
 
@@ -416,6 +469,25 @@ class BaseServiceBuilder:
                         f"Health check name '{name}' contains invalid characters. "
                         "Only alphanumeric characters, underscores, and hyphens are allowed."
                     )
+
+        # Validate app configurations
+        if self._app_configs:
+            # Check for prefix conflicts between apps
+            prefixes = [app.prefix for app in self._app_configs]
+            prefix_counts: dict[str, int] = {}
+            for prefix in prefixes:
+                prefix_counts[prefix] = prefix_counts.get(prefix, 0) + 1
+                if prefix_counts[prefix] > 1:
+                    raise ValueError(f"Multiple apps configured with the same prefix: '{prefix}'")
+
+            # Check for root prefix conflicts with landing page
+            root_app_count = sum(1 for prefix in prefixes if prefix == "/")
+            if root_app_count > 0 and self._include_landing_page:
+                raise ValueError(
+                    "Cannot use both .with_landing_page() and .with_app(..., prefix='/'). "
+                    "Root-mounted apps will intercept all routes. "
+                    "Either use .with_landing_page() or mount your app at a different prefix."
+                )
 
     def _build_lifespan(self) -> LifespanFactory:
         """Build lifespan context manager for app startup/shutdown."""
