@@ -165,11 +165,7 @@ class BaseServiceBuilder:
         return self
 
     def with_landing_page(self) -> Self:
-        """Enable landing page at root path.
-
-        This is internally implemented as mounting the built-in landing page app at "/".
-        Users can override this by calling .with_app(..., prefix="/") after this method.
-        """
+        """Enable landing page at root path."""
         return self.with_app(("chapkit.core.api", "apps/landing"))
 
     def with_logging(self, enabled: bool = True) -> Self:
