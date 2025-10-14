@@ -70,7 +70,7 @@ SSE streams automatically close when a terminal state is reached.
 
 ## Polling vs Streaming
 
-### Traditional Polling (Inefficient)
+### Traditional Polling
 
 ```bash
 # Client must repeatedly poll every second
@@ -85,7 +85,7 @@ done
 - Polling interval trade-off (fast = expensive, slow = delayed updates)
 - Client-side polling logic needed
 
-### SSE Streaming (Recommended)
+### SSE Streaming
 
 ```bash
 # Server pushes updates automatically
@@ -119,7 +119,7 @@ eventSource.onmessage = (event) => {
 
   // Close connection when done
   if (['completed', 'failed', 'canceled'].includes(job.status)) {
-    console.log('Job finished!');
+    console.log('Job finished');
     eventSource.close();
   }
 };

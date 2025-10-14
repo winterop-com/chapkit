@@ -397,24 +397,24 @@ Only the **first 7 characters** of keys are logged. Full keys are never logged.
 
 ## Security Best Practices
 
-### ✅ DO
+### Recommended Practices
 
-- **Use environment variables** or Docker secrets in production
-- **Use `sk_env_random` format** for easy identification in logs
-- **Rotate keys regularly** (quarterly recommended)
-- **Use different keys** for different services/environments
-- **Keep `.env` files in `.gitignore`**
-- **Use minimum 16 characters** for key randomness
-- **Monitor authentication logs** for failed attempts
+- Use environment variables or Docker secrets in production
+- Use `sk_env_random` format for easy identification in logs
+- Rotate keys regularly (quarterly recommended)
+- Use different keys for different services/environments
+- Keep `.env` files in `.gitignore`
+- Use minimum 16 characters for key randomness
+- Monitor authentication logs for failed attempts
 
-### ❌ DON'T
+### Avoid
 
-- **Commit API keys to git** (use `.gitignore`)
-- **Use `api_keys=` parameter in production** (only for examples)
-- **Reuse keys across environments** (dev/staging/prod)
-- **Use weak/short keys** (minimum 16 characters)
-- **Share keys via email/Slack** (use secrets management)
-- **Hardcode keys in source code**
+- Committing API keys to git (use `.gitignore`)
+- Using `api_keys=` parameter in production (only for examples)
+- Reusing keys across environments (dev/staging/prod)
+- Using weak/short keys (minimum 16 characters)
+- Sharing keys via email/Slack (use secrets management)
+- Hardcoding keys in source code
 
 ---
 

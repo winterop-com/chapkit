@@ -1,6 +1,6 @@
 # Monitoring with OpenTelemetry and Prometheus
 
-Chapkit provides built-in monitoring through OpenTelemetry instrumentation with automatic Prometheus metrics export. Get instant observability for your FastAPI and SQLAlchemy operations with minimal configuration.
+Chapkit provides built-in monitoring through OpenTelemetry instrumentation with automatic Prometheus metrics export.
 
 ## Quick Start
 
@@ -18,7 +18,7 @@ app = (
 )
 ```
 
-That's it! Your service now exposes Prometheus metrics at `/metrics`.
+Your service now exposes Prometheus metrics at `/metrics`.
 
 ## Features
 
@@ -310,21 +310,21 @@ sum(rate(ml_predict_jobs_total{job="chapkit-services"}[5m]))
 
 ## Best Practices
 
-### ✅ DO
+### Recommended Practices
 
-- **Enable monitoring in production** - Essential for observability
-- **Set meaningful service names** - Helps identify services in multi-service setups
-- **Monitor key metrics** - Focus on request rate, error rate, duration (RED method)
-- **Set up alerts** - Alert on error rates, high latency, resource exhaustion
-- **Use service labels** - Tag metrics with environment, version, region
-- **Keep `/metrics` unauthenticated** - Prometheus needs access (use network policies)
+- Enable monitoring in production for observability
+- Set meaningful service names to identify services in multi-service setups
+- Monitor key metrics: request rate, error rate, duration (RED method)
+- Set up alerts for error rates, high latency, and resource exhaustion
+- Use service labels to tag metrics with environment, version, region
+- Keep `/metrics` unauthenticated for Prometheus access (use network policies)
 
-### ❌ DON'T
+### Avoid
 
-- **Don't expose metrics publicly** - Use internal network or auth proxy
-- **Don't scrape too frequently** - 15-30s interval is usually sufficient
-- **Don't ignore high cardinality** - Avoid unbounded label values
-- **Don't skip resource limits** - Monitor and limit Prometheus storage growth
+- Exposing metrics publicly (use internal network or auth proxy)
+- Scraping too frequently (15-30s interval is usually sufficient)
+- Ignoring high cardinality (avoid unbounded label values)
+- Skipping resource limits (monitor and limit Prometheus storage growth)
 
 ## Combining with Other Features
 
