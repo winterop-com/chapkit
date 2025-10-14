@@ -1182,7 +1182,7 @@
     "preload": false,
     "refresh": "10s",
     "schemaVersion": 42,
-    "tags": ["chapkit", "fastapi", "sqlalchemy"],
+    "tags": ["chapkit"],
     "templating": {
         "list": [
             {
@@ -1226,7 +1226,7 @@
     },
     "timepicker": {},
     "timezone": "",
-    "title": "Chapkit FastAPI Metrics (GPT-5)",
-    "uid": "chapkit-fastapi-metrics-gpt5",
+    "title": "Chapkit Service Metrics",
+    "uid": "chapkit-service-metrics",
     "version": 6
 }

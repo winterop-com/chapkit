@@ -392,26 +392,5 @@ class MLServiceBuilder(ServiceBuilder):
         self.with_config(config_schema)
         self.with_artifacts(hierarchy=hierarchy, enable_config_linking=True)
         self.with_jobs()
-        self._configure_ml_landing_page()
+        self.with_landing_page()
         self.with_ml(runner=runner)
-
-    def _configure_ml_landing_page(self) -> None:
-        """Configure ML-specific landing page with additional template directory."""
-        from importlib.resources import files
-
-        # Get path to ML templates directory
-        # files() may return a MultiplexedPath, so we need to handle it properly
-        templates_resource = files("chapkit.api")
-        if hasattr(templates_resource, "_paths"):
-            # MultiplexedPath - get the first valid path
-            first_path: Any = templates_resource._paths[0]  # pyright: ignore[reportAttributeAccessIssue]
-            ml_templates_dir = str(first_path / "templates")
-        else:
-            # Regular path - convert to string
-            ml_templates_dir = str(templates_resource / "templates")
-
-        # Use ML landing page template with both template directories
-        self.with_landing_page(
-            template_name="ml_landing_page.html",
-            additional_template_dirs=[ml_templates_dir],
-        )

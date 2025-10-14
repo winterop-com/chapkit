@@ -287,11 +287,17 @@ def test_service_builder_landing_page(service_info: ServiceInfo) -> None:
 
         assert response.status_code == 200
         assert response.headers["content-type"] == "text/html; charset=utf-8"
-        # Check that the page contains service info (server-side rendered)
-        assert "Test Service" in response.text  # display_name
-        assert "1.0.0" in response.text  # version
-        assert "Test service for unit tests" in response.text  # summary
+        # Check that the page contains JavaScript to fetch service info
+        assert "fetch('/api/v1/info')" in response.text
         assert "/docs" in response.text  # Navigation link to API docs
+
+        # Verify that /api/v1/info returns the correct data
+        info_response = client.get("/api/v1/info")
+        assert info_response.status_code == 200
+        data = info_response.json()
+        assert data["display_name"] == "Test Service"
+        assert data["version"] == "1.0.0"
+        assert data["summary"] == "Test service for unit tests"
 
 
 def test_service_builder_without_landing_page(service_info: ServiceInfo) -> None:
@@ -344,17 +350,18 @@ def test_service_builder_landing_page_with_custom_fields() -> None:
     app = ServiceBuilder(info=info).with_landing_page().build()
 
     with TestClient(app) as client:
-        # Check landing page HTML contains rendered service info
+        # Check landing page HTML loads properly
         response = client.get("/")
         assert response.status_code == 200
-        assert "Custom Service" in response.text  # display_name
-        assert "2.0.0" in response.text  # version
-        assert "Test with custom fields" in response.text  # summary
+        assert "fetch('/api/v1/info')" in response.text
 
         # Check that /api/v1/info includes custom fields
         info_response = client.get("/api/v1/info")
         assert info_response.status_code == 200
         data = info_response.json()
+        assert data["display_name"] == "Custom Service"
+        assert data["version"] == "2.0.0"
+        assert data["summary"] == "Test with custom fields"
         assert data["author"] == "Jane Doe"
         assert data["contact_email"] == "jane@example.com"
         assert data["custom_field"] == {"key": "value", "count": 42}
