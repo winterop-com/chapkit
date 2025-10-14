@@ -69,7 +69,7 @@ class SystemRouter(Router):
 
         @self.router.get(
             "/apps/$schema",
-            summary="Get apps schema",
+            summary="Get apps list schema",
             response_model=dict[str, Any],
         )
         async def get_apps_schema() -> dict[str, Any]:

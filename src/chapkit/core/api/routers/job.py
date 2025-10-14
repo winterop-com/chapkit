@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncGenerator, Callable
+from typing import Any
 
 import ulid
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import Response, StreamingResponse
+from pydantic import TypeAdapter
 
 from chapkit.core.api.router import Router
 from chapkit.core.scheduler import JobScheduler
@@ -43,6 +45,11 @@ class JobRouter(Router):
             if status_filter:
                 return [job for job in jobs if job.status == status_filter]
             return jobs
+
+        @self.router.get("/$schema", summary="Get jobs list schema", response_model=dict[str, Any])
+        async def get_jobs_schema() -> dict[str, Any]:
+            """Get JSON schema for jobs list response."""
+            return TypeAdapter(list[JobRecord]).json_schema()
 
         @self.router.get("/{job_id}", summary="Get job by ID", response_model=JobRecord)
         async def get_job(
