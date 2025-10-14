@@ -12,6 +12,7 @@ from fastapi.responses import Response, StreamingResponse
 from pydantic import TypeAdapter
 
 from chapkit.core.api.router import Router
+from chapkit.core.api.sse import SSE_HEADERS, format_sse_model_event
 from chapkit.core.scheduler import JobScheduler
 from chapkit.core.schemas import JobRecord, JobStatus
 
@@ -104,9 +105,8 @@ class JobRouter(Router):
                 while True:
                     try:
                         record = await scheduler.get_record(ulid_id)
-                        # Format as SSE: data: {json}\n\n
-                        data = record.model_dump_json()
-                        yield f"data: {data}\n\n".encode("utf-8")
+                        # Format as SSE event
+                        yield format_sse_model_event(record)
 
                         # Stop streaming if job reached terminal state
                         if record.status in terminal_states:
@@ -122,9 +122,5 @@ class JobRouter(Router):
             return StreamingResponse(
                 event_stream(),
                 media_type="text/event-stream",
-                headers={
-                    "Cache-Control": "no-cache",
-                    "Connection": "keep-alive",
-                    "X-Accel-Buffering": "no",  # Disable nginx buffering
-                },
+                headers=SSE_HEADERS,
             )

@@ -126,6 +126,7 @@ All ML services provide these endpoints:
 
 ### Health & Info
 - `GET /health` - Health check
+- `GET /health/$stream` - Health check (streaming)
 - `GET /api/v1/system` - System information (if `.with_system()` enabled)
 
 ### Configuration
@@ -290,6 +291,7 @@ curl -H "X-API-Key: sk_prod_abc123" http://127.0.0.1:8000/api/v1/configs
 
 #### Unauthenticated (Public)
 - `GET /health` - Health check
+- `GET /health/$stream` - Health check (streaming)
 - `GET /docs` - Swagger UI
 - `GET /redoc` - ReDoc
 - `GET /openapi.json` - OpenAPI schema

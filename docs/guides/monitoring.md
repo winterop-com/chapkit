@@ -350,14 +350,16 @@ app = (
 ```python
 app = (
     ServiceBuilder(info=info)
-    .with_health()         # /health - Kubernetes liveness/readiness
+    .with_health()         # /health - Health check endpoint
     .with_system()         # /api/v1/system - System metadata
     .with_monitoring()     # /metrics - Prometheus metrics
     .build()
 )
 ```
 
-Operational monitoring endpoints (`/health`, `/metrics`) use root-level paths for easy discovery by Kubernetes and Prometheus. Service metadata endpoints (`/api/v1/system`, `/api/v1/info`) use versioned API paths.
+Operational monitoring endpoints (`/health`, `/health/$stream`, `/metrics`) use root-level paths for easy discovery by Kubernetes, monitoring dashboards, and Prometheus. Service metadata endpoints (`/api/v1/system`, `/api/v1/info`) use versioned API paths.
+
+For detailed health check configuration and usage, see the [Health Checks Guide](health-checks.md).
 
 ## Troubleshooting
 
@@ -397,6 +399,7 @@ Operational monitoring endpoints (`/health`, `/metrics`) use root-level paths fo
 
 ## Next Steps
 
+- **Health Checks**: Add health monitoring with `.with_health()` - see [Health Checks Guide](health-checks.md)
 - **Alerting**: Set up Prometheus Alertmanager for notifications
 - **Distributed Tracing**: Future support for OpenTelemetry traces (see ROADMAP.md)
 - **Custom Metrics**: Use `get_meter()` for application-specific metrics
@@ -408,6 +411,7 @@ Operational monitoring endpoints (`/health`, `/metrics`) use root-level paths fo
 - `examples/docs/monitoring_api.postman_collection.json` - Postman collection
 
 For more details, see:
+- [Health Checks Guide](health-checks.md) - Health check configuration
 - [OpenTelemetry Documentation](https://opentelemetry.io/docs/)
 - [Prometheus Documentation](https://prometheus.io/docs/)
 - [Grafana Documentation](https://grafana.com/docs/)

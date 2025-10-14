@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+import asyncio
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from enum import StrEnum
 
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..router import Router
+from ..sse import SSE_HEADERS, format_sse_model_event
 
 
 class HealthState(StrEnum):
@@ -57,13 +60,8 @@ class HealthRouter(Router):
         """Register health check endpoint."""
         checks = self.checks
 
-        @self.router.get(
-            "",
-            summary="Health check",
-            response_model=HealthStatus,
-            response_model_exclude_none=self.default_response_model_exclude_none,
-        )
-        async def health_check() -> HealthStatus:
+        async def run_health_checks() -> HealthStatus:
+            """Run all health checks and aggregate results."""
             if not checks:
                 return HealthStatus(status=HealthState.HEALTHY)
 
@@ -85,3 +83,32 @@ class HealthRouter(Router):
                     overall_state = HealthState.UNHEALTHY
 
             return HealthStatus(status=overall_state, checks=check_results)
+
+        @self.router.get(
+            "",
+            summary="Health check",
+            response_model=HealthStatus,
+            response_model_exclude_none=self.default_response_model_exclude_none,
+        )
+        async def health_check() -> HealthStatus:
+            return await run_health_checks()
+
+        @self.router.get(
+            "/$stream",
+            summary="Stream health status updates via SSE",
+            description="Real-time Server-Sent Events stream of health status at regular intervals",
+        )
+        async def stream_health_status(poll_interval: float = 1.0) -> StreamingResponse:
+            """Stream real-time health status updates using Server-Sent Events."""
+
+            async def event_stream() -> AsyncGenerator[bytes, None]:
+                while True:
+                    status = await run_health_checks()
+                    yield format_sse_model_event(status, exclude_none=self.default_response_model_exclude_none)
+                    await asyncio.sleep(poll_interval)
+
+            return StreamingResponse(
+                event_stream(),
+                media_type="text/event-stream",
+                headers=SSE_HEADERS,
+            )

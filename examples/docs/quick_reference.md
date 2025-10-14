@@ -14,7 +14,11 @@ fastapi dev examples/ml_shell.py   # Shell-based external scripts
 
 ### Health Check
 ```bash
+# One-time health check
 curl http://127.0.0.1:8000/health
+
+# Streaming health monitoring
+curl -N "http://127.0.0.1:8000/health/\$stream?poll_interval=2.0"
 ```
 
 ### Create Config
@@ -118,6 +122,7 @@ curl http://127.0.0.1:8000/api/v1/artifacts/ARTIFACT_ID
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/health` | Health check |
+| GET | `/health/$stream` | Health check (streaming) |
 | GET | `/api/v1/system` | Service info |
 | POST | `/api/v1/configs` | Create config |
 | GET | `/api/v1/configs` | List configs |

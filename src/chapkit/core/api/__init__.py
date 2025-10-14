@@ -17,6 +17,7 @@ from .pagination import PaginationParams, create_paginated_response
 from .router import Router
 from .routers import HealthRouter, HealthState, HealthStatus, JobRouter, SystemInfo, SystemRouter
 from .service_builder import BaseServiceBuilder, ServiceInfo
+from .sse import SSE_HEADERS, format_sse_event, format_sse_model_event
 from .utilities import build_location_url, run_app
 
 __all__ = [
@@ -61,6 +62,10 @@ __all__ = [
     "JobRouter",
     "SystemRouter",
     "SystemInfo",
+    # SSE utilities
+    "SSE_HEADERS",
+    "format_sse_event",
+    "format_sse_model_event",
     # Utilities
     "build_location_url",
     "run_app",

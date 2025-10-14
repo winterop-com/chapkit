@@ -121,6 +121,7 @@ nav:
   - Guides:
       - App Hosting: guides/app-hosting.md
       - Authentication: guides/authentication.md
+      - Health Checks: guides/health-checks.md
       - Job Scheduler: guides/job-scheduler.md
       - ML Workflows: guides/ml-workflows.md
       - Monitoring: guides/monitoring.md
