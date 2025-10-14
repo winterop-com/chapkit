@@ -84,7 +84,7 @@ app = (
 - `.with_system()` - System info endpoint at `/api/v1/system` (service metadata)
 - `.with_monitoring()` - Prometheus metrics at `/metrics` (operational monitoring)
 - `.with_app(path, prefix)` - Mount single static web app (HTML/JS/CSS)
-- `.with_apps(path)` - Auto-discover and mount all apps in directory
+- `.with_apps(path)` - Auto-discover and mount all apps in directory or package
 - `.with_config(schema)` - Config CRUD endpoints at `/api/v1/configs`
 - `.with_artifacts(hierarchy)` - Artifact CRUD at `/api/v1/artifacts`
 - `.with_jobs()` - Job scheduler at `/api/v1/jobs`
@@ -144,17 +144,24 @@ app = (
     .build()
 )
 
-# Auto-discover all apps in directory
+# Auto-discover all apps in directory (filesystem)
 app = (
     BaseServiceBuilder(info=ServiceInfo(display_name="My Service"))
     .with_apps("./apps")  # Discovers all subdirectories with manifest.json
     .build()
 )
 
-# Mount app from Python package
+# Auto-discover all apps in package (bundled)
 app = (
     BaseServiceBuilder(info=ServiceInfo(display_name="My Service"))
-    .with_app(("mypackage.apps", "dashboard"))  # Tuple syntax for packages
+    .with_apps(("mypackage.apps", "webapps"))  # Discovers all apps in package subdirectory
+    .build()
+)
+
+# Mount single app from Python package
+app = (
+    BaseServiceBuilder(info=ServiceInfo(display_name="My Service"))
+    .with_app(("mypackage.apps", "dashboard"))  # Tuple syntax for single package app
     .build()
 )
 ```
@@ -162,6 +169,7 @@ app = (
 **Path Resolution:**
 - **Filesystem paths:** Resolve relative to current working directory (where service runs)
 - **Package resources:** Use tuple syntax `("package.name", "subpath")` to serve from installed packages
+- Both `.with_app()` and `.with_apps()` support filesystem and package paths
 - Allows libraries to ship default apps and projects to organize apps in their structure
 
 **Restrictions:**

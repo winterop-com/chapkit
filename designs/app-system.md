@@ -317,13 +317,53 @@ Lists all installed apps with their metadata. Available when `.with_system()` is
 
 **Test Coverage**: 3 unit tests + 3 integration tests
 
+### Package App Discovery (implemented 2025-10-14)
+
+**Feature**: `.with_apps()` supports package resources for auto-discovering bundled apps
+
+Auto-discover multiple apps from package resources using tuple format `(package_name, subpath)`.
+
+**Usage Example**:
+```python
+# Discover all apps in mycompany.webapps/apps directory
+.with_apps(("mycompany.webapps", "apps"))
+
+# For package structure:
+# mycompany/
+#   webapps/
+#     apps/
+#       dashboard/
+#         manifest.json
+#         index.html
+#       admin/
+#         manifest.json
+#         index.html
+```
+
+**Implementation**:
+- `AppLoader.discover_apps()` detects tuple format and resolves package path
+- Scans package subdirectories for `manifest.json` files
+- Loads each discovered app using package resource loading
+- All discovered apps marked with `is_package=True`
+- Security: Path traversal protection for package subpaths
+
+**Comparison with filesystem discovery**:
+```python
+# Filesystem discovery (relative to CWD)
+.with_apps("./apps")
+
+# Package discovery (bundled with Python package)
+.with_apps(("mypackage", "apps"))
+```
+
+**Test Coverage**: 6 unit tests + 1 integration test
+
 ## Future Enhancements
 
 1. **Hot Reload**: Watch app directories and reload on change (development mode)
 3. **App Assets CDN**: Optional CDN integration for static assets
 4. **App Dependencies**: Declare app dependencies in manifest (e.g., requires specific API version)
 5. **App Permissions**: Fine-grained control over which API endpoints each app can access
-6. **Package App Discovery**: `.with_apps(("mypackage", "apps"))` to auto-discover bundled apps
 
 ## References
 

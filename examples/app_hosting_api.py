@@ -30,6 +30,8 @@ app = (
     .with_app("examples/apps/sample-dashboard")
     # Or auto-discover all apps in directory:
     # .with_apps("examples/apps")
+    # Or auto-discover apps from package resources:
+    # .with_apps(("mycompany.webapps", "apps"))
     .build()
 )
 

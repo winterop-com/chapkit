@@ -377,3 +377,52 @@ def test_system_apps_endpoint_returns_correct_fields(app_directory: Path):
         assert app_info["version"] == "1.0.0"
         assert app_info["prefix"] == "/dashboard"
         assert app_info["entry"] == "index.html"
+
+
+def test_service_builder_with_apps_package_discovery(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Test auto-discovering apps from package resources."""
+
+    # Create a temporary package structure
+    pkg_dir = tmp_path / "test_app_package"
+    pkg_dir.mkdir()
+    (pkg_dir / "__init__.py").write_text("")  # Make it a package
+
+    # Create apps subdirectory
+    apps_dir = pkg_dir / "bundled_apps"
+    apps_dir.mkdir()
+
+    # Create dashboard app
+    dashboard_dir = apps_dir / "dashboard"
+    dashboard_dir.mkdir()
+    (dashboard_dir / "manifest.json").write_text(
+        json.dumps({"name": "Bundled Dashboard", "version": "1.0.0", "prefix": "/dashboard"})
+    )
+    (dashboard_dir / "index.html").write_text("<html><body>Bundled Dashboard</body></html>")
+
+    # Create admin app
+    admin_dir = apps_dir / "admin"
+    admin_dir.mkdir()
+    (admin_dir / "manifest.json").write_text(
+        json.dumps({"name": "Bundled Admin", "version": "2.0.0", "prefix": "/admin"})
+    )
+    (admin_dir / "index.html").write_text("<html><body>Bundled Admin</body></html>")
+
+    # Add package to sys.path temporarily
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    # Build service with package app discovery
+    app = (
+        BaseServiceBuilder(info=ServiceInfo(display_name="Test Service"))
+        .with_apps(("test_app_package", "bundled_apps"))
+        .build()
+    )
+
+    with TestClient(app) as client:
+        # Both discovered package apps should be accessible
+        dashboard_response = client.get("/dashboard/")
+        assert dashboard_response.status_code == 200
+        assert b"Bundled Dashboard" in dashboard_response.content
+
+        admin_response = client.get("/admin/")
+        assert admin_response.status_code == 200
+        assert b"Bundled Admin" in admin_response.content

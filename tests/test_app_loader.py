@@ -275,6 +275,128 @@ def test_discover_apps_missing_directory(tmp_path: Path):
         AppLoader.discover_apps(str(tmp_path / "nonexistent"))
 
 
+def test_discover_apps_from_package(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Test discovering multiple apps from package resources."""
+
+    # Create a temporary package structure
+    pkg_dir = tmp_path / "test_package"
+    pkg_dir.mkdir()
+    (pkg_dir / "__init__.py").write_text("")  # Make it a package
+
+    # Create apps subdirectory
+    apps_dir = pkg_dir / "web_apps"
+    apps_dir.mkdir()
+
+    # Create app 1
+    app1_dir = apps_dir / "dashboard"
+    app1_dir.mkdir()
+    (app1_dir / "manifest.json").write_text(
+        json.dumps({"name": "Dashboard", "version": "1.0.0", "prefix": "/dashboard"})
+    )
+    (app1_dir / "index.html").write_text("<html>Dashboard</html>")
+
+    # Create app 2
+    app2_dir = apps_dir / "admin"
+    app2_dir.mkdir()
+    (app2_dir / "manifest.json").write_text(json.dumps({"name": "Admin", "version": "2.0.0", "prefix": "/admin"}))
+    (app2_dir / "index.html").write_text("<html>Admin</html>")
+
+    # Add package to sys.path temporarily
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    # Discover apps from package
+    apps = AppLoader.discover_apps(("test_package", "web_apps"))
+
+    assert len(apps) == 2
+    app_names = {app.manifest.name for app in apps}
+    assert app_names == {"Dashboard", "Admin"}
+    # Verify apps are marked as package apps
+    assert all(app.is_package for app in apps)
+
+
+def test_discover_apps_from_package_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Test discovering apps from empty package directory."""
+
+    # Create a temporary package with empty apps directory
+    pkg_dir = tmp_path / "test_package"
+    pkg_dir.mkdir()
+    (pkg_dir / "__init__.py").write_text("")
+
+    apps_dir = pkg_dir / "empty_apps"
+    apps_dir.mkdir()
+
+    # Add package to sys.path
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    # Discover apps (should return empty list)
+    apps = AppLoader.discover_apps(("test_package", "empty_apps"))
+
+    assert len(apps) == 0
+
+
+def test_discover_apps_from_package_ignores_invalid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Test package app discovery ignores invalid apps."""
+
+    # Create package structure
+    pkg_dir = tmp_path / "test_package"
+    pkg_dir.mkdir()
+    (pkg_dir / "__init__.py").write_text("")
+
+    apps_dir = pkg_dir / "apps"
+    apps_dir.mkdir()
+
+    # Valid app
+    valid_dir = apps_dir / "valid"
+    valid_dir.mkdir()
+    (valid_dir / "manifest.json").write_text(json.dumps({"name": "Valid", "version": "1.0.0", "prefix": "/valid"}))
+    (valid_dir / "index.html").write_text("<html>Valid</html>")
+
+    # Invalid app (missing entry file)
+    invalid_dir = apps_dir / "invalid"
+    invalid_dir.mkdir()
+    (invalid_dir / "manifest.json").write_text(
+        json.dumps({"name": "Invalid", "version": "1.0.0", "prefix": "/invalid"})
+    )
+    # No index.html
+
+    # Add package to sys.path
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    # Discover apps (should only find valid app)
+    apps = AppLoader.discover_apps(("test_package", "apps"))
+
+    assert len(apps) == 1
+    assert apps[0].manifest.name == "Valid"
+
+
+def test_discover_apps_from_nonexistent_package():
+    """Test discovering apps from non-existent package fails."""
+    with pytest.raises(ValueError, match="Package .* could not be found"):
+        AppLoader.discover_apps(("nonexistent.package", "apps"))
+
+
+def test_discover_apps_from_package_nonexistent_subpath(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """Test discovering apps from non-existent subpath in package fails."""
+
+    # Create minimal package
+    pkg_dir = tmp_path / "test_package"
+    pkg_dir.mkdir()
+    (pkg_dir / "__init__.py").write_text("")
+
+    # Add package to sys.path
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    # Try to discover from non-existent subpath
+    with pytest.raises(FileNotFoundError, match="App path .* not found in package"):
+        AppLoader.discover_apps(("test_package", "nonexistent_apps"))
+
+
+def test_discover_apps_from_package_rejects_traversal():
+    """Test package discovery rejects path traversal in subpath."""
+    with pytest.raises(ValueError, match="subpath cannot contain '..'"):
+        AppLoader.discover_apps(("chapkit.core.api", "../../../etc"))
+
+
 def test_load_app_from_package():
     """Test loading app from package resources."""
     # Load from chapkit.core.api package (we know this exists)
