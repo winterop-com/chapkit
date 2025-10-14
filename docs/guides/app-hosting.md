@@ -224,8 +224,8 @@ app = (
 Apps can mount at root (`/`), but be aware of a limitation:
 
 Root mounts intercept trailing slash redirects. Use exact paths for API endpoints:
-- ✅ `/api/v1/configs` (correct)
-- ❌ `/api/v1/configs/` (may return 404)
+- Correct: `/api/v1/configs`
+- Incorrect: `/api/v1/configs/` (may return 404)
 
 API routes always take precedence over apps (routes are registered first).
 
@@ -238,7 +238,7 @@ API routes always take precedence over apps (routes are registered first).
 Apps **cannot** mount at `/api` or `/api/**` (reserved for API endpoints):
 
 ```python
-# ❌ This will raise ValueError
+# This will raise ValueError
 .with_app("apps/api-dashboard", prefix="/api/dashboard")
 ```
 
@@ -250,12 +250,12 @@ Prefixes must:
 - Be valid URL paths
 
 ```python
-# ✅ Valid prefixes
+# Valid prefixes
 .with_app("apps/dashboard", prefix="/dashboard")
 .with_app("apps/admin", prefix="/admin/panel")
 .with_app("apps/home", prefix="/")
 
-# ❌ Invalid prefixes
+# Invalid prefixes
 .with_app("apps/bad", prefix="dashboard")    # Missing leading /
 .with_app("apps/bad", prefix="/../../etc")   # Path traversal
 ```
@@ -447,14 +447,14 @@ spec:
 Chapkit validates all paths and rejects path traversal attempts:
 
 ```python
-# ❌ All rejected with ValueError
+# All rejected with ValueError
 .with_app("apps/../../etc")                          # Prefix traversal
 .with_app(("mypackage", "../../../etc"))             # Package traversal
 
 # manifest.json with path traversal also rejected:
 {
-  "prefix": "/../../admin",     # ❌ Rejected
-  "entry": "../../../passwd"    # ❌ Rejected
+  "prefix": "/../../admin",     # Rejected
+  "entry": "../../../passwd"    # Rejected
 }
 ```
 
