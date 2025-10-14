@@ -1,16 +1,4 @@
-"""Example service hosting static web applications.
-
-This example demonstrates the chapkit app system for hosting static web apps
-(HTML/JS/CSS) alongside your FastAPI service.
-
-Run:
-    fastapi dev examples/app_hosting_api.py
-
-Then visit:
-    http://localhost:8000/dashboard  - Sample dashboard app
-    http://localhost:8000/docs       - API documentation
-    http://localhost:8000/health     - Health check
-"""
+"""Example service hosting static web applications (run with: fastapi dev examples/app_hosting_api.py)."""
 
 from chapkit.core.api import BaseServiceBuilder, ServiceInfo
 
