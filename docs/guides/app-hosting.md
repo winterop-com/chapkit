@@ -188,6 +188,35 @@ mycompany/
 
 ## Override Semantics
 
+### Multiple App Calls
+
+Calling `.with_app()` and `.with_apps()` multiple times is **cumulative** - all apps from all calls are combined:
+
+```python
+app = (
+    BaseServiceBuilder(info=info)
+    .with_apps("./apps/set1")      # Discover apps from set1/
+    .with_apps("./apps/set2")      # Discover apps from set2/
+    .with_app("./apps/custom")     # Add single custom app
+    .build()
+)
+```
+
+All apps from both directories plus the custom app will be mounted.
+
+**This works for all path types:**
+
+```python
+# Filesystem paths
+.with_apps("./apps/dir1").with_apps("./apps/dir2")
+
+# Package resources
+.with_apps(("pkg1", "apps")).with_apps(("pkg2", "apps"))
+
+# Mixed approaches
+.with_apps("./apps").with_apps(("mypackage", "bundled_apps"))
+```
+
 ### Duplicate Prefixes
 
 When multiple apps use the same prefix, **the last one wins**:
@@ -200,6 +229,8 @@ app = (
     .build()
 )
 ```
+
+This applies to duplicates from multiple `.with_app()` or `.with_apps()` calls as well. If `./apps/set1` contains a dashboard at `/dashboard` and `./apps/set2` also contains a dashboard at `/dashboard`, the one from `set2` wins (assuming `set2` was added last).
 
 The service logs a warning when an app overrides another:
 ```
