@@ -121,6 +121,7 @@ nav:
   - Guides:
       - Authentication: guides/authentication.md
       - Job Scheduler: guides/job-scheduler.md
+      - ML Workflows: guides/ml-workflows.md
       - Monitoring: guides/monitoring.md
       - Task Execution: guides/task-execution.md
   - API Reference: api-reference.md
