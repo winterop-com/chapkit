@@ -166,10 +166,18 @@ app = (
 
 **Restrictions:**
 - Apps cannot mount at `/api` or `/api/**` (reserved for API endpoints)
-- Root apps (`prefix="/"`) cannot be used with `.with_landing_page()` (choose one or the other)
-- Only one app can mount at any given prefix
 - Prefix must start with `/` and cannot contain `..` (path traversal protection)
-- Root apps ARE supported (mount at `/`) when not using landing page
+- Root apps ARE fully supported (mount at `/`)
+
+**Override Semantics:**
+- Duplicate prefixes use "last wins" semantics - later calls override earlier ones
+- `.with_landing_page()` internally mounts built-in landing app at `/`
+- Call `.with_app(..., prefix="/")` after `.with_landing_page()` to replace it
+- Useful for customizing landing page while keeping defaults elsewhere
+
+**Known Limitation:**
+- Root mounts intercept trailing slash redirects
+- Use exact paths for API endpoints (e.g., `/api/v1/configs` not `/api/v1/configs/`)
 
 **Validation:**
 - Manifest validated with Pydantic (type checking, required fields)

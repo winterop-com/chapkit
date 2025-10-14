@@ -117,7 +117,6 @@ class BaseServiceBuilder:
         self._pool_pre_ping: bool = True
         self._include_error_handlers = include_error_handlers
         self._include_logging = include_logging
-        self._include_landing_page = False
         self._health_options: _HealthOptions | None = None
         self._system_options: _SystemOptions | None = None
         self._job_options: _JobOptions | None = None
@@ -166,9 +165,12 @@ class BaseServiceBuilder:
         return self
 
     def with_landing_page(self) -> Self:
-        """Enable landing page at root path."""
-        self._include_landing_page = True
-        return self
+        """Enable landing page at root path.
+
+        This is internally implemented as mounting the built-in landing page app at "/".
+        Users can override this by calling .with_app(..., prefix="/") after this method.
+        """
+        return self.with_app(("chapkit.core.api", "apps/landing"))
 
     def with_logging(self, enabled: bool = True) -> Self:
         """Enable structured logging with request tracing."""
@@ -425,9 +427,6 @@ class BaseServiceBuilder:
         # Install route endpoints BEFORE mounting apps (routes take precedence over mounts)
         self._install_info_endpoint(app, info=self.info)
 
-        if self._include_landing_page:
-            self._install_landing_page(app, info=self.info)
-
         # Mount apps AFTER all routes (apps act as catch-all for unmatched paths)
         if self._app_configs:
             from fastapi.staticfiles import StaticFiles
@@ -473,21 +472,29 @@ class BaseServiceBuilder:
 
         # Validate app configurations
         if self._app_configs:
-            # Check for prefix conflicts between apps
-            prefixes = [app.prefix for app in self._app_configs]
-            prefix_counts: dict[str, int] = {}
-            for prefix in prefixes:
-                prefix_counts[prefix] = prefix_counts.get(prefix, 0) + 1
-                if prefix_counts[prefix] > 1:
-                    raise ValueError(f"Multiple apps configured with the same prefix: '{prefix}'")
+            # Deduplicate apps with same prefix (last one wins)
+            # This allows overriding apps, especially useful for root prefix "/"
+            seen_prefixes: dict[str, int] = {}  # prefix -> last index
+            for i, app in enumerate(self._app_configs):
+                if app.prefix in seen_prefixes:
+                    # Log warning about override
+                    prev_idx = seen_prefixes[app.prefix]
+                    prev_app = self._app_configs[prev_idx]
+                    logger.warning(
+                        "app.prefix.override",
+                        prefix=app.prefix,
+                        replaced_app=prev_app.manifest.name,
+                        new_app=app.manifest.name,
+                    )
+                seen_prefixes[app.prefix] = i
 
-            # Check for root prefix conflicts with landing page
-            root_app_count = sum(1 for prefix in prefixes if prefix == "/")
-            if root_app_count > 0 and self._include_landing_page:
-                raise ValueError(
-                    "Cannot use both .with_landing_page() and .with_app(..., prefix='/'). "
-                    "Use either landing page or root-mounted app, not both."
-                )
+            # Keep only the last app for each prefix
+            self._app_configs = [self._app_configs[i] for i in sorted(set(seen_prefixes.values()))]
+
+            # Validate that non-root prefixes don't have duplicates (shouldn't happen after dedup, but safety check)
+            prefixes = [app.prefix for app in self._app_configs]
+            if len(prefixes) != len(set(prefixes)):
+                raise ValueError("Internal error: duplicate prefixes after deduplication")
 
     def _build_lifespan(self) -> LifespanFactory:
         """Build lifespan context manager for app startup/shutdown."""
@@ -660,20 +667,6 @@ class BaseServiceBuilder:
         @app.get("/api/v1/info", tags=["Service"], include_in_schema=True, response_model=info_type)
         async def get_info() -> ServiceInfo:
             return info
-
-    @staticmethod
-    def _install_landing_page(app: FastAPI, *, info: ServiceInfo) -> None:
-        """Install landing page at root path."""
-        from importlib.resources import files
-
-        from fastapi.responses import HTMLResponse
-
-        # Load the static HTML file from package resources
-        html_content = files("chapkit.core.api").joinpath("landing_page.html").read_text()
-
-        @app.get("/", include_in_schema=False, response_class=HTMLResponse)
-        async def landing_page() -> str:
-            return html_content
 
     # --------------------------------------------------------------------- Convenience
 

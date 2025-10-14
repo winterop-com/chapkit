@@ -416,9 +416,10 @@ def test_service_builder_with_all_features(service_info: ServiceInfo) -> None:
 
     with TestClient(app) as client:
         # Test all endpoints work
+        # Note: Root app mount catches trailing slash redirects, so use exact paths
         assert client.get("/").status_code == 200
         assert client.get("/api/v1/info").status_code == 200
         assert client.get("/health").status_code == 200
-        assert client.get("/api/v1/configs/").status_code == 200
-        assert client.get("/api/v1/artifacts/").status_code == 200
+        assert client.get("/api/v1/configs").status_code == 200
+        assert client.get("/api/v1/artifacts").status_code == 200
         assert client.get("/metrics").status_code == 200

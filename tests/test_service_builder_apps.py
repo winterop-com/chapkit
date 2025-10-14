@@ -131,12 +131,21 @@ def test_service_builder_apps_with_api_routes(app_directory: Path):
         assert b"Dashboard App" in app_response.content
 
 
-def test_service_builder_apps_conflict_detection(app_directory: Path):
-    """Test that duplicate prefixes are rejected."""
-    with pytest.raises(ValueError, match="Multiple apps configured with the same prefix"):
-        BaseServiceBuilder(info=ServiceInfo(display_name="Test Service")).with_app(
-            str(app_directory / "dashboard")
-        ).with_app(str(app_directory / "dashboard")).build()
+def test_service_builder_apps_override_semantics(app_directory: Path):
+    """Test that duplicate prefixes use last-wins semantics."""
+    # Mount dashboard twice - second should override first
+    app = (
+        BaseServiceBuilder(info=ServiceInfo(display_name="Test Service"))
+        .with_app(str(app_directory / "dashboard"))
+        .with_app(str(app_directory / "admin"), prefix="/dashboard")  # Override with admin
+        .build()
+    )
+
+    with TestClient(app) as client:
+        # Should serve admin app content (not dashboard)
+        response = client.get("/dashboard/")
+        assert response.status_code == 200
+        assert b"Admin App" in response.content
 
 
 def test_service_builder_apps_api_prefix_blocked(app_directory: Path):
@@ -193,20 +202,26 @@ def test_service_builder_apps_root_mount_works(app_directory: Path):
         assert b"About Page" in about_response.content
 
 
-def test_service_builder_apps_root_blocked_with_landing_page(app_directory: Path):
-    """Test that root apps and landing page cannot coexist."""
+def test_service_builder_apps_root_override_landing_page(app_directory: Path):
+    """Test that root apps can override landing page (last wins)."""
     root_app_dir = app_directory / "root"
     root_app_dir.mkdir()
-    (root_app_dir / "manifest.json").write_text(json.dumps({"name": "Root", "version": "1.0.0", "prefix": "/"}))
-    (root_app_dir / "index.html").write_text("<html>Root</html>")
+    (root_app_dir / "manifest.json").write_text(json.dumps({"name": "Custom Root", "version": "1.0.0", "prefix": "/"}))
+    (root_app_dir / "index.html").write_text("<html><body>Custom Root App</body></html>")
 
-    with pytest.raises(ValueError, match="Cannot use both .with_landing_page.*and .with_app.*prefix='/'"):
-        (
-            BaseServiceBuilder(info=ServiceInfo(display_name="Test Service"))
-            .with_landing_page()
-            .with_app(str(root_app_dir))
-            .build()
-        )
+    app = (
+        BaseServiceBuilder(info=ServiceInfo(display_name="Test Service"))
+        .with_landing_page()  # Mount built-in landing page first
+        .with_app(str(root_app_dir))  # Override with custom root app
+        .build()
+    )
+
+    with TestClient(app) as client:
+        # Should serve custom root app (not landing page)
+        response = client.get("/")
+        assert response.status_code == 200
+        assert b"Custom Root App" in response.content
+        assert b"chapkit" not in response.content.lower()  # Not landing page
 
 
 def test_service_builder_html_mode_serves_index_for_subdirs(app_directory: Path):

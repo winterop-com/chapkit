@@ -147,14 +147,13 @@ app = (
 **Validation rules (fail fast during `build()`):**
 
 1. ✅ Apps cannot mount at `/api/**` (reserved for API routes)
-2. ✅ Apps cannot mount at `/` when `.with_landing_page()` is used (choose one or the other)
-3. ✅ No prefix conflicts between apps
-4. ✅ Prefix must start with `/`
-5. ✅ Prefix cannot contain `..` or path traversal attempts
-6. ✅ App directory must exist and contain `manifest.json`
-7. ✅ Manifest must be valid JSON matching schema
+2. ✅ Duplicate prefixes use "last wins" semantics (later calls override earlier ones)
+3. ✅ Prefix must start with `/`
+4. ✅ Prefix cannot contain `..` or path traversal attempts
+5. ✅ App directory must exist and contain `manifest.json`
+6. ✅ Manifest must be valid JSON matching schema
 
-**Important**: Root apps (`prefix="/"`) ARE supported, but cannot coexist with `.with_landing_page()`. Choose root app for custom frontends or landing page for default service info UI.
+**Important**: Root apps (`prefix="/"`) ARE fully supported. `.with_landing_page()` internally mounts a built-in app at `/`, which can be overridden by calling `.with_app(..., prefix="/")` afterward.
 
 **Mount order in `build()`:**
 
@@ -234,28 +233,41 @@ app_dir = Path(spec.origin).parent / "apps/landing"
    - **Recommendation**: Yes, via existing `/api/v1/info` endpoint
 
 3. ~~Should we migrate `.with_landing_page()` to use the app system internally?~~
-   - **Decision**: No. Root apps and landing page serve different use cases, both are supported but not simultaneously.
+   - **Decision**: Yes. Landing page is now implemented as a built-in app at `/`.
 
-## Design Decision: Root-Mounted Apps
+## Design Decision: Landing Page as App + Override Semantics
 
-**Decision**: Apps CAN be mounted at `/`, but NOT when `.with_landing_page()` is also used.
+**Decision**: `.with_landing_page()` internally mounts a built-in app at `/`. Duplicate prefixes use "last wins" semantics.
 
 **Rationale**:
-- FastAPI/Starlette routes registered BEFORE mounts take precedence
-- API routes (`/api/**`, `/health`, etc.) work correctly even with root mount
-- Root apps catch unmatched paths, acting as fallback/default app
-- Landing page and root app serve similar purposes (service home page) - users choose one
+- Simplifies implementation - single code path for all static content
+- Enables customization - users can override landing page by calling `.with_app(..., prefix="/")` after
+- Consistent with user expectations - later configuration overrides earlier
+- FastAPI/Starlette routes still take precedence over all mounts
 
 **Implementation**:
-1. Routes are registered before apps are mounted in `build()`
-2. Validation blocks root apps + landing page combination
-3. Root mount at `/` catches all unmatched paths after routes
-4. API routes take precedence due to ordering
+1. `.with_landing_page()` calls `.with_app(("chapkit.core.api", "apps/landing"))`
+2. Built-in landing page lives in `src/chapkit/core/api/apps/landing/`
+3. Validation deduplicates apps with same prefix, keeping only the last one
+4. Warning logged when an app overrides another (helps debugging)
+5. Routes are registered before apps are mounted in `build()`
 
-**Use Cases**:
-- Root app: Custom dashboard/frontend as default service interface
-- Landing page: Simple service info page (default chapkit UI)
-- Choose one based on needs - root app for custom UX, landing page for simplicity
+**Override Examples**:
+```python
+# Use built-in landing page
+.with_landing_page()
+
+# Override landing page with custom app
+.with_landing_page()
+.with_app("my-custom-landing", prefix="/")  # Replaces built-in
+
+# Override any app
+.with_app("apps/dashboard")
+.with_app("apps/better-dashboard", prefix="/dashboard")  # Replaces first
+```
+
+**Known Limitation**:
+Root mounts catch requests that would normally trigger FastAPI's trailing slash redirect. This means `/api/v1/configs/` (with slash) returns 404 if the actual route is `/api/v1/configs` (no slash). Users should use exact paths.
 
 ## Future Enhancements
 
