@@ -49,6 +49,59 @@
                     ]
                 },
                 {
+                    "name": "Stream Health Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/health/$stream?poll_interval=1.0",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["health", "$stream"],
+                            "query": [
+                                {
+                                    "key": "poll_interval",
+                                    "value": "1.0",
+                                    "description": "Poll interval in seconds (default: 1.0)"
+                                }
+                            ]
+                        },
+                        "description": "Server-Sent Events (SSE) stream for continuous health monitoring. Returns health status updates at regular intervals until client disconnects.\n\n**Note:** This endpoint streams indefinitely. Use curl with -N flag:\n```bash\ncurl -N \"{{baseUrl}}/health/$stream?poll_interval=2.0\"\n```"
+                    },
+                    "response": [
+                        {
+                            "name": "SSE Stream",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/health/$stream",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["health", "$stream"]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "text",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "text/event-stream; charset=utf-8"
+                                },
+                                {
+                                    "key": "Cache-Control",
+                                    "value": "no-cache"
+                                },
+                                {
+                                    "key": "Connection",
+                                    "value": "keep-alive"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "data: {\"status\":\"healthy\",\"checks\":{\"database\":{\"state\":\"healthy\"}}}\n\ndata: {\"status\":\"healthy\",\"checks\":{\"database\":{\"state\":\"healthy\"}}}\n\n"
+                        }
+                    ]
+                },
+                {
                     "name": "Get System Info",
                     "request": {
                         "method": "GET",
