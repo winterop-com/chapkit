@@ -379,6 +379,42 @@ def test_system_apps_endpoint_returns_correct_fields(app_directory: Path):
         assert app_info["entry"] == "index.html"
 
 
+def test_system_apps_schema_endpoint():
+    """Test /api/v1/system/apps/$schema returns JSON schema."""
+    app = BaseServiceBuilder(info=ServiceInfo(display_name="Test Service")).with_system().build()
+
+    with TestClient(app) as client:
+        response = client.get("/api/v1/system/apps/$schema")
+        assert response.status_code == 200
+        schema = response.json()
+
+        # Verify schema structure
+        assert schema["type"] == "array"
+        assert "items" in schema
+        assert "$ref" in schema["items"]
+        assert schema["items"]["$ref"] == "#/$defs/AppInfo"
+
+        # Verify AppInfo definition exists
+        assert "$defs" in schema
+        assert "AppInfo" in schema["$defs"]
+
+        # Verify AppInfo schema has required fields
+        app_info_schema = schema["$defs"]["AppInfo"]
+        assert app_info_schema["type"] == "object"
+        assert "properties" in app_info_schema
+        assert "name" in app_info_schema["properties"]
+        assert "version" in app_info_schema["properties"]
+        assert "prefix" in app_info_schema["properties"]
+        assert "entry" in app_info_schema["properties"]
+        assert "is_package" in app_info_schema["properties"]
+
+        # Verify required fields
+        assert "required" in app_info_schema
+        assert "name" in app_info_schema["required"]
+        assert "version" in app_info_schema["required"]
+        assert "prefix" in app_info_schema["required"]
+
+
 def test_service_builder_with_apps_package_discovery(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Test auto-discovering apps from package resources."""
 

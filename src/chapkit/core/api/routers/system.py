@@ -5,10 +5,10 @@ from __future__ import annotations
 import platform
 import sys
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter
 
 from ..app import AppInfo, AppManager
 from ..dependencies import get_app_manager
@@ -66,3 +66,12 @@ class SystemRouter(Router):
                 )
                 for app in app_manager.list_apps()
             ]
+
+        @self.router.get(
+            "/apps/$schema",
+            summary="Get apps schema",
+            response_model=dict[str, Any],
+        )
+        async def get_apps_schema() -> dict[str, Any]:
+            """Get JSON schema for apps list response."""
+            return TypeAdapter(list[AppInfo]).json_schema()
