@@ -178,7 +178,11 @@ class AppLoader:
         """
         package_name, subpath = package_tuple
 
-        spec = importlib.util.find_spec(package_name)
+        try:
+            spec = importlib.util.find_spec(package_name)
+        except (ModuleNotFoundError, ValueError) as e:
+            raise ValueError(f"Package '{package_name}' could not be found") from e
+
         if spec is None or spec.origin is None:
             raise ValueError(f"Package '{package_name}' could not be found")
 

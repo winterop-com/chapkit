@@ -419,7 +419,16 @@ class BaseServiceBuilder:
         # Extension point for module-specific routers
         self._register_module_routers(app)
 
-        # Mount apps
+        for router in self._custom_routers:
+            app.include_router(router)
+
+        # Install route endpoints BEFORE mounting apps (routes take precedence over mounts)
+        self._install_info_endpoint(app, info=self.info)
+
+        if self._include_landing_page:
+            self._install_landing_page(app, info=self.info)
+
+        # Mount apps AFTER all routes (apps act as catch-all for unmatched paths)
         if self._app_configs:
             from fastapi.staticfiles import StaticFiles
 
@@ -434,16 +443,8 @@ class BaseServiceBuilder:
                     is_package=app_config.is_package,
                 )
 
-        for router in self._custom_routers:
-            app.include_router(router)
-
         for dependency, override in self._dependency_overrides.items():
             app.dependency_overrides[dependency] = override
-
-        self._install_info_endpoint(app, info=self.info)
-
-        if self._include_landing_page:
-            self._install_landing_page(app, info=self.info)
 
         return app
 
@@ -485,8 +486,7 @@ class BaseServiceBuilder:
             if root_app_count > 0 and self._include_landing_page:
                 raise ValueError(
                     "Cannot use both .with_landing_page() and .with_app(..., prefix='/'). "
-                    "Root-mounted apps will intercept all routes. "
-                    "Either use .with_landing_page() or mount your app at a different prefix."
+                    "Use either landing page or root-mounted app, not both."
                 )
 
     def _build_lifespan(self) -> LifespanFactory:

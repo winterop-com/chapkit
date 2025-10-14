@@ -147,22 +147,25 @@ app = (
 **Validation rules (fail fast during `build()`):**
 
 1. ✅ Apps cannot mount at `/api/**` (reserved for API routes)
-2. ✅ Apps cannot mount at `/` (conflicts with `.with_landing_page()`)
+2. ✅ Apps cannot mount at `/` when `.with_landing_page()` is used (choose one or the other)
 3. ✅ No prefix conflicts between apps
 4. ✅ Prefix must start with `/`
 5. ✅ Prefix cannot contain `..` or path traversal attempts
 6. ✅ App directory must exist and contain `manifest.json`
 7. ✅ Manifest must be valid JSON matching schema
 
-**Important**: Apps mounted at `/` will intercept ALL routes, including API endpoints. For this reason, root-mounted apps are not supported. Use `.with_landing_page()` for the service landing page instead.
+**Important**: Root apps (`prefix="/"`) ARE supported, but cannot coexist with `.with_landing_page()`. Choose root app for custom frontends or landing page for default service info UI.
 
-**Mount order:**
+**Mount order in `build()`:**
 
 1. Core routers (health, system, metrics)
 2. Module routers (config, artifacts, tasks, ML)
-3. **Apps** ← mounted here
-4. Custom routers (`.include_router()`)
-5. Landing page (if enabled)
+3. Custom routers (`.include_router()`)
+4. Route endpoints (info endpoint, landing page)
+5. **Apps** ← mounted here (after all routes)
+6. Dependency overrides
+
+**Why this order matters**: FastAPI/Starlette matches routes before mounts. By registering all routes (routers + endpoints) before mounting apps, we ensure API routes take precedence. Apps act as catch-all for unmatched paths.
 
 ### Implementation Overview
 
@@ -231,21 +234,28 @@ app_dir = Path(spec.origin).parent / "apps/landing"
    - **Recommendation**: Yes, via existing `/api/v1/info` endpoint
 
 3. ~~Should we migrate `.with_landing_page()` to use the app system internally?~~
-   - **Decision**: No. Root-mounted apps intercept all routes. Landing page stays as endpoint.
+   - **Decision**: No. Root apps and landing page serve different use cases, both are supported but not simultaneously.
 
-## Design Decision: No Root-Mounted Apps
+## Design Decision: Root-Mounted Apps
 
-After implementation and testing, we discovered that mounting apps at `/` with StaticFiles causes them to intercept ALL routes, including API endpoints. This breaks the fundamental design where APIs should always be accessible.
-
-**Decision**: Apps cannot be mounted at `/`. The existing `.with_landing_page()` remains as an endpoint (not an app mount) to avoid this issue.
+**Decision**: Apps CAN be mounted at `/`, but NOT when `.with_landing_page()` is also used.
 
 **Rationale**:
-- FastAPI/Starlette mounts catch ALL traffic under their prefix
-- A mount at `/` intercepts everything, including `/api/**` routes
-- Routers registered before mounts still get intercepted for 404 responses
-- This would break the core promise that `/api/**` is reserved for APIs
+- FastAPI/Starlette routes registered BEFORE mounts take precedence
+- API routes (`/api/**`, `/health`, etc.) work correctly even with root mount
+- Root apps catch unmatched paths, acting as fallback/default app
+- Landing page and root app serve similar purposes (service home page) - users choose one
 
-**Alternative considered**: Mount apps before routers - rejected because it's confusing and breaks the design principle that APIs have priority.
+**Implementation**:
+1. Routes are registered before apps are mounted in `build()`
+2. Validation blocks root apps + landing page combination
+3. Root mount at `/` catches all unmatched paths after routes
+4. API routes take precedence due to ordering
+
+**Use Cases**:
+- Root app: Custom dashboard/frontend as default service interface
+- Landing page: Simple service info page (default chapkit UI)
+- Choose one based on needs - root app for custom UX, landing page for simplicity
 
 ## Future Enhancements
 

@@ -1,0 +1,8 @@
+{
+  "name": "Sample Dashboard",
+  "version": "1.0.0",
+  "prefix": "/dashboard",
+  "description": "Sample dashboard application demonstrating chapkit app system",
+  "author": "Chapkit Team",
+  "entry": "index.html"
+}

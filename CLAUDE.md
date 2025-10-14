@@ -26,6 +26,7 @@ chapkit/
 │       ├── router.py    # Router base class
 │       ├── crud.py      # CrudRouter, CrudPermissions
 │       ├── auth.py      # APIKeyMiddleware, key loading utilities
+│       ├── app.py       # AppManifest, App, AppLoader (static web app hosting)
 │       ├── dependencies.py  # get_database, get_session, get_scheduler
 │       ├── middleware.py    # Error handlers, logging middleware
 │       ├── pagination.py    # Pagination helpers
@@ -82,6 +83,8 @@ app = (
 - `.with_health()` - Health check endpoint at `/health` (operational monitoring)
 - `.with_system()` - System info endpoint at `/api/v1/system` (service metadata)
 - `.with_monitoring()` - Prometheus metrics at `/metrics` (operational monitoring)
+- `.with_app(path, prefix)` - Mount single static web app (HTML/JS/CSS)
+- `.with_apps(path)` - Auto-discover and mount all apps in directory
 - `.with_config(schema)` - Config CRUD endpoints at `/api/v1/configs`
 - `.with_artifacts(hierarchy)` - Artifact CRUD at `/api/v1/artifacts`
 - `.with_jobs()` - Job scheduler at `/api/v1/jobs`
@@ -97,6 +100,94 @@ app = (
 **Endpoint Design:**
 - **Operational monitoring** (root level): `/health`, `/metrics` - infrastructure/monitoring concerns for Kubernetes and Prometheus
 - **API endpoints** (versioned): `/api/v1/*` - business logic, domain resources, and service metadata
+
+## App System
+
+The app system enables hosting static web applications (HTML/JS/CSS) alongside your FastAPI service using `.with_app()` and `.with_apps()`.
+
+**App Structure:**
+- Directory containing `manifest.json` and static files
+- `manifest.json` defines name, version, prefix, and optional metadata
+- Apps mount at custom URL prefixes (e.g., `/dashboard`, `/admin`)
+- Uses FastAPI StaticFiles with SPA-style routing (serves index.html for directories)
+
+**Manifest Format (manifest.json):**
+```json
+{
+  "name": "My Dashboard",
+  "version": "1.0.0",
+  "prefix": "/dashboard",
+  "description": "Optional description",
+  "author": "Optional author",
+  "entry": "index.html"
+}
+```
+
+**Required fields:** `name`, `version`, `prefix`
+**Optional fields:** `description`, `author`, `entry` (defaults to "index.html")
+
+**Usage Examples:**
+
+```python
+# Mount single app from filesystem
+app = (
+    BaseServiceBuilder(info=ServiceInfo(display_name="My Service"))
+    .with_health()
+    .with_app("./apps/dashboard")  # Uses prefix from manifest
+    .build()
+)
+
+# Override prefix
+app = (
+    BaseServiceBuilder(info=ServiceInfo(display_name="My Service"))
+    .with_app("./apps/dashboard", prefix="/admin")  # Override manifest prefix
+    .build()
+)
+
+# Auto-discover all apps in directory
+app = (
+    BaseServiceBuilder(info=ServiceInfo(display_name="My Service"))
+    .with_apps("./apps")  # Discovers all subdirectories with manifest.json
+    .build()
+)
+
+# Mount app from Python package
+app = (
+    BaseServiceBuilder(info=ServiceInfo(display_name="My Service"))
+    .with_app(("mypackage.apps", "dashboard"))  # Tuple syntax for packages
+    .build()
+)
+```
+
+**Path Resolution:**
+- **Filesystem paths:** Resolve relative to current working directory (where service runs)
+- **Package resources:** Use tuple syntax `("package.name", "subpath")` to serve from installed packages
+- Allows libraries to ship default apps and projects to organize apps in their structure
+
+**Restrictions:**
+- Apps cannot mount at `/api` or `/api/**` (reserved for API endpoints)
+- Root apps (`prefix="/"`) cannot be used with `.with_landing_page()` (choose one or the other)
+- Only one app can mount at any given prefix
+- Prefix must start with `/` and cannot contain `..` (path traversal protection)
+- Root apps ARE supported (mount at `/`) when not using landing page
+
+**Validation:**
+- Manifest validated with Pydantic (type checking, required fields)
+- Prefix conflicts detected at build time (fail fast)
+- Missing files (manifest.json, entry file) raise errors during load
+- Apps mount AFTER routers, so API routes take precedence
+
+**Example App Structure:**
+```
+apps/
+└── dashboard/
+    ├── manifest.json
+    ├── index.html
+    ├── style.css
+    └── script.js
+```
+
+See `examples/app_hosting_api.py` and `examples/apps/sample-dashboard/` for complete working example.
 
 ## Common Endpoints
 
