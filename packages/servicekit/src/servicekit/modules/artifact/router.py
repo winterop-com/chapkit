@@ -93,7 +93,7 @@ class ArtifactRouter(CrudRouter[ArtifactIn, ArtifactOut]):
 
         if self.enable_config_access:
             # Import locally to avoid circular dependency
-            from chapkit.api.dependencies import get_config_manager
+            from servicekit.api.dependencies import get_config_manager
 
             async def get_config(
                 entity_id: str,

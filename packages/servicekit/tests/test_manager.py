@@ -1,6 +1,5 @@
-from ulid import ULID
-
 from servicekit import ConfigIn, ConfigManager, ConfigOut, ConfigRepository, SqliteDatabaseBuilder
+from ulid import ULID
 
 from .conftest import DemoConfig
 

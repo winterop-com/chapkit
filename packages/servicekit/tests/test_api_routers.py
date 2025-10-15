@@ -7,10 +7,10 @@ from datetime import datetime, timezone
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from ulid import ULID
-
 from servicekit import ArtifactIn, ArtifactOut, ArtifactTreeNode, BaseConfig, ConfigIn, ConfigOut
 from servicekit.api import ArtifactRouter, ConfigRouter
+from ulid import ULID
+
 from tests._stubs import ArtifactManagerStub, ConfigManagerStub, singleton_factory
 
 

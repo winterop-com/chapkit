@@ -5,7 +5,6 @@ from __future__ import annotations
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from servicekit import ArtifactIn, ArtifactOut, SqliteDatabaseBuilder
 from servicekit.api import ArtifactRouter, add_error_handlers, get_artifact_manager
 from servicekit.core.api.dependencies import set_database

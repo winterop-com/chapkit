@@ -1,7 +1,6 @@
 """Tests for custom exceptions with RFC 9457 Problem Details support."""
 
 import pytest
-
 from servicekit.core.exceptions import (
     BadRequestError,
     ChapkitException,

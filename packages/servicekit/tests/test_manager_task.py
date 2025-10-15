@@ -3,10 +3,9 @@
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-from ulid import ULID
-
 from servicekit import ArtifactManager, Task, TaskManager, TaskRepository
 from servicekit.core import Database, JobScheduler
+from ulid import ULID
 
 
 @pytest.mark.asyncio

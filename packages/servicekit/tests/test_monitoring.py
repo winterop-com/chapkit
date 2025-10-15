@@ -1,7 +1,6 @@
 """Tests for OpenTelemetry monitoring setup."""
 
 from fastapi import FastAPI
-
 from servicekit.core.api.monitoring import setup_monitoring, teardown_monitoring
 
 

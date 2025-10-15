@@ -1,6 +1,5 @@
-from ulid import ULID
-
 from servicekit import ULIDType
+from ulid import ULID
 
 
 def test_ulid_type_process_bind_param_with_ulid() -> None:

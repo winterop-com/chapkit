@@ -5,9 +5,8 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from starlette.requests import Request
-
 from servicekit.core.api.utilities import build_location_url, run_app
+from starlette.requests import Request
 
 
 def test_build_location_url() -> None:

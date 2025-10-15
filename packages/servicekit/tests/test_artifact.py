@@ -1,7 +1,5 @@
 import pandas as pd
 import pytest
-from ulid import ULID
-
 from servicekit import (
     Artifact,
     ArtifactHierarchy,
@@ -12,6 +10,7 @@ from servicekit import (
     PandasDataFrame,
     SqliteDatabaseBuilder,
 )
+from ulid import ULID
 
 
 class TestArtifactRepository:

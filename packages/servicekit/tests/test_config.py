@@ -3,9 +3,8 @@ from typing import cast
 
 import pytest
 from pydantic_core.core_schema import ValidationInfo
-from ulid import ULID
-
 from servicekit import Config, ConfigOut, SqliteDatabaseBuilder
+from ulid import ULID
 
 from .conftest import DemoConfig
 

@@ -5,10 +5,9 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable, Sequence
 from typing import Any, Generic, TypeVar
 
-from ulid import ULID
-
 from servicekit import ArtifactIn, ArtifactOut, ArtifactTreeNode, BaseConfig, ConfigIn, ConfigOut
 from servicekit.core import Manager
+from ulid import ULID
 
 ConfigDataT = TypeVar("ConfigDataT", bound=BaseConfig)
 

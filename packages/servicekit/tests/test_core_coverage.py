@@ -4,11 +4,10 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped
-
 from servicekit.core import BaseManager, BaseRepository, Database, Entity, EntityIn, EntityOut, SqliteDatabaseBuilder
 from servicekit.core.logging import add_request_context, clear_request_context, get_logger, reset_request_context
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped
 
 
 class CustomEntity(Entity):
@@ -196,9 +195,8 @@ async def test_scheduler_duplicate_job_error():
 
 async def test_scheduler_wait_job_not_found():
     """Test scheduler wait raises KeyError for non-existent job."""
-    from ulid import ULID
-
     from servicekit.core.scheduler import AIOJobScheduler
+    from ulid import ULID
 
     scheduler = AIOJobScheduler()
 

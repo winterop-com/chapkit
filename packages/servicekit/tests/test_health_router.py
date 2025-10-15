@@ -6,7 +6,6 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
-
 from servicekit.core.api.routers.health import CheckResult, HealthRouter, HealthState, HealthStatus
 
 

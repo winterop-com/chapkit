@@ -7,7 +7,6 @@ from collections.abc import AsyncGenerator
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-
 from servicekit import ArtifactHierarchy, BaseConfig, SqliteDatabaseBuilder
 from servicekit.api import ServiceBuilder, ServiceInfo
 from servicekit.core import Database

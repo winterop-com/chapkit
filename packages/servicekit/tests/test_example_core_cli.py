@@ -9,8 +9,8 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 
 import pytest
-
 from servicekit.core import Database, SqliteDatabaseBuilder
+
 from examples.core_cli import Product, ProductIn, ProductManager, ProductRepository
 
 

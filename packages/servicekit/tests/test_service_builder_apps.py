@@ -4,9 +4,8 @@ import json
 from pathlib import Path
 
 import pytest
-from starlette.testclient import TestClient
-
 from servicekit.core.api import BaseServiceBuilder, ServiceInfo
+from starlette.testclient import TestClient
 
 
 @pytest.fixture
@@ -417,7 +416,6 @@ def test_system_apps_schema_endpoint():
 
 def test_service_builder_with_apps_package_discovery(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Test auto-discovering apps from package resources."""
-
     # Create a temporary package structure
     pkg_dir = tmp_path / "test_app_package"
     pkg_dir.mkdir()

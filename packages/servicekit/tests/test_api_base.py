@@ -4,7 +4,6 @@ from typing import ClassVar, Sequence
 
 from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
-
 from servicekit.core.api.router import Router
 
 

@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
-
 from servicekit.core.api.app import App, AppLoader, AppManifest
 
 
@@ -277,7 +276,6 @@ def test_discover_apps_missing_directory(tmp_path: Path):
 
 def test_discover_apps_from_package(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Test discovering multiple apps from package resources."""
-
     # Create a temporary package structure
     pkg_dir = tmp_path / "test_package"
     pkg_dir.mkdir()
@@ -316,7 +314,6 @@ def test_discover_apps_from_package(tmp_path: Path, monkeypatch: pytest.MonkeyPa
 
 def test_discover_apps_from_package_empty(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Test discovering apps from empty package directory."""
-
     # Create a temporary package with empty apps directory
     pkg_dir = tmp_path / "test_package"
     pkg_dir.mkdir()
@@ -336,7 +333,6 @@ def test_discover_apps_from_package_empty(tmp_path: Path, monkeypatch: pytest.Mo
 
 def test_discover_apps_from_package_ignores_invalid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Test package app discovery ignores invalid apps."""
-
     # Create package structure
     pkg_dir = tmp_path / "test_package"
     pkg_dir.mkdir()
@@ -377,7 +373,6 @@ def test_discover_apps_from_nonexistent_package():
 
 def test_discover_apps_from_package_nonexistent_subpath(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Test discovering apps from non-existent subpath in package fails."""
-
     # Create minimal package
     pkg_dir = tmp_path / "test_package"
     pkg_dir.mkdir()

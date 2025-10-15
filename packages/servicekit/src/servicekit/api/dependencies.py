@@ -8,13 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from servicekit.core.api.dependencies import get_database, get_scheduler, get_session
 from servicekit.modules.artifact import ArtifactManager, ArtifactRepository
 from servicekit.modules.config import BaseConfig, ConfigManager, ConfigRepository
+from servicekit.modules.ml import MLManager
 from servicekit.modules.task import TaskManager, TaskRepository
-
-# ML module moved to chapkit package
-try:
-    from servicekit.modules.ml import MLManager  # type: ignore
-except ImportError:
-    MLManager = None  # type: ignore
 
 
 async def get_config_manager(session: Annotated[AsyncSession, Depends(get_session)]) -> ConfigManager[BaseConfig]:

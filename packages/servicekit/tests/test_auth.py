@@ -7,7 +7,6 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
-
 from servicekit.core.api.auth import (
     APIKeyMiddleware,
     load_api_keys_from_env,

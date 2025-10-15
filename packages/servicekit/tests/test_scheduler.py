@@ -4,7 +4,6 @@ import asyncio
 
 import pytest
 import ulid
-
 from servicekit.core import AIOJobScheduler, JobStatus
 
 ULID = ulid.ULID

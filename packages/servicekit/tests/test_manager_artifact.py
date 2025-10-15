@@ -6,9 +6,8 @@ from datetime import datetime, timezone
 from types import SimpleNamespace
 from typing import cast
 
-from ulid import ULID
-
 from servicekit import Artifact, ArtifactHierarchy, ArtifactManager, ArtifactRepository
+from ulid import ULID
 
 
 def test_artifact_manager_should_assign_field_controls_level() -> None:

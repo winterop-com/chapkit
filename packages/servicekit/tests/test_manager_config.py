@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from ulid import ULID
-
 from servicekit import (
     Artifact,
     ArtifactRepository,
@@ -14,6 +12,7 @@ from servicekit import (
     ConfigRepository,
     SqliteDatabaseBuilder,
 )
+from ulid import ULID
 
 from .conftest import DemoConfig
 

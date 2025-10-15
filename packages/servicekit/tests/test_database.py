@@ -4,16 +4,14 @@ from types import SimpleNamespace
 from typing import cast
 
 import pytest
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncEngine
-
 import servicekit.core.database as database_module
 from servicekit import SqliteDatabase, SqliteDatabaseBuilder
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 
 def test_install_sqlite_pragmas(monkeypatch: pytest.MonkeyPatch) -> None:
     """Ensure SQLite connect pragmas are installed on new connections."""
-
     captured: dict[str, object] = {}
 
     def fake_listen(target: object, event_name: str, handler: object) -> None:

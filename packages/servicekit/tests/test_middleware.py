@@ -8,8 +8,6 @@ import pytest
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, ValidationError
-from sqlalchemy.exc import SQLAlchemyError
-
 from servicekit.core.api.middleware import (
     add_error_handlers,
     add_logging_middleware,
@@ -17,6 +15,7 @@ from servicekit.core.api.middleware import (
     validation_error_handler,
 )
 from servicekit.core.logging import configure_logging
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class SampleModel(BaseModel):

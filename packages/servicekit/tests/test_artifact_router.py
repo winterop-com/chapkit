@@ -4,9 +4,8 @@ from unittest.mock import AsyncMock, Mock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from ulid import ULID
-
 from servicekit.modules.artifact import ArtifactIn, ArtifactManager, ArtifactOut, ArtifactRouter
+from ulid import ULID
 
 
 def test_expand_artifact_not_found_returns_404() -> None:
