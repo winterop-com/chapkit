@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 from ulid import ULID
 
-from chapkit import (
+from servicekit import (
     Artifact,
     ArtifactHierarchy,
     ArtifactIn,

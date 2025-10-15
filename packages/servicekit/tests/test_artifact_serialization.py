@@ -9,7 +9,7 @@ from datetime import datetime
 import pytest
 from ulid import ULID
 
-from chapkit import ArtifactOut
+from servicekit import ArtifactOut
 
 
 class CustomNonSerializable:

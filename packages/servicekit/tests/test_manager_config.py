@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ulid import ULID
 
-from chapkit import (
+from servicekit import (
     Artifact,
     ArtifactRepository,
     Config,

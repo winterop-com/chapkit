@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 import servicekit.core.database as database_module
-from chapkit import SqliteDatabase, SqliteDatabaseBuilder
+from servicekit import SqliteDatabase, SqliteDatabaseBuilder
 
 
 def test_install_sqlite_pragmas(monkeypatch: pytest.MonkeyPatch) -> None:

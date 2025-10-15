@@ -7,8 +7,8 @@ import pytest
 from geojson_pydantic import FeatureCollection
 from pydantic import Field
 
-from chapkit import BaseConfig
-from chapkit.api import ServiceBuilder
+from servicekit import BaseConfig
+from servicekit.api import ServiceBuilder
 from servicekit.core.api.service_builder import ServiceInfo
 from servicekit.modules.artifact import ArtifactHierarchy
 from servicekit.modules.ml import ModelRunnerProtocol

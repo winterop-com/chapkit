@@ -1,0 +1,43 @@
+[project]
+name = "chapkit"
+version = "0.1.0"
+description = "ML-focused library built on servicekit for training and prediction workflows"
+readme = "README.md"
+authors = [{ name = "Morten Hansen", email = "morten@winterop.com" }]
+license = { text = "AGPL-3.0-or-later" }
+requires-python = ">=3.13"
+keywords = [
+    "machine-learning",
+    "mlops",
+    "fastapi",
+    "sqlalchemy",
+    "scikit-learn",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: FastAPI",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "servicekit>=0.1.0",
+    "pandas>=2.2.0",
+    "scikit-learn>=1.7.0",
+]
+
+[tool.uv.sources]
+servicekit = { workspace = true }
+
+[project.urls]
+Homepage = "https://github.com/winterop-com/chapkit"
+Repository = "https://github.com/winterop-com/chapkit"
+Issues = "https://github.com/winterop-com/chapkit/issues"
+Documentation = "https://github.com/winterop-com/chapkit#readme"
+
+[build-system]
+requires = ["uv_build>=0.9.0,<0.10.0"]
+build-backend = "uv_build"

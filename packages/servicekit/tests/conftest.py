@@ -1,6 +1,6 @@
 """Test configuration and shared fixtures."""
 
-from chapkit import BaseConfig
+from servicekit import BaseConfig
 
 
 class DemoConfig(BaseConfig):

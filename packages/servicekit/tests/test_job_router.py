@@ -8,7 +8,7 @@ import ulid
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
-from chapkit.api import ServiceBuilder, ServiceInfo
+from servicekit.api import ServiceBuilder, ServiceInfo
 
 ULID = ulid.ULID
 

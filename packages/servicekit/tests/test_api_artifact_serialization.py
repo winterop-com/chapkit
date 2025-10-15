@@ -6,8 +6,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from chapkit import ArtifactIn, ArtifactOut, SqliteDatabaseBuilder
-from chapkit.api import ArtifactRouter, add_error_handlers, get_artifact_manager
+from servicekit import ArtifactIn, ArtifactOut, SqliteDatabaseBuilder
+from servicekit.api import ArtifactRouter, add_error_handlers, get_artifact_manager
 from servicekit.core.api.dependencies import set_database
 
 
@@ -47,7 +47,7 @@ class TestArtifactAPIWithNonSerializableData:
 
             # Create an artifact directly via the database (bypassing API validation)
             async with db.session() as session:
-                from chapkit import ArtifactManager, ArtifactRepository
+                from servicekit import ArtifactManager, ArtifactRepository
 
                 repo = ArtifactRepository(session)
                 manager = ArtifactManager(repo)
@@ -100,7 +100,7 @@ class TestArtifactAPIWithNonSerializableData:
 
             # Create artifacts with different data types
             async with db.session() as session:
-                from chapkit import ArtifactManager, ArtifactRepository
+                from servicekit import ArtifactManager, ArtifactRepository
 
                 repo = ArtifactRepository(session)
                 manager = ArtifactManager(repo)
@@ -161,7 +161,7 @@ class TestArtifactAPIWithNonSerializableData:
             # Create a tree with non-serializable data
             root_id = None
             async with db.session() as session:
-                from chapkit import ArtifactManager, ArtifactRepository
+                from servicekit import ArtifactManager, ArtifactRepository
 
                 repo = ArtifactRepository(session)
                 manager = ArtifactManager(repo)

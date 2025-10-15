@@ -1,4 +1,4 @@
-from chapkit import ArtifactHierarchy
+from servicekit import ArtifactHierarchy
 
 
 def test_label_lookup_returns_configured_value() -> None:

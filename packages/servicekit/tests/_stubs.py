@@ -7,7 +7,7 @@ from typing import Any, Generic, TypeVar
 
 from ulid import ULID
 
-from chapkit import ArtifactIn, ArtifactOut, ArtifactTreeNode, BaseConfig, ConfigIn, ConfigOut
+from servicekit import ArtifactIn, ArtifactOut, ArtifactTreeNode, BaseConfig, ConfigIn, ConfigOut
 from servicekit.core import Manager
 
 ConfigDataT = TypeVar("ConfigDataT", bound=BaseConfig)

@@ -8,7 +8,7 @@ from typing import cast
 
 from ulid import ULID
 
-from chapkit import Artifact, ArtifactHierarchy, ArtifactManager, ArtifactRepository
+from servicekit import Artifact, ArtifactHierarchy, ArtifactManager, ArtifactRepository
 
 
 def test_artifact_manager_should_assign_field_controls_level() -> None:

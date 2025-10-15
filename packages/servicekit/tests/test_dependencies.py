@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from chapkit import SqliteDatabaseBuilder
+from servicekit import SqliteDatabaseBuilder
 from servicekit.core.api.dependencies import get_database, get_scheduler, set_database, set_scheduler
 
 
@@ -39,8 +39,8 @@ async def test_set_and_get_database() -> None:
 
 async def test_get_config_manager() -> None:
     """Test get_config_manager returns a ConfigManager instance."""
-    from chapkit import ConfigManager
-    from chapkit.api.dependencies import get_config_manager
+    from servicekit import ConfigManager
+    from servicekit.api.dependencies import get_config_manager
     from servicekit.core.api.dependencies import get_session
 
     db = SqliteDatabaseBuilder.in_memory().build()
@@ -60,8 +60,8 @@ async def test_get_config_manager() -> None:
 
 async def test_get_artifact_manager() -> None:
     """Test get_artifact_manager returns an ArtifactManager instance."""
-    from chapkit import ArtifactManager
-    from chapkit.api.dependencies import get_artifact_manager
+    from servicekit import ArtifactManager
+    from servicekit.api.dependencies import get_artifact_manager
     from servicekit.core.api.dependencies import get_session
 
     db = SqliteDatabaseBuilder.in_memory().build()
@@ -117,7 +117,7 @@ def test_set_and_get_scheduler() -> None:
 
 async def test_get_task_manager_without_scheduler_and_database() -> None:
     """Test get_task_manager handles missing scheduler and database gracefully."""
-    from chapkit.api.dependencies import get_task_manager
+    from servicekit.api.dependencies import get_task_manager
     from servicekit.core.api.dependencies import get_session
 
     db = SqliteDatabaseBuilder.in_memory().build()
@@ -137,7 +137,7 @@ async def test_get_task_manager_without_scheduler_and_database() -> None:
         # Use the session generator
         async for session in get_session(db):
             # Create a mock artifact manager
-            from chapkit import ArtifactManager, ArtifactRepository
+            from servicekit import ArtifactManager, ArtifactRepository
 
             artifact_repo = ArtifactRepository(session)
             artifact_manager = ArtifactManager(artifact_repo)
@@ -156,7 +156,7 @@ async def test_get_task_manager_without_scheduler_and_database() -> None:
 
 def test_get_ml_manager_raises_runtime_error() -> None:
     """Test get_ml_manager raises RuntimeError when not configured."""
-    from chapkit.api.dependencies import get_ml_manager
+    from servicekit.api.dependencies import get_ml_manager
 
     with pytest.raises(RuntimeError, match="ML manager dependency not configured"):
         # This is a sync function that returns a coroutine, but we need to call it

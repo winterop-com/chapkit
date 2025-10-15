@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from chapkit import (
+from servicekit import (
     Artifact,
     ArtifactManager,
     ArtifactRepository,

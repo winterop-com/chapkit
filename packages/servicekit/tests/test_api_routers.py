@@ -9,8 +9,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from ulid import ULID
 
-from chapkit import ArtifactIn, ArtifactOut, ArtifactTreeNode, BaseConfig, ConfigIn, ConfigOut
-from chapkit.api import ArtifactRouter, ConfigRouter
+from servicekit import ArtifactIn, ArtifactOut, ArtifactTreeNode, BaseConfig, ConfigIn, ConfigOut
+from servicekit.api import ArtifactRouter, ConfigRouter
 from tests._stubs import ArtifactManagerStub, ConfigManagerStub, singleton_factory
 
 
@@ -335,7 +335,7 @@ def test_artifact_router_get_config_returns_config() -> None:
     app.include_router(artifact_router)
 
     # Override config manager dependency
-    from chapkit.api.dependencies import get_config_manager
+    from servicekit.api.dependencies import get_config_manager
 
     app.dependency_overrides[get_config_manager] = singleton_factory(config_manager)
 

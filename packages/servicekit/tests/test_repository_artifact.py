@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from chapkit import Artifact, ArtifactRepository, SqliteDatabaseBuilder
+from servicekit import Artifact, ArtifactRepository, SqliteDatabaseBuilder
 
 
 async def test_artifact_repository_find_by_id_eager_loads_children() -> None:

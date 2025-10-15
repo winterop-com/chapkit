@@ -5,8 +5,8 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from chapkit import ArtifactIn, ArtifactOut, BaseConfig, ConfigIn, ConfigOut
-from chapkit.api import ArtifactRouter, ConfigRouter
+from servicekit import ArtifactIn, ArtifactOut, BaseConfig, ConfigIn, ConfigOut
+from servicekit.api import ArtifactRouter, ConfigRouter
 from tests._stubs import ArtifactManagerStub, ConfigManagerStub, singleton_factory
 
 

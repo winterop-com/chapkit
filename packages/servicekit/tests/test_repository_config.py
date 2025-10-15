@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from chapkit import Config, ConfigRepository, SqliteDatabaseBuilder
+from servicekit import Config, ConfigRepository, SqliteDatabaseBuilder
 
 from .conftest import DemoConfig
 

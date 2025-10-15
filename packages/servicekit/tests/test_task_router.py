@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from ulid import ULID
 
-from chapkit import TaskIn, TaskManager, TaskOut
+from servicekit import TaskIn, TaskManager, TaskOut
 from servicekit.modules.task import TaskRouter
 
 
