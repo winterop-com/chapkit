@@ -87,7 +87,7 @@ class WeatherModelRunner(BaseModelRunner):
             # Feature preprocessing
             if weather_config.normalize_features:
                 self.scaler = StandardScaler()
-                X_scaled = self.scaler.fit_transform(X)
+                X_scaled = self.scaler.fit_transform(X)  # pyright: ignore[reportOptionalMemberAccess]
                 log.info(
                     "features_normalized",
                     mean=self.scaler.mean_.tolist(),  # pyright: ignore[reportOptionalMemberAccess, reportAttributeAccessIssue]
