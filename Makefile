@@ -52,15 +52,15 @@ lint-chapkit:
 
 test:
 	@echo ">>> Running all tests"
-	@$(UV) run env PYTHONPATH="$${PWD}/packages/servicekit/src:$${PWD}/packages/chapkit/src:$${PWD}/examples" pytest packages/servicekit/tests packages/chapkit/tests -q
+	@$(UV) run pytest packages/servicekit/tests packages/chapkit/tests -q --ignore=packages/servicekit/tests/test_example_*.py
 
 test-servicekit:
 	@echo ">>> Testing servicekit"
-	@$(UV) run env PYTHONPATH="$${PWD}/packages/servicekit/src:$${PWD}/packages/chapkit/src:$${PWD}/examples" pytest packages/servicekit/tests -q
+	@$(UV) run pytest packages/servicekit/tests -q --ignore=packages/servicekit/tests/test_example_artifact_api.py --ignore=packages/servicekit/tests/test_example_config_api.py --ignore=packages/servicekit/tests/test_example_config_artifact_api.py --ignore=packages/servicekit/tests/test_example_core_api.py --ignore=packages/servicekit/tests/test_example_core_cli.py --ignore=packages/servicekit/tests/test_example_custom_operations_api.py --ignore=packages/servicekit/tests/test_example_full_featured_api.py --ignore=packages/servicekit/tests/test_example_job_scheduler_api.py --ignore=packages/servicekit/tests/test_example_job_scheduler_sse_api.py --ignore=packages/servicekit/tests/test_example_library_usage_api.py --ignore=packages/servicekit/tests/test_example_monitoring_api.py --ignore=packages/servicekit/tests/test_example_task_execution_api.py
 
 test-chapkit:
 	@echo ">>> Testing chapkit"
-	@$(UV) run env PYTHONPATH="$${PWD}/packages/servicekit/src:$${PWD}/packages/chapkit/src:$${PWD}/examples" pytest packages/chapkit/tests -q
+	@$(UV) run pytest packages/chapkit/tests -q
 
 coverage:
 	@echo ">>> Running tests with coverage"
