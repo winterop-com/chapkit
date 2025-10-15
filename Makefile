@@ -52,15 +52,15 @@ lint-chapkit:
 
 test:
 	@echo ">>> Running all tests"
-	@PYTHONPATH=packages/servicekit/src:packages/chapkit/src:examples $(UV) run pytest packages/servicekit/tests packages/chapkit/tests -q
+	@PYTHONPATH=$${PWD}/packages/servicekit/src:$${PWD}/packages/chapkit/src:$${PWD}/examples $(UV) run pytest packages/servicekit/tests packages/chapkit/tests -q
 
 test-servicekit:
 	@echo ">>> Testing servicekit"
-	@PYTHONPATH=packages/servicekit/src:packages/chapkit/src:examples $(UV) run pytest packages/servicekit/tests -q
+	@PYTHONPATH=$${PWD}/packages/servicekit/src:$${PWD}/packages/chapkit/src:$${PWD}/examples $(UV) run pytest packages/servicekit/tests -q
 
 test-chapkit:
 	@echo ">>> Testing chapkit"
-	@PYTHONPATH=packages/servicekit/src:packages/chapkit/src:examples $(UV) run pytest packages/chapkit/tests -q
+	@PYTHONPATH=$${PWD}/packages/servicekit/src:$${PWD}/packages/chapkit/src:$${PWD}/examples $(UV) run pytest packages/chapkit/tests -q
 
 coverage:
 	@echo ">>> Running tests with coverage"
