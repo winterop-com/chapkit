@@ -10,6 +10,8 @@
 
 **Timeline:** 4 weeks (branch setup → testing → merge → publish)
 
+**Versioning:** Both packages start at v0.1.0
+
 **Breaking Change:** Import paths only. Database schemas unchanged.
 
 ---
@@ -38,7 +40,7 @@ chapkit2/
 from chapkit import SqliteDatabase, BaseConfig
 from chapkit.modules.ml import MLManager
 
-# After (v0.2.x)
+# After (v0.1.0)
 from servicekit import SqliteDatabase, BaseConfig
 from chapkit.ml import MLManager
 ```
@@ -118,7 +120,7 @@ alembic_cfg.set_main_option("script_location", str(pkg_path / "alembic"))
 **Create `pyproject.toml`:**
 - Dependency: `servicekit>=0.1.0`
 - ML dependencies: `pandas`, `scikit-learn`
-- Version: `0.2.0`
+- Version: `0.1.0`
 
 ### Phase 4: Workspace Configuration
 
@@ -206,8 +208,8 @@ cd packages/chapkit && uv build && uv publish
 **Merge:**
 ```bash
 git checkout main
-git merge feat/split-servicekit
-git tag servicekit-v0.1.0 chapkit-v0.2.0
+git merge refactor/library-split
+git tag servicekit-v0.1.0 chapkit-v0.1.0
 git push --tags
 ```
 
@@ -244,7 +246,7 @@ git push --tags
 
 ### User Upgrade Path
 
-**Existing databases (v0.1.x → v0.2.x):**
+**Existing databases (chapkit v0.1.x → servicekit+chapkit v0.1.0):**
 ```python
 # Step 1: Update imports
 from servicekit import SqliteDatabaseBuilder  # was: chapkit
@@ -309,7 +311,7 @@ await db.init()  # Uses servicekit migrations - same tables, no changes needed
 
 **Breaking changes for users:**
 - Clear migration guide in PR and release notes
-- Version bump signals breaking change (v0.2.0)
+- Version v0.1.0 for both packages (fresh start post-split)
 - Data compatibility maintained
 
 **Circular dependencies:**
@@ -405,20 +407,21 @@ mkdir -p packages/chapkit/alembic/versions
 
 ---
 
+## Decisions Made
+
+1. **Package name:** `servicekit` (confirmed)
+2. **Versioning:** Both packages at v0.1.0 (fresh start)
+
 ## Questions to Resolve
 
-1. Confirm "servicekit" as package name (or alternative: "fastkit", "dbkit")?
-2. Versioning: servicekit v0.1.0, chapkit v0.2.0?
-3. Long-term: keep monorepo or extract to separate repos?
-4. Publishing: independent or synchronized releases?
-5. Backward compatibility: deprecation warnings for old imports?
+1. Long-term: keep monorepo or extract to separate repos?
+2. Publishing: independent or synchronized releases?
+3. Backward compatibility: deprecation warnings for old imports?
 
 ---
 
 ## Next Steps
 
-1. Review this plan
-2. Answer questions above
-3. Create branch: `git checkout -b feat/split-servicekit`
-4. Begin Phase 1
-5. Iterate based on discoveries
+1. Answer remaining questions
+2. Begin Phase 1: Monorepo setup
+3. Iterate based on discoveries during implementation
