@@ -28,7 +28,7 @@ help:
 
 install:
 	@echo ">>> Installing workspace dependencies"
-	@$(UV) sync
+	@$(UV) sync --all-packages
 
 lint:
 	@echo ">>> Running linter on all packages"
