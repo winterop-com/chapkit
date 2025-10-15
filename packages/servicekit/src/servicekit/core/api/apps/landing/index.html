@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Service Information</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 2rem;
+        }
+        h1 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .nav-links a {
+            color: #2563eb;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .info-grid {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .info-item {
+            display: grid;
+            gap: 0.25rem;
+        }
+        .info-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #666;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        .info-value {
+            color: #333;
+            font-size: 1rem;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 0;
+            font-size: 0.875rem;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 2rem;
+        }
+        .error {
+            color: #dc2626;
+            padding: 1rem;
+            background: #fee;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="content" class="loading">Loading service information...</div>
+    </div>
+    <script>
+        fetch('/api/v1/info')
+            .then(res => res.json())
+            .then(info => {
+                const items = [];
+
+                items.push(`<h1>${info.display_name}</h1>`);
+                items.push(`<div class="nav-links">
+                    <a href="/docs">📚 API Documentation</a>
+                    <a href="/redoc">📖 ReDoc</a>
+                </div>`);
+                items.push(`<div class="info-grid">`);
+
+                items.push(`<div class="info-item">
+                    <div class="info-label">Version</div>
+                    <div class="info-value">${info.version}</div>
+                </div>`);
+
+                if (info.summary) {
+                    items.push(`<div class="info-item">
+                        <div class="info-label">Summary</div>
+                        <div class="info-value">${info.summary}</div>
+                    </div>`);
+                }
+
+                if (info.description) {
+                    items.push(`<div class="info-item">
+                        <div class="info-label">Description</div>
+                        <div class="info-value">${info.description}</div>
+                    </div>`);
+                }
+
+                if (info.contact) {
+                    const contactJson = JSON.stringify(info.contact, null, 2);
+                    items.push(`<div class="info-item">
+                        <div class="info-label">Contact</div>
+                        <div class="info-value"><pre>${contactJson}</pre></div>
+                    </div>`);
+                }
+
+                if (info.license_info) {
+                    const licenseJson = JSON.stringify(info.license_info, null, 2);
+                    items.push(`<div class="info-item">
+                        <div class="info-label">License</div>
+                        <div class="info-value"><pre>${licenseJson}</pre></div>
+                    </div>`);
+                }
+
+                items.push(`</div>`);
+                const contentEl = document.getElementById('content');
+                contentEl.className = '';
+                contentEl.innerHTML = items.join('');
+            })
+            .catch(err => {
+                const errorMsg = 'Failed to load service information: ' + err.message;
+                const contentEl = document.getElementById('content');
+                contentEl.className = '';
+                contentEl.innerHTML = `<div class="error">${errorMsg}</div>`;
+            });
+    </script>
+</body>
+</html>

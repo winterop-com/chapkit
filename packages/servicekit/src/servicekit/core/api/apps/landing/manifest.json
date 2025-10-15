@@ -1,0 +1,8 @@
+{
+  "name": "Chapkit Landing Page",
+  "version": "1.0.0",
+  "prefix": "/",
+  "description": "Default landing page showing service information",
+  "author": "Chapkit Team",
+  "entry": "index.html"
+}
