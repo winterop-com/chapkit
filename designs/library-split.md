@@ -30,6 +30,8 @@ chapkit2/
 │       ├── src/chapkit/     # ml/, api/ (ML extensions)
 │       ├── alembic/         # Empty (future ML tables)
 │       └── tests/
+├── servicekit_examples/     # Core examples (separate from packages)
+├── chapkit_examples/        # ML examples (separate from packages)
 ├── pyproject.toml           # UV workspace config
 └── Makefile                 # Monorepo targets
 ```
@@ -148,9 +150,10 @@ alembic_cfg.set_main_option("script_location", str(pkg_path / "alembic"))
 - Root `CLAUDE.md`: Monorepo overview, link to packages
 
 **Update examples:**
-- Copy core examples to `packages/servicekit/examples/`
-- Copy ML examples to `packages/chapkit/examples/`
+- Copy core examples to `servicekit_examples/`
+- Copy ML examples to `chapkit_examples/`
 - Update all imports
+- Keep examples at root level (separate from packages for cleaner package structure)
 
 ### Phase 6: Testing & Validation
 
@@ -174,8 +177,8 @@ make lint  # Run ruff, mypy, pyright on both packages
 
 **Example validation:**
 ```bash
-cd packages/servicekit && uv run fastapi dev examples/config_api.py
-cd packages/chapkit && uv run fastapi dev examples/ml_functional.py
+uv run fastapi dev servicekit_examples/config_api.py
+uv run fastapi dev chapkit_examples/ml_functional.py
 ```
 
 ### Phase 7: CI/CD Updates
@@ -283,6 +286,12 @@ await db.init()  # Uses servicekit migrations - same tables, no changes needed
 - Shared tooling (lint, test, CI)
 - Easy integration testing
 - Can extract to separate repos later
+
+### Why Examples Outside Packages?
+- Cleaner package structure (packages only contain library code)
+- Examples reference both servicekit and chapkit (some ML examples need both)
+- Easier to run examples from monorepo root
+- Examples don't need to be published to PyPI with packages
 
 ### Why Keep Migrations in servicekit?
 - Existing users have these tables
