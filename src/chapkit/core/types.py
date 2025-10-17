@@ -87,8 +87,33 @@ def _serialize_with_metadata(value: Any) -> Any:
     return _create_serialization_metadata(value, is_full_object=True)
 
 
-SerializableDict = Annotated[
+JsonSafe = Annotated[
     Any,
     PlainSerializer(_serialize_with_metadata, return_type=Any),
 ]
-"""Pydantic type that serializes dicts, replacing non-JSON-serializable values with metadata."""
+"""Pydantic type for JSON-safe serialization with graceful handling of non-serializable values.
+
+This type accepts any value and ensures safe JSON serialization by:
+
+1. JSON-serializable values (str, int, float, bool, list, dict, None, Pydantic models):
+   - Pass through unchanged
+   - Appear normally in API responses
+
+2. Non-JSON-serializable values (PyTorch models, sklearn models, custom classes):
+   - Replaced with metadata dicts containing type information
+   - Original objects remain in storage (via PickleType in database)
+   - Metadata includes: _type, _module, _repr, _serialization_error
+
+Usage:
+    class ArtifactOut(EntityOut):
+        data: JsonSafe  # Accepts any value, won't crash on serialization
+
+Example behavior:
+    # JSON-serializable: works as expected
+    {"result": 42, "status": "ok"}  → {"result": 42, "status": "ok"}
+
+    # Non-serializable: replaced with metadata
+    {"model": <PyTorch model>}  → {"model": {"_type": "Module", "_module": "torch.nn", ...}}
+
+This prevents API serialization crashes while preserving all data in storage.
+"""

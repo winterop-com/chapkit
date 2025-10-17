@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from ulid import ULID
 
 from chapkit.core.schemas import EntityIn, EntityOut
-from chapkit.core.types import SerializableDict
+from chapkit.core.types import JsonSafe
 from chapkit.modules.config.schemas import BaseConfig, ConfigOut
 
 
@@ -24,7 +24,7 @@ class ArtifactIn(EntityIn):
 class ArtifactOut(EntityOut):
     """Output schema for artifact entities."""
 
-    data: SerializableDict
+    data: JsonSafe
     parent_id: ULID | None = None
     level: int
 
