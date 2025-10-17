@@ -256,7 +256,7 @@ def test_python_task_without_parameters(client: TestClient) -> None:
 def test_mixed_shell_and_python_tasks(client: TestClient) -> None:
     """Test that shell and Python tasks can coexist."""
     # Create a shell task
-    shell_task = {"command": "echo 'shell task'", "task_type": "shell"}
+    shell_task = {"command": "echo shell_task", "task_type": "shell"}
     shell_response = client.post("/api/v1/tasks", json=shell_task)
     shell_task_data = shell_response.json()
 
