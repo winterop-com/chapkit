@@ -1,14 +1,925 @@
-# Design: Job Scheduling for Tasks
+# Design: Python Task Execution and Job Scheduling
 
-**Status:** Draft
+**Status:** Phase 1 Complete, Phase 2 Draft
 **Date:** 2025-10-17
 **Author:** AI Assistant
 
 ## Overview
 
-This design extends Chapkit's task execution system with job scheduling capabilities, enabling tasks (both shell and Python) to be scheduled for one-off, interval-based, or cron-based execution.
+This design extends Chapkit's task execution system with:
+1. **Phase 1 (IMPLEMENTED):** Python function execution with type-based dependency injection
+2. **Phase 2 (DRAFT):** Job scheduling for one-off, interval, and cron-based execution
 
-**Note:** Python task execution (Phase 1) has been **completed and implemented**. This document focuses solely on Phase 2: Job Scheduling.
+This document captures the complete knowledge of both phases, with emphasis on the implemented Python task execution system.
+
+---
+
+# Phase 1: Python Task Execution (IMPLEMENTED)
+
+## Goals ✅
+
+- Execute registered Python functions as tasks alongside shell commands
+- Support both sync and async Python functions
+- Provide type-based dependency injection for framework services
+- Enable/disable control for tasks
+- Validate and auto-disable orphaned Python tasks
+- Artifact-based result storage with error handling
+
+## Architecture
+
+### Core Components
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    TaskRegistry                          │
+│  - Global function registry (decorator & imperative)     │
+│  - register(name): Decorator for functions              │
+│  - get(name): Retrieve registered function              │
+│  - list_all(): List all registered names                │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                     TaskManager                          │
+│  - execute_task(task_id): Route to shell or python      │
+│  - _execute_command(task_id): Shell execution           │
+│  - _execute_python(task_id): Python execution           │
+│  - _inject_parameters(): Type-based DI                  │
+│  - find_all(enabled=...): Query with filtering          │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                    TaskRepository                        │
+│  - find_all(enabled=...): Filter by enabled status      │
+│  - find_by_enabled(bool): Query enabled/disabled        │
+└─────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│                      Task (ORM)                          │
+│  - command: str (function name or shell command)        │
+│  - task_type: str ("shell" or "python")                 │
+│  - parameters: dict | None (JSON for python tasks)      │
+│  - enabled: bool (execution control)                    │
+└─────────────────────────────────────────────────────────┘
+```
+
+## Database Schema
+
+**Added fields to `tasks` table** (via migration `20251010_0927_4d869b5fb06e_initial_schema.py`):
+
+```python
+class Task(Entity):
+    __tablename__ = "tasks"
+
+    command: Mapped[str]  # Function name (python) or shell command
+    task_type: Mapped[str] = mapped_column(default="shell")  # "shell" | "python"
+    parameters: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    enabled: Mapped[bool] = mapped_column(default=True)  # Enable/disable control
+```
+
+## Task Types
+
+### Shell Tasks (Existing)
+
+**Execution:**
+- Via `asyncio.create_subprocess_shell()`
+- Captures stdout, stderr, exit_code
+
+**Artifact Structure:**
+```json
+{
+  "task": {
+    "id": "01TASK...",
+    "command": "echo 'Hello World'",
+    "created_at": "2025-10-17T...",
+    "updated_at": "2025-10-17T..."
+  },
+  "stdout": "Hello World\n",
+  "stderr": "",
+  "exit_code": 0
+}
+```
+
+### Python Tasks (NEW)
+
+**Execution:**
+- Via `TaskRegistry.get(function_name)`
+- Supports sync and async functions
+- Type-based dependency injection
+- Parameter validation via function signature
+
+**Artifact Structure (Success):**
+```json
+{
+  "task": {
+    "id": "01TASK...",
+    "command": "calculate_sum",
+    "task_type": "python",
+    "parameters": {"a": 10, "b": 32},
+    "created_at": "2025-10-17T...",
+    "updated_at": "2025-10-17T..."
+  },
+  "result": {
+    "result": 42,
+    "operation": "sum"
+  },
+  "error": null
+}
+```
+
+**Artifact Structure (Failure):**
+```json
+{
+  "task": {
+    "id": "01TASK...",
+    "command": "failing_task",
+    "task_type": "python",
+    "parameters": {"should_fail": true}
+  },
+  "result": null,
+  "error": {
+    "type": "ValueError",
+    "message": "This task was designed to fail",
+    "traceback": "Traceback (most recent call last):\n  ..."
+  }
+}
+```
+
+## TaskRegistry
+
+**Purpose:** Global registry for Python functions to prevent arbitrary code execution
+
+**File:** `src/chapkit/modules/task/registry.py`
+
+### Registration Methods
+
+**1. Decorator (Recommended):**
+```python
+from chapkit import TaskRegistry
+
+@TaskRegistry.register("my_function")
+async def my_function(x: int, y: int) -> dict:
+    """Example async function."""
+    return {"sum": x + y}
+```
+
+**2. Imperative:**
+```python
+def my_function(x: int) -> dict:
+    return {"result": x * 2}
+
+TaskRegistry.register_function("my_function", my_function)
+```
+
+### Methods
+
+```python
+class TaskRegistry:
+    @classmethod
+    def register(cls, name: str) -> Callable:
+        """Decorator to register a function."""
+
+    @classmethod
+    def register_function(cls, name: str, func: Callable) -> None:
+        """Imperative registration."""
+
+    @classmethod
+    def get(cls, name: str) -> Callable:
+        """Retrieve registered function (raises KeyError if not found)."""
+
+    @classmethod
+    def list_all(cls) -> list[str]:
+        """List all registered function names."""
+
+    @classmethod
+    def clear(cls) -> None:
+        """Clear registry (useful for testing)."""
+```
+
+## Type-Based Dependency Injection
+
+**Feature:** Framework services are automatically injected based on function parameter type hints.
+
+### Injectable Types
+
+```python
+INJECTABLE_TYPES = {
+    AsyncSession,      # SQLAlchemy async database session
+    Database,          # Chapkit Database instance
+    ArtifactManager,   # Artifact management service
+    JobScheduler,      # Job scheduling service
+}
+```
+
+### Parameter Sources
+
+1. **User Parameters:** From `task.parameters` (primitives, dicts, lists, pandas DataFrames, etc.)
+2. **Framework Injections:** Automatically injected based on type hints
+
+### Examples
+
+**Pure User Parameters:**
+```python
+@TaskRegistry.register("calculate_sum")
+async def calculate_sum(a: int, b: int) -> dict:
+    """All params from task.parameters."""
+    return {"result": a + b}
+
+# Task: {"command": "calculate_sum", "parameters": {"a": 10, "b": 32}}
+```
+
+**Mixed User + Framework:**
+```python
+@TaskRegistry.register("query_tasks")
+async def query_tasks(
+    limit: int,              # From task.parameters
+    session: AsyncSession,   # Injected by framework
+) -> dict:
+    """Mix user and injected parameters."""
+    from sqlalchemy import select, func
+    from chapkit.modules.task.models import Task
+
+    stmt = select(func.count()).select_from(Task)
+    result = await session.execute(stmt)
+    count = result.scalar() or 0
+
+    return {
+        "total": count,
+        "limit": limit,
+        "using_injection": True
+    }
+
+# Task: {"command": "query_tasks", "parameters": {"limit": 100}}
+# session is injected automatically based on type hint
+```
+
+**Framework-Only (No User Params):**
+```python
+@TaskRegistry.register("query_task_count")
+async def query_task_count(session: AsyncSession) -> dict:
+    """No user parameters needed."""
+    from sqlalchemy import select, func
+    from chapkit.modules.task.models import Task
+
+    stmt = select(func.count()).select_from(Task)
+    result = await session.execute(stmt)
+    count = result.scalar() or 0
+
+    return {"total_tasks": count}
+
+# Task: {"command": "query_task_count", "parameters": {}}
+# Empty parameters - session injected automatically
+```
+
+**Optional Injection:**
+```python
+@TaskRegistry.register("maybe_db")
+def maybe_db(
+    value: int,
+    session: AsyncSession | None = None,  # Optional injection
+) -> dict:
+    """Optional framework parameter."""
+    result = {"value": value}
+    if session:
+        result["has_session"] = True
+    return result
+
+# Works with or without session available
+```
+
+### Implementation Details
+
+**Injection Algorithm** (`src/chapkit/modules/task/manager.py:69-127`):
+
+1. Parse function signature with `inspect.signature(func)`
+2. Get type hints with `get_type_hints(func)`
+3. Build injection map: `{AsyncSession: session_instance, Database: db_instance, ...}`
+4. For each parameter:
+   - Check if type hint matches injectable type
+   - Handle `Optional[Type]` (extract non-None type)
+   - If injectable: inject from map
+   - If not injectable: must be in `task.parameters` or have default
+5. Raise `ValueError` if required non-injectable parameter missing
+
+**Type Checking:**
+- Handles both `Type | None` (Python 3.10+ union) and `Union[Type, None]` (typing module)
+- Uses `get_origin()` to detect union types
+- Extracts non-None types from unions
+
+**Session Management:**
+- Creates dedicated session for injection: `database.session()`
+- Session enters context before execution
+- Session always closes in `finally` block (prevents leaks)
+- Artifact saved with separate session (prevents interference)
+
+## Enable/Disable Control
+
+**Feature:** Tasks can be enabled/disabled for execution control without deletion.
+
+### Use Cases
+
+1. **Soft delete:** Disable instead of deleting to preserve history
+2. **Maintenance:** Temporarily disable tasks during system maintenance
+3. **Orphaned tasks:** Auto-disable tasks with missing Python functions
+4. **Gradual rollout:** Create disabled tasks, enable when ready
+
+### Schema
+
+```python
+class Task(Entity):
+    enabled: Mapped[bool] = mapped_column(default=True)
+```
+
+### API Endpoints
+
+**Create with disabled state:**
+```bash
+POST /api/v1/tasks
+{
+  "command": "process_data",
+  "task_type": "python",
+  "parameters": {"input": "test"},
+  "enabled": false
+}
+```
+
+**Filter by enabled status:**
+```bash
+GET /api/v1/tasks?enabled=true   # Only enabled
+GET /api/v1/tasks?enabled=false  # Only disabled
+GET /api/v1/tasks                # All tasks
+```
+
+**Update enabled status:**
+```bash
+PUT /api/v1/tasks/{id}
+{
+  "command": "process_data",
+  "enabled": false
+}
+```
+
+### Execution Validation
+
+Tasks are validated before execution (`src/chapkit/modules/task/manager.py:144-145`):
+
+```python
+async def execute_task(self, task_id: ULID) -> ULID:
+    task = await self.repo.find_by_id(task_id)
+    if not task.enabled:
+        raise ValueError(f"Cannot execute disabled task {task_id}")
+    # ... continue execution
+```
+
+**Error Response:**
+```json
+{
+  "detail": "Cannot execute disabled task 01TASK..."
+}
+```
+
+## Orphaned Task Validation
+
+**Feature:** Automatically detect and disable Python tasks referencing unregistered functions.
+
+**File:** `src/chapkit/modules/task/validation.py`
+
+### Purpose
+
+Prevent execution failures when:
+- Function is removed from code but task still exists in DB
+- Service restarts and function registration changes
+- Code deployment removes or renames functions
+
+### Implementation
+
+```python
+async def validate_and_disable_orphaned_tasks(app: FastAPI) -> int:
+    """Validate Python tasks and disable orphaned ones.
+
+    Returns:
+        Number of tasks disabled
+    """
+    database = getattr(app.state, "database", None)
+    if database is None:
+        return 0
+
+    async with database.session() as session:
+        task_repo = TaskRepository(session)
+        task_manager = TaskManager(task_repo, ...)
+
+        # Get all tasks
+        all_tasks = await task_manager.find_all()
+
+        # Get registered function names
+        registered_functions = set(TaskRegistry.list_all())
+
+        # Find orphaned Python tasks
+        orphaned_tasks = [
+            task for task in all_tasks
+            if task.task_type == "python" and task.command not in registered_functions
+        ]
+
+        # Disable each orphaned task
+        for task in orphaned_tasks:
+            logger.warning(
+                f"Disabling orphaned task {task.id}: function '{task.command}' not found"
+            )
+            await task_manager.save(
+                TaskIn(id=task.id, ..., enabled=False)
+            )
+
+    return len(orphaned_tasks)
+```
+
+### Usage in ServiceBuilder
+
+```python
+async def validate_tasks_on_startup(app: FastAPI) -> None:
+    """Startup hook for validation."""
+    await validate_and_disable_orphaned_tasks(app)
+
+app = (
+    ServiceBuilder(info=info)
+    .with_health()
+    .with_artifacts(hierarchy=TASK_HIERARCHY)
+    .with_jobs(max_concurrency=3)
+    .with_tasks()
+    .on_startup(seed_python_tasks)
+    .on_startup(validate_tasks_on_startup)  # Auto-disable orphaned tasks
+    .build()
+)
+```
+
+### Logging
+
+**Structured logging with context:**
+```python
+logger.warning(
+    "Found orphaned Python tasks - disabling them",
+    extra={
+        "count": len(orphaned_tasks),
+        "task_ids": [str(task.id) for task in orphaned_tasks],
+        "commands": [task.command for task in orphaned_tasks],
+    },
+)
+```
+
+## Read-Only Task API Pattern
+
+**Use Case:** Pre-seed tasks at startup, expose via read-only API for execution
+
+**File:** `examples/readonly_task_api.py`
+
+### Benefits
+
+1. **Version control:** Task definitions in code, not database
+2. **Security:** Prevent task creation/modification via API
+3. **Consistency:** Same tasks across environments
+4. **Production best practice:** Immutable infrastructure
+
+### Implementation
+
+```python
+from chapkit.core.api.crud import CrudPermissions
+
+app = (
+    ServiceBuilder(info=info)
+    .with_health()
+    .with_artifacts(hierarchy=TASK_HIERARCHY)
+    .with_jobs(max_concurrency=3)
+    .with_tasks(
+        permissions=CrudPermissions(
+            create=False,  # Disable POST /tasks
+            read=True,     # Allow GET /tasks, GET /tasks/{id}
+            update=False,  # Disable PUT /tasks/{id}
+            delete=False,  # Disable DELETE /tasks/{id}
+        )
+    )
+    .on_startup(seed_tasks)  # Pre-seed tasks from code
+    .build()
+)
+```
+
+**Available operations:**
+- ✅ `GET /api/v1/tasks` - List tasks
+- ✅ `GET /api/v1/tasks/{id}` - Get task
+- ✅ `POST /api/v1/tasks/{id}/$execute` - Execute task
+- ❌ `POST /api/v1/tasks` - Create task (disabled)
+- ❌ `PUT /api/v1/tasks/{id}` - Update task (disabled)
+- ❌ `DELETE /api/v1/tasks/{id}` - Delete task (disabled)
+
+## API Reference
+
+### Create Python Task
+
+```bash
+POST /api/v1/tasks
+Content-Type: application/json
+
+{
+  "command": "calculate_sum",
+  "task_type": "python",
+  "parameters": {"a": 10, "b": 32},
+  "enabled": true
+}
+```
+
+**Response (201):**
+```json
+{
+  "id": "01TASK...",
+  "command": "calculate_sum",
+  "task_type": "python",
+  "parameters": {"a": 10, "b": 32},
+  "enabled": true,
+  "created_at": "2025-10-17T...",
+  "updated_at": "2025-10-17T..."
+}
+```
+
+### Execute Task
+
+```bash
+POST /api/v1/tasks/{id}/$execute
+```
+
+**Response (202):**
+```json
+{
+  "job_id": "01JOB...",
+  "message": "Task submitted for execution. Job ID: 01JOB..."
+}
+```
+
+### Get Job Status
+
+```bash
+GET /api/v1/jobs/{job_id}
+```
+
+**Response (200):**
+```json
+{
+  "id": "01JOB...",
+  "status": "completed",
+  "artifact_id": "01ARTIFACT...",
+  "submitted_at": "2025-10-17T...",
+  "started_at": "2025-10-17T...",
+  "finished_at": "2025-10-17T..."
+}
+```
+
+### Get Execution Results
+
+```bash
+GET /api/v1/artifacts/{artifact_id}
+```
+
+**Response (200):**
+```json
+{
+  "id": "01ARTIFACT...",
+  "data": {
+    "task": {
+      "id": "01TASK...",
+      "command": "calculate_sum",
+      "task_type": "python",
+      "parameters": {"a": 10, "b": 32}
+    },
+    "result": {
+      "result": 42,
+      "operation": "sum"
+    },
+    "error": null
+  },
+  "created_at": "2025-10-17T...",
+  "updated_at": "2025-10-17T..."
+}
+```
+
+### Filter Tasks by Status
+
+```bash
+GET /api/v1/tasks?enabled=true
+GET /api/v1/tasks?enabled=false
+```
+
+## Testing
+
+**Test Coverage:** 683 tests passing, 6 skipped
+
+### Test Files
+
+1. **`tests/test_task_registry.py`** (151 lines)
+   - Decorator registration
+   - Imperative registration
+   - Duplicate name detection
+   - Function retrieval
+   - Registry listing
+   - Clear functionality
+
+2. **`tests/test_task_injection.py`** (382 lines)
+   - AsyncSession injection
+   - Database injection
+   - ArtifactManager injection
+   - Mixed user + injected parameters
+   - Optional type handling (`Type | None`)
+   - Missing parameter error handling
+   - Sync function injection
+
+3. **`tests/test_manager_task.py`** (246 lines added)
+   - Python task execution (sync/async)
+   - Shell task execution
+   - Parameter passing
+   - Error handling and artifact structure
+   - Enable/disable enforcement
+   - Find with enabled filtering
+
+4. **`tests/test_task_repository.py`** (139 lines)
+   - `find_all(enabled=True/False/None)`
+   - `find_by_enabled(bool)`
+   - Query correctness
+
+5. **`tests/test_task_router.py`** (168 lines)
+   - Enable/disable via API
+   - Query parameter filtering
+   - Execution validation
+
+6. **`tests/test_task_validation.py`** (242 lines)
+   - Orphaned task detection
+   - Auto-disable orphaned tasks
+   - Logging verification
+   - Registry validation
+
+7. **`tests/test_example_python_task_execution_api.py`** (286 lines)
+   - Full integration tests
+   - Multiple task types
+   - Sync/async function execution
+   - Error handling
+   - Dependency injection examples
+   - Mixed shell and Python tasks
+
+### Test Patterns
+
+**Registry Testing:**
+```python
+from chapkit import TaskRegistry
+
+def test_register_function():
+    TaskRegistry.clear()  # Clean state
+
+    @TaskRegistry.register("test_func")
+    def test_func(x: int) -> int:
+        return x * 2
+
+    assert "test_func" in TaskRegistry.list_all()
+    func = TaskRegistry.get("test_func")
+    assert func(5) == 10
+```
+
+**Injection Testing:**
+```python
+async def test_inject_async_session():
+    @TaskRegistry.register("needs_session")
+    async def needs_session(session: AsyncSession) -> dict:
+        assert session is not None
+        return {"has_session": True}
+
+    task_manager = TaskManager(repo, scheduler, database, artifact_manager)
+    task = await task_manager.save(
+        TaskIn(
+            command="needs_session",
+            task_type="python",
+            parameters={},  # Empty - session injected
+        )
+    )
+
+    job_id = await task_manager.execute_task(task.id)
+    # Verify session was injected and task executed
+```
+
+**Enable/Disable Testing:**
+```python
+async def test_cannot_execute_disabled_task():
+    task = await task_manager.save(
+        TaskIn(command="echo 'test'", enabled=False)
+    )
+
+    with pytest.raises(ValueError, match="Cannot execute disabled task"):
+        await task_manager.execute_task(task.id)
+```
+
+## Documentation
+
+### Guides
+
+1. **`docs/guides/task-execution.md`** (1610 lines)
+   - Complete task execution guide
+   - Shell and Python task examples
+   - Type-based injection documentation
+   - Enable/disable patterns
+   - Orphaned task validation
+   - API reference with examples
+
+2. **`examples/docs/task_python_execution.md`** (543 lines)
+   - cURL-based API examples
+   - Step-by-step Python task workflow
+   - Dependency injection examples
+   - Error handling demonstrations
+
+3. **`examples/docs/task_python_execution.postman_collection.json`** (958 lines)
+   - Complete Postman collection
+   - Pre-configured requests
+   - Environment variables
+   - Test scripts
+
+4. **`CLAUDE.md`** updates (52 lines added)
+   - Task Execution System section
+   - Quick reference for TaskRegistry
+   - Type-based injection overview
+   - Integration with ServiceBuilder
+
+### Example Applications
+
+1. **`examples/task_execution_api.py`** (Original shell example)
+   - Simple shell task execution
+   - Artifact-based results
+   - Basic seeding
+
+2. **`examples/python_task_execution_api.py`** (229 lines)
+   - Python function registration
+   - Sync/async examples
+   - Dependency injection examples
+   - Error handling demonstrations
+   - Mixed shell and Python tasks
+   - Orphaned task validation
+
+3. **`examples/readonly_task_api.py`** (167 lines)
+   - Read-only API pattern
+   - Pre-seeded tasks
+   - CrudPermissions usage
+   - Production deployment pattern
+
+## Security Considerations
+
+1. **No Arbitrary Code Execution**
+   - Only registered functions can be executed
+   - Function names validated against registry
+   - No `eval()` or dynamic imports
+
+2. **Parameter Validation**
+   - Pydantic validation on `task.parameters`
+   - Type hints enforce parameter types
+   - Missing required parameters caught before execution
+
+3. **Exception Isolation**
+   - Python exceptions captured and stored in artifacts
+   - Exceptions don't crash job scheduler
+   - Full tracebacks preserved for debugging
+
+4. **Session Management**
+   - Dedicated session per execution
+   - Always closed in `finally` block
+   - No session leaks
+
+5. **Orphaned Task Prevention**
+   - Auto-disable tasks with missing functions
+   - Prevents execution failures
+   - Logged for monitoring
+
+## Performance Considerations
+
+1. **Sync Function Handling**
+   - Executed via `asyncio.to_thread()`
+   - Doesn't block event loop
+   - Suitable for CPU-bound tasks
+
+2. **Async Function Handling**
+   - Direct `await` execution
+   - Efficient for I/O-bound tasks
+   - No thread overhead
+
+3. **Parameter Injection Overhead**
+   - Function signature parsed once per execution
+   - Type hints retrieved once
+   - Minimal overhead (~microseconds)
+
+4. **Registry Lookup**
+   - Dictionary-based (O(1) lookup)
+   - No parsing or compilation
+   - Cached function references
+
+## Migration Guide
+
+### From Shell-Only to Shell + Python
+
+**Before:**
+```python
+app = (
+    ServiceBuilder(info=info)
+    .with_health()
+    .with_artifacts(hierarchy=TASK_HIERARCHY)
+    .with_jobs(max_concurrency=3)
+    .with_tasks()  # Only shell tasks
+    .build()
+)
+```
+
+**After:**
+```python
+# 1. Register Python functions
+@TaskRegistry.register("my_function")
+async def my_function(x: int) -> dict:
+    return {"result": x * 2}
+
+# 2. Add validation hook
+async def validate_tasks_on_startup(app: FastAPI) -> None:
+    await validate_and_disable_orphaned_tasks(app)
+
+# 3. Same ServiceBuilder, add validation
+app = (
+    ServiceBuilder(info=info)
+    .with_health()
+    .with_artifacts(hierarchy=TASK_HIERARCHY)
+    .with_jobs(max_concurrency=3)
+    .with_tasks()  # Now supports both shell and python
+    .on_startup(validate_tasks_on_startup)  # Optional but recommended
+    .build()
+)
+```
+
+**No breaking changes:**
+- Existing shell tasks continue to work
+- API endpoints unchanged
+- Database schema extended (backwards compatible)
+
+## Known Limitations
+
+1. **In-Memory Registry**
+   - Registry cleared on restart
+   - Must re-register functions on startup
+   - No registry persistence
+
+2. **Global Registry**
+   - Single global registry per process
+   - No namespacing or scoping
+   - Function name collisions possible
+
+3. **Parameter Serialization**
+   - Parameters must be JSON-serializable
+   - Complex objects (pandas DataFrames) stored as dicts
+   - No automatic serialization for custom types
+
+4. **No Retry Logic**
+   - Failed executions don't retry automatically
+   - Must re-execute manually
+   - (Can be added in future)
+
+5. **Injection Limitations**
+   - Only framework types injectable
+   - No custom user-defined injectable types
+   - No constructor injection (function parameters only)
+
+## Future Enhancements (Phase 1 Follow-ups)
+
+Potential improvements to Python task execution:
+
+1. **Custom Injectable Types**
+   - Allow users to register custom injectable types
+   - Service locator pattern
+   - `TaskManager.register_injectable(Type, instance)`
+
+2. **Parameter Serialization**
+   - Support custom type serializers
+   - Automatic pandas DataFrame serialization
+   - Protocol for user-defined serializers
+
+3. **Registry Namespacing**
+   - Module-scoped registries
+   - Avoid name collisions
+   - `TaskRegistry("myapp.tasks").register("func")`
+
+4. **Function Versioning**
+   - Track function versions
+   - Artifact stores which version executed
+   - `@TaskRegistry.register("func", version="1.0")`
+
+5. **Retry Policies**
+   - Automatic retry on failure
+   - Configurable backoff strategies
+   - Max retry limits
+
+6. **Result Caching**
+   - Cache results based on parameters
+   - Avoid re-execution
+   - TTL-based invalidation
+
+---
+
+# Phase 2: Job Scheduling (DRAFT)
 
 ## Goals
 
@@ -23,15 +934,6 @@ This design extends Chapkit's task execution system with job scheduling capabili
 - Distributed scheduling across multiple nodes
 
 ## Background
-
-### Current Task System
-
-Tasks support both shell commands and Python functions (Phase 1 - **IMPLEMENTED**):
-- **Shell tasks:** Execute via `asyncio.create_subprocess_shell()`
-  - Results: stdout, stderr, exit_code in artifacts
-- **Python tasks:** Execute registered functions via TaskRegistry
-  - Results: result object or error with traceback in artifacts
-- Stateless templates with execution history via artifacts
 
 ### Current Job Scheduler
 
@@ -530,7 +1432,7 @@ def _register_routes(self) -> None:
             raise HTTPException(status_code=404, detail=str(e))
 ```
 
-## API Reference
+## API Reference (Phase 2)
 
 ### Scheduling Endpoints
 
@@ -623,7 +1525,7 @@ Delete a schedule.
 
 **Response (204):** No content
 
-## Usage Examples
+## Usage Examples (Phase 2)
 
 ### Example 1: Schedule Task with Cron
 
@@ -686,7 +1588,7 @@ curl -X POST http://localhost:8000/api/v1/tasks/$TASK_ID/\$schedule \
 curl http://localhost:8000/api/v1/jobs?page=1&size=20
 ```
 
-## Testing Strategy
+## Testing Strategy (Phase 2)
 
 ### Unit Tests
 
@@ -721,21 +1623,6 @@ curl http://localhost:8000/api/v1/jobs?page=1&size=20
 - Worker updates last_run_at and next_run_at
 - Multiple schedules for same task execute correctly
 
-## Security Considerations
-
-1. **Registry-only Python execution**: No arbitrary code execution via API
-2. **Parameter validation**: Pydantic validation on parameters
-3. **Exception isolation**: Python task exceptions don't crash scheduler
-4. **Schedule validation**: Cron expressions validated before storage
-5. **Resource limits**: Existing job scheduler concurrency controls apply
-
-## Performance Considerations
-
-1. **Scheduler interval**: 60-second check interval balances accuracy and overhead
-2. **Lock contention**: Schedule modifications use lock, but execution happens outside lock
-3. **Memory**: In-memory storage limited by available RAM (acceptable for MVP)
-4. **Cron parsing**: `croniter` performs well for typical use cases
-
 ## Migration Path to Persistence
 
 When persistence is needed later:
@@ -747,20 +1634,7 @@ When persistence is needed later:
 5. Add database cleanup for completed "once" schedules
 6. **No API changes required** - same endpoints, same request/response format
 
-## Future Enhancements
-
-Potential features for later iterations:
-
-1. **Persistence**: Store schedules in database
-2. **Schedule history**: Track all executions of a schedule
-3. **Retry policies**: Automatic retry on failure
-4. **Schedule conflicts**: Detect overlapping executions
-5. **Time zones**: Support non-UTC time zones for cron schedules
-6. **Schedule templates**: Pre-configured schedule types (daily, weekly, monthly)
-7. **Schedule chaining**: Execute task B after task A completes
-8. **APScheduler migration**: Switch to battle-tested library
-
-## Open Questions
+## Open Questions (Phase 2)
 
 1. Should schedules be deleted when parent task is deleted?
 2. Should we limit max number of schedules per task?
@@ -770,16 +1644,17 @@ Potential features for later iterations:
 ## References
 
 - Current task execution guide: `docs/guides/task-execution.md`
+- Python task execution examples: `examples/python_task_execution_api.py`
 - Job scheduler: `src/chapkit/core/scheduler.py`
 - Task module: `src/chapkit/modules/task/`
 - Croniter docs: https://github.com/kiorky/croniter
 
 ---
 
-**Next Steps:**
-1. Review design with stakeholders
-2. Get approval on open questions
-3. Implement in feature branch
-4. Write comprehensive tests
-5. Update documentation
-6. Create example application
+## Summary
+
+**Phase 1 (IMPLEMENTED):** Python task execution with type-based dependency injection is complete with comprehensive testing (683 tests passing) and documentation.
+
+**Phase 2 (DRAFT):** Job scheduling design is ready for implementation when needed.
+
+Both phases integrate seamlessly with existing chapkit architecture and maintain backwards compatibility with shell task execution.
