@@ -7,6 +7,7 @@ import time
 from datetime import datetime, timezone
 
 from fastapi import FastAPI
+from sqlalchemy.ext.asyncio import AsyncSession
 from ulid import ULID
 
 from chapkit import (
@@ -54,6 +55,30 @@ async def failing_task(should_fail: bool = True) -> dict:
     if should_fail:
         raise ValueError("This task was designed to fail")
     return {"success": True}
+
+
+@TaskRegistry.register("query_task_count")
+async def query_task_count(session: AsyncSession) -> dict:
+    """Example task using dependency injection to query database.
+
+    Demonstrates type-based injection:
+    - session: AsyncSession is injected by framework (no user parameter needed)
+    - Function can perform database queries within injected session
+    """
+    from sqlalchemy import func, select
+
+    from chapkit.modules.task.models import Task
+
+    # Use injected session to query database
+    stmt = select(func.count()).select_from(Task)
+    result = await session.execute(stmt)
+    count = result.scalar() or 0
+
+    return {
+        "total_tasks": count,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "injected_session": True,
+    }
 
 
 async def seed_python_tasks(app: FastAPI) -> None:
@@ -133,10 +158,21 @@ async def seed_python_tasks(app: FastAPI) -> None:
             )
         )
 
-        # Example 7: Orphaned task (function not registered - will be auto-disabled)
+        # Example 7: Task with dependency injection (no parameters needed)
         await task_manager.save(
             TaskIn(
                 id=ULID.from_str("01JCSEED0000000000000PYTH7"),
+                command="query_task_count",
+                task_type="python",
+                parameters={},  # No parameters - session injected automatically
+                enabled=True,
+            )
+        )
+
+        # Example 8: Orphaned task (function not registered - will be auto-disabled)
+        await task_manager.save(
+            TaskIn(
+                id=ULID.from_str("01JCSEED0000000000000PYTH8"),
                 command="nonexistent_function",
                 task_type="python",
                 parameters={},
@@ -156,6 +192,7 @@ info = ServiceInfo(
     - Register Python functions with @TaskRegistry.register()
     - Support both sync and async functions
     - Pass parameters as dict to functions
+    - Type-based dependency injection (AsyncSession, Database, etc.)
     - Capture results or exceptions in artifacts
     - Mix Python and shell tasks in the same service
     - Enable/disable tasks for execution control
