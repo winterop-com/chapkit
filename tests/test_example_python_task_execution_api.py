@@ -276,8 +276,22 @@ def test_mixed_shell_and_python_tasks(client: TestClient) -> None:
     shell_job = wait_for_job_completion(client, shell_exec.json()["job_id"])
     python_job = wait_for_job_completion(client, python_exec.json()["job_id"])
 
+    # Debug shell task failure if it occurs
+    if shell_job["status"] != "completed":
+        if shell_job.get("artifact_id"):
+            artifact = client.get(f"/api/v1/artifacts/{shell_job['artifact_id']}").json()
+            print(f"\nShell task failed - Debug info:")
+            print(f"  Status: {shell_job['status']}")
+            print(f"  Artifact data: {artifact['data']}")
+            if "exit_code" in artifact["data"]:
+                print(f"  Exit code: {artifact['data']['exit_code']}")
+            if "stderr" in artifact["data"]:
+                print(f"  Stderr: {artifact['data']['stderr']}")
+            if "stdout" in artifact["data"]:
+                print(f"  Stdout: {artifact['data']['stdout']}")
+
     # Both should complete
-    assert shell_job["status"] == "completed"
+    assert shell_job["status"] == "completed", f"Shell task failed with status: {shell_job['status']}"
     assert python_job["status"] == "completed"
 
     # Verify different artifact structures
