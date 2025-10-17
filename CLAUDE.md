@@ -255,12 +255,62 @@ apps/
 
 See `examples/app_hosting_api.py` and `examples/apps/sample-dashboard/` for complete working example.
 
+## Task Execution System
+
+Chapkit provides a task execution system supporting both shell commands and Python functions with type-based dependency injection.
+
+**Task Types:**
+- **Shell tasks**: Execute commands via asyncio subprocess, capture stdout/stderr/exit_code
+- **Python tasks**: Execute registered functions via TaskRegistry, capture result/error with traceback
+
+**Python Task Registration:**
+```python
+from chapkit import TaskRegistry
+
+@TaskRegistry.register("my_task")
+async def my_task(name: str, session: AsyncSession) -> dict:
+    """Task with user parameters and dependency injection."""
+    # name comes from task.parameters (user-provided)
+    # session is injected by framework (type-based)
+    return {"status": "success", "name": name}
+```
+
+**Type-Based Dependency Injection:**
+
+Framework types are automatically injected based on function parameter type hints:
+- `AsyncSession` - SQLAlchemy async database session
+- `Database` - Chapkit Database instance
+- `ArtifactManager` - Artifact management service
+- `JobScheduler` - Job scheduling service
+
+**Key Features:**
+- Enable/disable controls for tasks
+- Orphaned task validation (auto-disable tasks with missing functions on startup)
+- Support both sync and async Python functions
+- Mix user parameters with framework injections
+- Optional type support (`AsyncSession | None`)
+- Artifact-based execution results for both shell and Python tasks
+
+**Example:**
+```python
+app = (
+    ServiceBuilder(info=ServiceInfo(display_name="Task Service"))
+    .with_health()
+    .with_artifacts(hierarchy=TASK_HIERARCHY)
+    .with_jobs(max_concurrency=3)
+    .with_tasks()  # Adds task CRUD + execution endpoints
+    .build()
+)
+```
+
+See `docs/guides/task-execution.md` for complete documentation and `examples/python_task_execution_api.py` for working examples.
+
 ## Common Endpoints
 
 **Config Service:** Health check, CRUD operations, pagination (`?page=1&size=20`), schema endpoint (`/$schema`)
 **Artifact Service:** CRUD + tree operations (`/$tree`), optional config linking
 **Job Scheduler:** List/get/delete jobs, status filtering
-**Task Service:** CRUD + execute operation (`/$execute`)
+**Task Service:** CRUD, execute (`/$execute`), enable/disable controls, Python function registry, type-based injection
 **ML Service:** Train (`/$train`) and predict (`/$predict`) operations
 
 **Operation prefix:** `$` indicates operations (computed/derived data) vs resource access
