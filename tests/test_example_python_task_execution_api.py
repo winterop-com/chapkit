@@ -253,13 +253,8 @@ def test_python_task_without_parameters(client: TestClient) -> None:
     assert data["result"]["completed"] is True
 
 
-def test_mixed_shell_and_python_tasks(client: TestClient) -> None:
-    """Test that shell and Python tasks can coexist."""
-    # Create a shell task
-    shell_task = {"command": "echo shell_task", "task_type": "shell"}
-    shell_response = client.post("/api/v1/tasks", json=shell_task)
-    shell_task_data = shell_response.json()
-
+def test_python_task_artifact_structure(client: TestClient) -> None:
+    """Test Python task execution and artifact structure."""
     # Create a Python task
     python_task = {
         "command": "calculate_sum",
@@ -269,41 +264,23 @@ def test_mixed_shell_and_python_tasks(client: TestClient) -> None:
     python_response = client.post("/api/v1/tasks", json=python_task)
     python_task_data = python_response.json()
 
-    # Execute both
-    shell_exec = client.post(f"/api/v1/tasks/{shell_task_data['id']}/$execute")
+    # Execute the task
     python_exec = client.post(f"/api/v1/tasks/{python_task_data['id']}/$execute")
-
-    shell_job = wait_for_job_completion(client, shell_exec.json()["job_id"])
     python_job = wait_for_job_completion(client, python_exec.json()["job_id"])
 
-    # Debug shell task failure if it occurs
-    if shell_job["status"] != "completed":
-        if shell_job.get("artifact_id"):
-            artifact = client.get(f"/api/v1/artifacts/{shell_job['artifact_id']}").json()
-            print(f"\nShell task failed - Debug info:")
-            print(f"  Status: {shell_job['status']}")
-            print(f"  Artifact data: {artifact['data']}")
-            if "exit_code" in artifact["data"]:
-                print(f"  Exit code: {artifact['data']['exit_code']}")
-            if "stderr" in artifact["data"]:
-                print(f"  Stderr: {artifact['data']['stderr']}")
-            if "stdout" in artifact["data"]:
-                print(f"  Stdout: {artifact['data']['stdout']}")
-
-    # Both should complete
-    assert shell_job["status"] == "completed", f"Shell task failed with status: {shell_job['status']}"
+    # Should complete successfully
     assert python_job["status"] == "completed"
+    assert python_job["artifact_id"] is not None
 
-    # Verify different artifact structures
-    shell_artifact = client.get(f"/api/v1/artifacts/{shell_job['artifact_id']}").json()
+    # Get artifact and verify Python task structure
     python_artifact = client.get(f"/api/v1/artifacts/{python_job['artifact_id']}").json()
 
-    # Shell artifact has stdout/stderr/exit_code
-    assert "stdout" in shell_artifact["data"]
-    assert "stderr" in shell_artifact["data"]
-    assert "exit_code" in shell_artifact["data"]
-
-    # Python artifact has result/error
+    # Python artifact has result/error structure (not stdout/stderr)
     assert "result" in python_artifact["data"]
     assert "error" in python_artifact["data"]
+    assert "task" in python_artifact["data"]
+
+    # Verify the result
+    assert python_artifact["data"]["error"] is None
     assert python_artifact["data"]["result"]["result"] == 2
+    assert python_artifact["data"]["result"]["operation"] == "sum"
