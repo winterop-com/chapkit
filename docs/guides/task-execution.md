@@ -1,6 +1,6 @@
 # Task Execution
 
-Chapkit provides a task execution system for running shell commands asynchronously with artifact-based result storage. Tasks are reusable command templates that can be executed multiple times, with each execution creating a Job and storing results in an Artifact.
+Chapkit provides a task execution system for running shell commands and Python functions asynchronously with artifact-based result storage. Tasks are reusable templates that can be executed multiple times, with each execution creating a Job and storing results in an Artifact.
 
 ## Quick Start
 
@@ -85,6 +85,136 @@ The Job record links to the result artifact via `Job.artifact_id`.
 
 ---
 
+## Python Task Execution
+
+In addition to shell commands, Chapkit supports executing registered Python functions as tasks. This provides type-safe, IDE-friendly task execution with parameter validation.
+
+### TaskRegistry
+
+Python functions must be registered before they can be executed as tasks. This prevents arbitrary code execution and ensures all callable functions are explicitly defined.
+
+**Registration Methods:**
+
+**1. Decorator Registration:**
+```python
+from chapkit import TaskRegistry
+
+@TaskRegistry.register("calculate_sum")
+async def calculate_sum(a: int, b: int) -> dict:
+    """Calculate sum of two numbers asynchronously."""
+    await asyncio.sleep(0.1)  # Simulate async work
+    return {"result": a + b, "operation": "sum"}
+
+@TaskRegistry.register("process_data")
+def process_data(input_text: str, uppercase: bool = False) -> dict:
+    """Process text data synchronously."""
+    result = input_text.upper() if uppercase else input_text.lower()
+    return {"processed": result, "original": input_text}
+```
+
+**2. Imperative Registration:**
+```python
+def my_function(param: str) -> dict:
+    return {"result": f"Processed {param}"}
+
+TaskRegistry.register_function("my_task", my_function)
+```
+
+### Creating Python Tasks
+
+Python tasks use `task_type="python"` and accept a `parameters` dict:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "calculate_sum",
+    "task_type": "python",
+    "parameters": {"a": 10, "b": 32}
+  }'
+```
+
+**Field Mapping:**
+- `command` - Name of registered function (not the function body)
+- `task_type` - Must be "python"
+- `parameters` - Dict passed as kwargs to the function
+
+### Python Task Artifacts
+
+Python task results have a different structure than shell tasks:
+
+**Successful Execution:**
+```json
+{
+  "task": {
+    "id": "01TASK...",
+    "command": "calculate_sum",
+    "task_type": "python",
+    "parameters": {"a": 10, "b": 32},
+    "created_at": "2025-10-17T...",
+    "updated_at": "2025-10-17T..."
+  },
+  "result": {
+    "result": 42,
+    "operation": "sum"
+  },
+  "error": null
+}
+```
+
+**Failed Execution:**
+```json
+{
+  "task": {...},
+  "result": null,
+  "error": {
+    "type": "ValueError",
+    "message": "Invalid parameter value",
+    "traceback": "Traceback (most recent call last):\n..."
+  }
+}
+```
+
+**Comparison with Shell Tasks:**
+
+| Feature | Shell Tasks | Python Tasks |
+|---------|-------------|--------------|
+| Output fields | `stdout`, `stderr`, `exit_code` | `result`, `error` |
+| Success indicator | `exit_code == 0` | `error == null` |
+| Error info | `stderr` text | Full exception with traceback |
+| Return value | Command output text | Any JSON-serializable Python object |
+
+### Sync vs Async Functions
+
+TaskRegistry supports both synchronous and asynchronous functions:
+
+```python
+# Async function - awaited directly
+@TaskRegistry.register("async_task")
+async def async_task(param: str) -> dict:
+    await asyncio.sleep(1)
+    return {"result": param}
+
+# Sync function - executed in thread pool
+@TaskRegistry.register("sync_task")
+def sync_task(param: str) -> dict:
+    import time
+    time.sleep(1)  # Blocking operation
+    return {"result": param}
+```
+
+Synchronous functions are executed in a thread pool via `asyncio.to_thread()` to prevent blocking the event loop.
+
+### Complete Example
+
+See `examples/python_task_execution_api.py` for a complete working example with:
+- Multiple registered functions (async and sync)
+- Error handling demonstrations
+- Mixed shell and Python tasks
+- Seeded example tasks
+
+---
+
 ## Task Lifecycle
 
 ```
@@ -155,20 +285,38 @@ app = (
 
 ### POST /api/v1/tasks
 
-Create a new task template.
+Create a new task template (shell or Python).
 
-**Request:**
+**Request (Shell Task):**
 ```json
 {
   "command": "echo 'Hello World'"
 }
 ```
 
+**Request (Python Task):**
+```json
+{
+  "command": "calculate_sum",
+  "task_type": "python",
+  "parameters": {"a": 10, "b": 32}
+}
+```
+
+**Fields:**
+- `command` (required) - Shell command or registered Python function name
+- `task_type` (optional) - "shell" (default) or "python"
+- `parameters` (optional) - Dict of parameters for Python tasks (ignored for shell tasks)
+- `enabled` (optional) - Boolean to enable/disable task execution (default: true)
+
 **Response (201):**
 ```json
 {
   "id": "01JCSEED0000000000000TASK1",
-  "command": "echo 'Hello World'",
+  "command": "calculate_sum",
+  "task_type": "python",
+  "parameters": {"a": 10, "b": 32},
+  "enabled": true,
   "created_at": "2025-10-14T10:30:00Z",
   "updated_at": "2025-10-14T10:30:00Z"
 }
@@ -176,14 +324,21 @@ Create a new task template.
 
 ### GET /api/v1/tasks
 
-List all task templates with optional pagination.
+List all task templates with optional pagination and filtering.
 
 ```bash
 # List all tasks
 curl http://localhost:8000/api/v1/tasks
 
+# Filter by enabled status
+curl http://localhost:8000/api/v1/tasks?enabled=true   # Only enabled tasks
+curl http://localhost:8000/api/v1/tasks?enabled=false  # Only disabled tasks
+
 # With pagination
 curl http://localhost:8000/api/v1/tasks?page=1&size=20
+
+# Combine filters
+curl http://localhost:8000/api/v1/tasks?enabled=true&page=1&size=10
 ```
 
 **Response:**
@@ -192,6 +347,18 @@ curl http://localhost:8000/api/v1/tasks?page=1&size=20
   {
     "id": "01JCSEED0000000000000TASK1",
     "command": "ls -la /tmp",
+    "task_type": "shell",
+    "parameters": null,
+    "enabled": true,
+    "created_at": "2025-10-14T10:30:00Z",
+    "updated_at": "2025-10-14T10:30:00Z"
+  },
+  {
+    "id": "01JCSEED0000000000000TASK2",
+    "command": "calculate_sum",
+    "task_type": "python",
+    "parameters": {"a": 10, "b": 32},
+    "enabled": false,
     "created_at": "2025-10-14T10:30:00Z",
     "updated_at": "2025-10-14T10:30:00Z"
   }
@@ -208,16 +375,17 @@ curl http://localhost:8000/api/v1/tasks/01JCSEED0000000000000TASK1
 
 ### PUT /api/v1/tasks/{task_id}
 
-Update a task template command.
+Update a task template.
 
 **Request:**
 ```json
 {
-  "command": "echo 'Updated command'"
+  "command": "echo 'Updated command'",
+  "task_type": "shell"
 }
 ```
 
-**Note:** Updating a task does not affect previous execution artifacts.
+**Note:** Updating a task does not affect previous execution artifacts. You can change task_type and parameters when updating.
 
 ### DELETE /api/v1/tasks/{task_id}
 
@@ -248,8 +416,50 @@ curl -X POST http://localhost:8000/api/v1/tasks/01JCSEED0000000000000TASK1/\$exe
 ```
 
 **Errors:**
-- `400 Bad Request` - Task not found or invalid ID
+- `400 Bad Request` - Task not found, invalid ID, or task is disabled
 - `409 Conflict` - Scheduler or artifact manager not configured
+
+### Task Enable/Disable
+
+Tasks can be enabled or disabled to control execution. Disabled tasks cannot be executed but remain in the database for reference.
+
+**Creating a Disabled Task:**
+```bash
+curl -X POST http://localhost:8000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "echo test",
+    "enabled": false
+  }'
+```
+
+**Disabling an Existing Task:**
+```bash
+curl -X PUT http://localhost:8000/api/v1/tasks/{task_id} \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "echo test",
+    "enabled": false
+  }'
+```
+
+**Attempting to Execute a Disabled Task:**
+```bash
+curl -X POST http://localhost:8000/api/v1/tasks/{disabled_task_id}/\$execute
+```
+
+**Response (400):**
+```json
+{
+  "detail": "Cannot execute disabled task {task_id}"
+}
+```
+
+**Use Cases:**
+- Temporarily pause task execution without deletion
+- Preserve task history while preventing new executions
+- Automatically disable orphaned Python tasks (see Orphaned Tasks section)
+- Soft-delete pattern for auditing and compliance
 
 ---
 
@@ -329,7 +539,9 @@ echo "$artifacts" | jq --arg task_id "$TASK_ID" \
 
 ## Examples
 
-### Simple Commands
+### Shell Task Examples
+
+**Simple Commands:**
 
 ```bash
 # Directory listing
@@ -345,10 +557,10 @@ curl -X POST http://localhost:8000/api/v1/tasks \
   -d '{"command": "echo \"Task execution works!\""}' | jq -r '.id'
 ```
 
-### Python Scripts
+**Python One-liners (Shell Tasks):**
 
 ```bash
-# Python one-liner
+# Python one-liner as shell command
 curl -X POST http://localhost:8000/api/v1/tasks -d '{
   "command": "python3 -c \"import sys; print(sys.version); print(2+2)\""
 }'
@@ -358,6 +570,100 @@ curl -X POST http://localhost:8000/api/v1/tasks -d '{
   "command": "python3 -c \"import json; print(json.dumps({\\\"result\\\": 42}))\""
 }'
 ```
+
+### Python Task Examples
+
+**Async Function Execution:**
+
+```bash
+# Assuming you have registered this function:
+# @TaskRegistry.register("calculate_sum")
+# async def calculate_sum(a: int, b: int) -> dict:
+#     await asyncio.sleep(0.1)
+#     return {"result": a + b, "operation": "sum"}
+
+# Create Python task
+TASK_ID=$(curl -s -X POST http://localhost:8000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "calculate_sum",
+    "task_type": "python",
+    "parameters": {"a": 15, "b": 27}
+  }' | jq -r '.id')
+
+# Execute task
+JOB_ID=$(curl -s -X POST http://localhost:8000/api/v1/tasks/$TASK_ID/\$execute | jq -r '.job_id')
+
+# Wait and get result
+sleep 1
+ARTIFACT_ID=$(curl -s http://localhost:8000/api/v1/jobs/$JOB_ID | jq -r '.artifact_id')
+
+# View result
+curl -s http://localhost:8000/api/v1/artifacts/$ARTIFACT_ID | jq '.data.result'
+# Output: {"result": 42, "operation": "sum"}
+```
+
+**Sync Function with Parameters:**
+
+```bash
+# Assuming you have registered:
+# @TaskRegistry.register("process_data")
+# def process_data(input_text: str, uppercase: bool = False) -> dict:
+#     result = input_text.upper() if uppercase else input_text.lower()
+#     return {"processed": result, "original": input_text}
+
+curl -X POST http://localhost:8000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "process_data",
+    "task_type": "python",
+    "parameters": {
+      "input_text": "Hello World",
+      "uppercase": true
+    }
+  }'
+```
+
+**Error Handling:**
+
+```bash
+# Assuming you have registered:
+# @TaskRegistry.register("failing_task")
+# async def failing_task(should_fail: bool = True) -> dict:
+#     if should_fail:
+#         raise ValueError("This task was designed to fail")
+#     return {"success": True}
+
+TASK_ID=$(curl -s -X POST http://localhost:8000/api/v1/tasks \
+  -d '{
+    "command": "failing_task",
+    "task_type": "python",
+    "parameters": {"should_fail": true}
+  }' | jq -r '.id')
+
+# Execute and check artifact
+JOB_ID=$(curl -s -X POST http://localhost:8000/api/v1/tasks/$TASK_ID/\$execute | jq -r '.job_id')
+sleep 1
+
+# View error details
+curl -s http://localhost:8000/api/v1/jobs/$JOB_ID | jq '.artifact_id' | \
+  xargs -I {} curl -s http://localhost:8000/api/v1/artifacts/{} | jq '.data.error'
+
+# Output:
+# {
+#   "type": "ValueError",
+#   "message": "This task was designed to fail",
+#   "traceback": "Traceback (most recent call last):\n..."
+# }
+```
+
+**Complete Working Example:**
+
+See `examples/python_task_execution_api.py` for a full service with:
+- Multiple registered functions (async and sync)
+- Error handling demonstrations
+- Mixed shell and Python tasks
+- Integration with ServiceBuilder
 
 ### Multi-line Commands
 
@@ -748,29 +1054,83 @@ app = (
 
 **Command Injection Prevention:**
 
-Tasks execute arbitrary shell commands. Implement access controls:
+Tasks execute arbitrary shell commands. Implement access controls using CRUD permissions:
 
 ```python
 from chapkit.core.api.crud import CrudPermissions
+from chapkit.api import ServiceBuilder, ServiceInfo
 
-# Restrict task creation/modification
+# Read-only task API (tasks created only via code)
 task_permissions = CrudPermissions(
-    create=False,    # Disable runtime task creation
-    read=True,
-    update=False,    # Disable runtime updates
-    delete=False,    # Disable deletion
+    allow_create=False,    # Disable runtime task creation
+    allow_read=True,       # Allow reading tasks
+    allow_update=False,    # Disable runtime updates
+    allow_delete=False,    # Disable deletion
 )
 
-# Apply at router level (requires custom router setup)
+app = (
+    ServiceBuilder(info=ServiceInfo(display_name="Task Service"))
+    .with_database("tasks.db")
+    .with_artifacts(hierarchy=TASK_HIERARCHY)
+    .with_jobs(max_concurrency=5)
+    .with_tasks(permissions=task_permissions)  # Apply permissions
+    .build()
+)
 ```
 
+**Read-Only API Pattern:**
+
+With read-only permissions, all tasks are pre-seeded at startup:
+
+```python
+from chapkit import TaskIn, TaskManager
+
+async def seed_tasks(app):
+    """Pre-seed task templates on startup."""
+    task_manager = app.state.task_manager
+
+    # Define tasks programmatically
+    tasks = [
+        TaskIn(command="echo 'System health check'", enabled=True),
+        TaskIn(command="python3 /app/backup.py", enabled=True),
+        TaskIn(command="process_data", task_type="python",
+               parameters={"batch_size": 100}, enabled=True),
+    ]
+
+    for task in tasks:
+        await task_manager.save(task)
+
+app = (
+    ServiceBuilder(info=info)
+    .with_database("tasks.db")
+    .with_artifacts(hierarchy=TASK_HIERARCHY)
+    .with_jobs(max_concurrency=5)
+    .with_tasks(permissions=CrudPermissions(
+        allow_create=False,
+        allow_read=True,
+        allow_update=False,
+        allow_delete=False,
+    ))
+    .on_startup(seed_tasks)
+    .build()
+)
+```
+
+**Benefits:**
+- Tasks defined in code (version controlled)
+- No runtime command injection risk
+- API users can only execute pre-defined tasks
+- Tasks can be audited before deployment
+- Enables GitOps workflow for task management
+
 **Recommendations:**
-- Pre-seed tasks at startup (read-only templates)
-- Use authentication (`.with_auth()`)
-- Validate commands before creating tasks
+- Use read-only API for production (pre-seed tasks at startup)
+- Apply authentication (`.with_auth()`) for execution endpoint
+- Validate commands in seeding logic
 - Run service with limited OS user permissions
 - Use container security (no privileged mode)
-- Monitor execution logs for suspicious commands
+- Monitor execution logs for suspicious activity
+- Use `validate_and_disable_orphaned_tasks` to prevent broken Python tasks
 
 ### Docker Deployment
 
@@ -919,6 +1279,106 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 ```
 
+### Orphaned Python Tasks
+
+**Problem:** Python task references a function that was removed or renamed from the registry.
+
+**Cause:** Function was removed or renamed but task template still references the old name.
+
+**Automatic Disabling (Recommended):**
+
+Chapkit provides a startup validation utility that automatically disables orphaned Python tasks:
+
+```python
+from chapkit import validate_and_disable_orphaned_tasks
+from chapkit.api import ServiceBuilder, ServiceInfo
+
+app = (
+    ServiceBuilder(info=ServiceInfo(display_name="Task Service"))
+    .with_database("tasks.db")
+    .with_artifacts(hierarchy=TASK_HIERARCHY)
+    .with_jobs(max_concurrency=5)
+    .with_tasks()
+    .on_startup(validate_and_disable_orphaned_tasks)
+    .build()
+)
+```
+
+**Behavior:**
+- Checks all Python tasks against `TaskRegistry` on startup
+- Automatically disables tasks referencing unregistered functions
+- Logs warnings for each orphaned task with task IDs and function names
+- Preserves task history (soft-delete via `enabled=False`)
+- Returns count of disabled tasks
+
+**Example Log Output:**
+```
+WARNING Found orphaned Python tasks - disabling them
+  count: 2
+  task_ids: ['01TASK1...', '01TASK2...']
+  commands: ['old_function', 'removed_function']
+INFO Disabling orphaned task 01TASK1...: function 'old_function' not found in registry
+INFO Disabling orphaned task 01TASK2...: function 'removed_function' not found in registry
+WARNING Disabled 2 orphaned Python task(s)
+```
+
+**Filtering Disabled Tasks:**
+```bash
+# List all disabled tasks
+curl http://localhost:8000/api/v1/tasks?enabled=false
+
+# List only enabled tasks
+curl http://localhost:8000/api/v1/tasks?enabled=true
+```
+
+**Re-enabling Tasks:**
+If you re-register the function, you can re-enable the task:
+
+```python
+# Re-register the function
+@TaskRegistry.register("old_function")
+def old_function(**params) -> dict:
+    return {"result": "restored"}
+```
+
+```bash
+# Re-enable the task
+curl -X PUT http://localhost:8000/api/v1/tasks/{task_id} \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "old_function",
+    "task_type": "python",
+    "enabled": true
+  }'
+```
+
+**Alternative Solutions:**
+
+**Option 1: Keep deprecated functions with errors**
+```python
+@TaskRegistry.register("old_function")
+def old_function(**params) -> dict:
+    """Deprecated - use new_function instead."""
+    raise NotImplementedError("This function has been removed. Use new_function instead.")
+```
+
+**Option 2: Manual deletion**
+```bash
+# Find orphaned tasks
+curl http://localhost:8000/api/v1/tasks?enabled=false | \
+  jq '.[] | select(.task_type == "python")'
+
+# Delete specific task
+curl -X DELETE http://localhost:8000/api/v1/tasks/{task_id}
+```
+
+**Best Practices:**
+- Always use `validate_and_disable_orphaned_tasks` on startup (production ready)
+- Monitor logs for orphaned task warnings
+- Consider versioning function names (e.g., `process_data_v1`, `process_data_v2`)
+- Document which tasks depend on which functions
+- Periodically review disabled tasks for cleanup
+
 ---
 
 ## Next Steps
@@ -929,6 +1389,8 @@ RUN apt-get update && apt-get install -y \
 - **Monitoring:** Track execution metrics with `.with_monitoring()`
 
 For more examples:
-- `examples/task_execution_api.py` - Complete task execution service
-- `tests/test_example_task_execution_api.py` - Comprehensive test suite
+- `examples/task_execution_api.py` - Shell task execution service
+- `examples/python_task_execution_api.py` - Python task execution with TaskRegistry
+- `tests/test_example_task_execution_api.py` - Shell task test suite
+- `tests/test_example_python_task_execution_api.py` - Python task test suite
 - `docs/guides/job-scheduler.md` - Job scheduler and SSE streaming

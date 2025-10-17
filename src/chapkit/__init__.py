@@ -39,7 +39,15 @@ from chapkit.modules.config import (
 )
 
 # Task feature
-from chapkit.modules.task import Task, TaskIn, TaskManager, TaskOut, TaskRepository
+from chapkit.modules.task import (
+    Task,
+    TaskIn,
+    TaskManager,
+    TaskOut,
+    TaskRegistry,
+    TaskRepository,
+    validate_and_disable_orphaned_tasks,
+)
 
 __all__ = [
     # Core framework
@@ -75,6 +83,8 @@ __all__ = [
     "Task",
     "TaskIn",
     "TaskOut",
+    "TaskRegistry",
     "TaskRepository",
     "TaskManager",
+    "validate_and_disable_orphaned_tasks",
 ]

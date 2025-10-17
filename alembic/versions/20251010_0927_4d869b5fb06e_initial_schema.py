@@ -57,6 +57,9 @@ def upgrade() -> None:
     op.create_table(
         "tasks",
         sa.Column("command", sa.Text(), nullable=False),
+        sa.Column("task_type", sa.Text(), nullable=False, server_default="shell"),
+        sa.Column("parameters", sa.JSON(), nullable=True),
+        sa.Column("enabled", sa.Boolean(), nullable=False, server_default="1"),
         sa.Column("id", chapkit.core.types.ULIDType(length=26), nullable=False),
         sa.Column("created_at", sa.DateTime(), server_default=sa.text("(CURRENT_TIMESTAMP)"), nullable=False),
         sa.Column("updated_at", sa.DateTime(), server_default=sa.text("(CURRENT_TIMESTAMP)"), nullable=False),

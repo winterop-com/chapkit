@@ -5,10 +5,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
+from ulid import ULID
 
 from chapkit.core.api.crud import CrudPermissions, CrudRouter
+from chapkit.core.manager import Manager
+from chapkit.core.schemas import PaginatedResponse
 
 from .manager import TaskManager
 from .schemas import TaskIn, TaskOut
@@ -44,6 +47,33 @@ class TaskRouter(CrudRouter[TaskIn, TaskOut]):
             permissions=permissions,
             **kwargs,
         )
+
+    def _register_find_all_route(self, manager_dependency: Any, manager_annotation: Any) -> None:
+        """Register find all route with enabled filtering support."""
+        entity_out_annotation: Any = self.entity_out_type
+        collection_response_model: Any = list[entity_out_annotation] | PaginatedResponse[entity_out_annotation]
+
+        @self.router.get("", response_model=collection_response_model)
+        async def find_all(
+            page: int | None = None,
+            size: int | None = None,
+            enabled: bool | None = Query(None, description="Filter by enabled status"),
+            manager: Manager[TaskIn, TaskOut, ULID] = manager_dependency,
+        ) -> list[TaskOut] | PaginatedResponse[TaskOut]:
+            from chapkit.core.api.pagination import create_paginated_response
+
+            # Pagination is opt-in: both page and size must be provided
+            if page is not None and size is not None:
+                items, total = await manager.find_paginated(page, size)
+                return create_paginated_response(items, total, page, size)
+
+            # Use TaskRepository's find_all with enabled filtering
+            # Cast manager to access repository with enabled parameter
+            task_manager = manager  # TaskManager with TaskRepository
+            return await task_manager.find_all(enabled=enabled)  # type: ignore[call-arg]
+
+        self._annotate_manager(find_all, manager_annotation)
+        find_all.__annotations__["return"] = list[entity_out_annotation] | PaginatedResponse[entity_out_annotation]
 
     def _register_routes(self) -> None:
         """Register task CRUD routes and execution operation."""
