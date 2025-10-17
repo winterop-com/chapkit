@@ -2,7 +2,7 @@
     "info": {
         "_postman_id": "01TASK000000000000000POST1",
         "name": "Chapkit Task Execution - Python & Shell",
-        "description": "Task execution service demonstrating Python function registration, task parameters, enable/disable controls, and orphaned task validation.\n\n**Features:**\n- Python Functions: Register sync and async functions as executable tasks\n- Parameters: Pass JSON parameters as kwargs to Python functions\n- Task Types: Both \"shell\" and \"python\" tasks supported\n- Enable/Disable: Control task execution with enabled flag\n- Orphaned Tasks: Automatic validation and disabling on startup\n- Task Registry: Type-safe function registration\n\n**Quick Start:**\n```bash\nfastapi dev examples/python_task_execution_api.py\n```\n\nService available at: http://127.0.0.1:8000",
+        "description": "Task execution service demonstrating Python function registration, task parameters, dependency injection, enable/disable controls, and orphaned task validation.\n\n**Features:**\n- Python Functions: Register sync and async functions as executable tasks\n- Parameters: Pass JSON parameters as kwargs to Python functions\n- Dependency Injection: Automatic type-based injection (AsyncSession, Database, ArtifactManager, JobScheduler)\n- Task Types: Both \"shell\" and \"python\" tasks supported\n- Enable/Disable: Control task execution with enabled flag\n- Orphaned Tasks: Automatic validation and disabling on startup\n- Task Registry: Type-safe function registration\n\n**Quick Start:**\n```bash\nfastapi dev examples/python_task_execution_api.py\n```\n\nService available at: http://127.0.0.1:8000",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
         "_exporter_id": "chapkit-task-execution"
     },
@@ -280,6 +280,56 @@
                         "description": "Execute task that raises ValueError to demonstrate error handling."
                     },
                     "response": []
+                },
+                {
+                    "name": "Execute Dependency Injection Task (query_task_count)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "const response = pm.response.json();",
+                                    "pm.environment.set('jobId', response.job_id);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/v1/tasks/01JCSEED0000000000000PYTH7/$execute",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "v1", "tasks", "01JCSEED0000000000000PYTH7", "$execute"]
+                        },
+                        "description": "Execute task with dependency injection. AsyncSession is automatically injected by the framework (no user parameters needed). Task queries the database using the injected session."
+                    },
+                    "response": [
+                        {
+                            "name": "Job Submitted",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/tasks/01JCSEED0000000000000PYTH7/$execute",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "tasks", "01JCSEED0000000000000PYTH7", "$execute"]
+                                }
+                            },
+                            "status": "Accepted",
+                            "code": 202,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n  \"job_id\": \"01K79YAHJ7BR4E87VVTG8FNBME\",\n  \"message\": \"Task submitted for execution. Job ID: 01K79YAHJ7BR4E87VVTG8FNBME\"\n}"
+                        }
+                    ]
                 }
             ]
         },
@@ -490,6 +540,29 @@
                             ],
                             "cookie": [],
                             "body": "{\n  \"id\": \"01K79YAHJ7BR4E87VVTG8FNBMC\",\n  \"parent_id\": null,\n  \"level\": 0,\n  \"data\": {\n    \"task\": {...},\n    \"result\": null,\n    \"error\": {\n      \"type\": \"ValueError\",\n      \"message\": \"This task was designed to fail\",\n      \"traceback\": \"Traceback (most recent call last):\\n  File \\\"...\\\", line 48, in failing_task\\n    raise ValueError(\\\"This task was designed to fail\\\")\\nValueError: This task was designed to fail\"\n    }\n  },\n  \"created_at\": \"2025-10-17T10:05:00Z\",\n  \"updated_at\": \"2025-10-17T10:05:00Z\"\n}"
+                        },
+                        {
+                            "name": "Dependency Injection Result",
+                            "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/artifacts/{{artifactId}}",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "artifacts", "{{artifactId}}"]
+                                }
+                            },
+                            "status": "OK",
+                            "code": 200,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n  \"id\": \"01K79YAHJ7BR4E87VVTG8FNBME\",\n  \"parent_id\": null,\n  \"level\": 0,\n  \"data\": {\n    \"task\": {\n      \"id\": \"01JCSEED0000000000000PYTH7\",\n      \"command\": \"query_task_count\",\n      \"task_type\": \"python\",\n      \"parameters\": {},\n      \"created_at\": \"2025-10-17T10:00:00Z\",\n      \"updated_at\": \"2025-10-17T10:00:00Z\"\n    },\n    \"result\": {\n      \"total_tasks\": 8,\n      \"timestamp\": \"2025-10-17T10:07:15.123456Z\",\n      \"injected_session\": true\n    },\n    \"error\": null\n  },\n  \"created_at\": \"2025-10-17T10:07:15Z\",\n  \"updated_at\": \"2025-10-17T10:07:15Z\"\n}"
                         }
                     ]
                 },
@@ -787,13 +860,37 @@
                         "method": "POST",
                         "header": [],
                         "url": {
-                            "raw": "{{baseUrl}}/api/v1/tasks/01JCSEED0000000000000PYTH7/$execute",
+                            "raw": "{{baseUrl}}/api/v1/tasks/01JCSEED0000000000000PYTH8/$execute",
                             "host": ["{{baseUrl}}"],
-                            "path": ["api", "v1", "tasks", "01JCSEED0000000000000PYTH7", "$execute"]
+                            "path": ["api", "v1", "tasks", "01JCSEED0000000000000PYTH8", "$execute"]
                         },
-                        "description": "Attempt to execute orphaned task (auto-disabled on startup)."
+                        "description": "Attempt to execute orphaned task (auto-disabled on startup because function 'nonexistent_function' is not registered)."
                     },
-                    "response": []
+                    "response": [
+                        {
+                            "name": "Cannot Execute Disabled",
+                            "originalRequest": {
+                                "method": "POST",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{baseUrl}}/api/v1/tasks/01JCSEED0000000000000PYTH8/$execute",
+                                    "host": ["{{baseUrl}}"],
+                                    "path": ["api", "v1", "tasks", "01JCSEED0000000000000PYTH8", "$execute"]
+                                }
+                            },
+                            "status": "Bad Request",
+                            "code": 400,
+                            "_postman_previewlanguage": "json",
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "cookie": [],
+                            "body": "{\n  \"detail\": \"Cannot execute disabled task 01JCSEED0000000000000PYTH8\"\n}"
+                        }
+                    ]
                 }
             ]
         },
