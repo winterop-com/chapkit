@@ -205,6 +205,220 @@ def sync_task(param: str) -> dict:
 
 Synchronous functions are executed in a thread pool via `asyncio.to_thread()` to prevent blocking the event loop.
 
+### Dependency Injection
+
+Python task functions support **type-based dependency injection** for framework services. The framework automatically injects dependencies based on parameter type hints, while user parameters come from `task.parameters`.
+
+#### Injectable Types Reference
+
+| Type | Description | Use Case |
+|------|-------------|----------|
+| `AsyncSession` | SQLAlchemy async database session | Database queries, ORM operations |
+| `Database` | chapkit Database instance | Creating sessions, database operations |
+| `ArtifactManager` | Artifact management service | Saving/loading artifacts during execution |
+| `JobScheduler` | Job scheduling service | Submitting child jobs, job management |
+
+**Location**: Defined in `src/chapkit/modules/task/manager.py` as `INJECTABLE_TYPES`
+
+#### Basic Injection
+
+Functions request framework services via type hints:
+
+```python
+from sqlalchemy.ext.asyncio import AsyncSession
+from chapkit import TaskRegistry
+
+@TaskRegistry.register("query_task_count")
+async def query_task_count(session: AsyncSession) -> dict:
+    """Task that queries database using injected session."""
+    from sqlalchemy import select, func
+    from chapkit.modules.task.models import Task
+
+    # Use injected session
+    stmt = select(func.count()).select_from(Task)
+    result = await session.execute(stmt)
+    count = result.scalar() or 0
+
+    return {
+        "total_tasks": count,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+```
+
+**Execution** - No parameters needed:
+```json
+{
+  "command": "query_task_count",
+  "task_type": "python",
+  "parameters": {}
+}
+```
+
+#### Mixed Parameters
+
+Combine user parameters with injected dependencies:
+
+```python
+@TaskRegistry.register("process_with_db")
+async def process_with_db(
+    input_text: str,        # From task.parameters
+    count: int,             # From task.parameters
+    session: AsyncSession,  # Injected by framework
+) -> dict:
+    """Mix user params and framework injection."""
+    # Perform database operations using session
+    # Process user-provided input_text and count
+    return {"processed": input_text, "count": count}
+```
+
+**Execution**:
+```json
+{
+  "command": "process_with_db",
+  "task_type": "python",
+  "parameters": {
+    "input_text": "Hello",
+    "count": 42
+  }
+}
+```
+
+**Parameter Sources**:
+- User parameters: Primitives (`str`, `int`, `dict`) and generic types (`pd.DataFrame`)
+- Framework parameters: Injectable types from the table above
+
+#### Optional Injection
+
+Use Optional types for optional dependencies:
+
+```python
+@TaskRegistry.register("optional_db_task")
+async def optional_db_task(
+    data: dict,                        # From task.parameters (required)
+    session: AsyncSession | None = None,  # Injected if available (optional)
+) -> dict:
+    """Task with optional session injection."""
+    if session:
+        # Use database if session available
+        pass
+    return {"processed": data}
+```
+
+#### Flexible Naming
+
+Parameter names don't matter - only types:
+
+```python
+# All of these work - framework matches by type
+async def task_a(session: AsyncSession) -> dict: ...
+async def task_b(db_session: AsyncSession) -> dict: ...
+async def task_c(conn: AsyncSession) -> dict: ...
+```
+
+This allows natural, readable parameter names in your functions.
+
+#### Multiple Injections
+
+Inject multiple framework services:
+
+```python
+from chapkit import Database, ArtifactManager
+
+@TaskRegistry.register("complex_task")
+async def complex_task(
+    input_data: dict,                    # From task.parameters
+    database: Database,                  # Injected
+    artifact_manager: ArtifactManager,   # Injected
+    session: AsyncSession,               # Injected
+) -> dict:
+    """Task using multiple framework services."""
+    # Use all injected services
+    return {"result": "processed"}
+```
+
+#### Error Handling
+
+Missing required user parameters raise clear errors:
+
+```python
+@TaskRegistry.register("needs_param")
+async def needs_param(name: str, session: AsyncSession) -> dict:
+    return {"name": name}
+
+# Executing without 'name' parameter:
+{
+  "command": "needs_param",
+  "task_type": "python",
+  "parameters": {}  # Missing 'name'
+}
+
+# Error captured in artifact:
+{
+  "error": {
+    "type": "ValueError",
+    "message": "Missing required parameter 'name' for task function.
+                Parameter is not injectable and not provided in task.parameters."
+  }
+}
+```
+
+#### Best Practices
+
+**DO:**
+- Use type hints for all parameters
+- Request only needed framework services
+- Use descriptive parameter names
+- Combine user parameters with injections naturally
+
+**DON'T:**
+- Mix user and framework parameter types (primitives vs injectable types are clear)
+- Forget type hints (injection requires them)
+- Assume services are always available (use Optional for optional deps)
+
+#### Example: Database Query Task
+
+Complete example combining injection with user parameters:
+
+```python
+@TaskRegistry.register("search_tasks")
+async def search_tasks(
+    command_pattern: str,           # User parameter
+    enabled_only: bool = True,      # User parameter with default
+    session: AsyncSession,           # Injected
+) -> dict:
+    """Search for tasks matching a pattern."""
+    from sqlalchemy import select
+    from chapkit.modules.task.models import Task
+
+    # Build query using injected session
+    stmt = select(Task).where(Task.command.like(f"%{command_pattern}%"))
+
+    if enabled_only:
+        stmt = stmt.where(Task.enabled == True)
+
+    result = await session.execute(stmt)
+    tasks = result.scalars().all()
+
+    return {
+        "matches": len(tasks),
+        "tasks": [{"id": str(t.id), "command": t.command} for t in tasks],
+    }
+```
+
+**Usage**:
+```bash
+curl -X POST http://localhost:8000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "search_tasks",
+    "task_type": "python",
+    "parameters": {
+      "command_pattern": "echo",
+      "enabled_only": true
+    }
+  }'
+```
+
 ### Complete Example
 
 See `examples/python_task_execution_api.py` for a complete working example with:
