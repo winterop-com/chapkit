@@ -138,7 +138,7 @@ app = (
 - `.with_config(schema)` - Config CRUD endpoints at `/api/v1/configs`
 - `.with_artifacts(hierarchy)` - Artifact CRUD at `/api/v1/artifacts`
 - `.with_jobs()` - Job scheduler at `/api/v1/jobs`
-- `.with_tasks()` - Task execution at `/api/v1/tasks`
+- `.with_tasks(validate_on_startup=True)` - Task execution at `/api/v1/tasks` with automatic Python task validation
 - `.with_ml(runner)` - ML train/predict at `/api/v1/ml`
 - `.with_logging()` - Structured logging with request tracing
 - `.with_auth()` - API key authentication
@@ -285,7 +285,7 @@ Framework types are automatically injected based on function parameter type hint
 
 **Key Features:**
 - Enable/disable controls for tasks
-- Orphaned task validation (auto-disable tasks with missing functions on startup)
+- Automatic orphaned task validation (enabled by default, auto-disables tasks with missing functions on startup)
 - Support both sync and async Python functions
 - Mix user parameters with framework injections
 - Optional type support (`AsyncSession | None`)
@@ -298,7 +298,14 @@ app = (
     .with_health()
     .with_artifacts(hierarchy=TASK_HIERARCHY)
     .with_jobs(max_concurrency=3)
-    .with_tasks()  # Adds task CRUD + execution endpoints
+    .with_tasks()  # Adds task CRUD + execution, validates on startup by default
+    .build()
+)
+
+# Disable validation if needed
+app = (
+    ServiceBuilder(info=info)
+    .with_tasks(validate_on_startup=False)
     .build()
 )
 ```

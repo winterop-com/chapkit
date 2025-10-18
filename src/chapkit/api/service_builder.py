@@ -23,7 +23,14 @@ from chapkit.modules.artifact import (
 )
 from chapkit.modules.config import BaseConfig, ConfigIn, ConfigManager, ConfigOut, ConfigRepository, ConfigRouter
 from chapkit.modules.ml import MLManager, MLRouter, ModelRunnerProtocol
-from chapkit.modules.task import TaskIn, TaskManager, TaskOut, TaskRepository, TaskRouter
+from chapkit.modules.task import (
+    TaskIn,
+    TaskManager,
+    TaskOut,
+    TaskRepository,
+    TaskRouter,
+    validate_and_disable_orphaned_tasks,
+)
 
 from .dependencies import get_artifact_manager as default_get_artifact_manager
 from .dependencies import get_config_manager as default_get_config_manager
@@ -84,6 +91,7 @@ class _TaskOptions:
     prefix: str = "/api/v1/tasks"
     tags: List[str] = field(default_factory=lambda: ["Tasks"])
     permissions: CrudPermissions = field(default_factory=CrudPermissions)
+    validate_on_startup: bool = True
 
 
 @dataclass(slots=True)
@@ -170,6 +178,7 @@ class ServiceBuilder(BaseServiceBuilder):
         prefix: str = "/api/v1/tasks",
         tags: List[str] | None = None,
         permissions: CrudPermissions | None = None,
+        validate_on_startup: bool = True,
         allow_create: bool | None = None,
         allow_read: bool | None = None,
         allow_update: bool | None = None,
@@ -187,6 +196,7 @@ class ServiceBuilder(BaseServiceBuilder):
             prefix=prefix,
             tags=list(tags) if tags else ["Tasks"],
             permissions=perms,
+            validate_on_startup=validate_on_startup,
         )
         return self
 
@@ -290,6 +300,15 @@ class ServiceBuilder(BaseServiceBuilder):
             )
             app.include_router(task_router)
             app.dependency_overrides[default_get_task_manager] = task_dep
+
+            # Register validation startup hook if enabled
+            if task_options.validate_on_startup:
+
+                async def _validate_tasks_on_startup(app_instance: FastAPI) -> None:
+                    """Validate and disable orphaned Python tasks on startup."""
+                    await validate_and_disable_orphaned_tasks(app_instance)
+
+                self._startup_hooks.append(_validate_tasks_on_startup)
 
         if self._ml_options:
             ml_options = self._ml_options

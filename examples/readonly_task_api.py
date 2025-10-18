@@ -13,7 +13,6 @@ from chapkit import (
     TaskManager,
     TaskRegistry,
     TaskRepository,
-    validate_and_disable_orphaned_tasks,
 )
 from chapkit.api import ServiceBuilder, ServiceInfo
 from chapkit.core import Database
@@ -144,20 +143,13 @@ READONLY_PERMISSIONS = CrudPermissions(
     delete=False,  # No runtime deletions
 )
 
-
-async def validate_tasks_on_startup(app: FastAPI) -> None:
-    """Wrapper for validation that discards return value."""
-    await validate_and_disable_orphaned_tasks(app)
-
-
 app = (
     ServiceBuilder(info=info)
     .with_health()
     .with_artifacts(hierarchy=TASK_HIERARCHY)
     .with_jobs(max_concurrency=5)
-    .with_tasks(permissions=READONLY_PERMISSIONS)  # Apply read-only permissions
+    .with_tasks(permissions=READONLY_PERMISSIONS)  # Apply read-only permissions, validate_on_startup=True by default
     .on_startup(seed_readonly_tasks)  # Pre-seed tasks
-    .on_startup(validate_tasks_on_startup)  # Validate Python tasks
     .build()
 )
 

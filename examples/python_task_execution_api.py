@@ -16,7 +16,6 @@ from chapkit import (
     TaskManager,
     TaskRegistry,
     TaskRepository,
-    validate_and_disable_orphaned_tasks,
 )
 from chapkit.api import ServiceBuilder, ServiceInfo
 from chapkit.core import Database
@@ -201,20 +200,13 @@ TASK_HIERARCHY = ArtifactHierarchy(
     level_labels={0: "execution"},
 )
 
-
-async def validate_tasks_on_startup(app: FastAPI) -> None:
-    """Wrapper for validation that discards return value."""
-    await validate_and_disable_orphaned_tasks(app)
-
-
 app = (
     ServiceBuilder(info=info)
     .with_health()
     .with_artifacts(hierarchy=TASK_HIERARCHY)  # Required for task execution results
     .with_jobs(max_concurrency=3)  # Limit concurrent task execution
-    .with_tasks()
+    .with_tasks()  # validate_on_startup=True by default
     .on_startup(seed_python_tasks)
-    .on_startup(validate_tasks_on_startup)  # Auto-disable orphaned Python tasks
     .build()
 )
 
