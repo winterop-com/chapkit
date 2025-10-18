@@ -16,7 +16,7 @@ This document captures the complete knowledge of both phases, with emphasis on t
 
 # Phase 1: Python Task Execution (IMPLEMENTED)
 
-## Goals ✅
+## Goals (Completed)
 
 - Execute registered Python functions as tasks alongside shell commands
 - Support both sync and async Python functions
@@ -504,12 +504,12 @@ app = (
 ```
 
 **Available operations:**
-- ✅ `GET /api/v1/tasks` - List tasks
-- ✅ `GET /api/v1/tasks/{id}` - Get task
-- ✅ `POST /api/v1/tasks/{id}/$execute` - Execute task
-- ❌ `POST /api/v1/tasks` - Create task (disabled)
-- ❌ `PUT /api/v1/tasks/{id}` - Update task (disabled)
-- ❌ `DELETE /api/v1/tasks/{id}` - Delete task (disabled)
+- `GET /api/v1/tasks` - List tasks
+- `GET /api/v1/tasks/{id}` - Get task
+- `POST /api/v1/tasks/{id}/$execute` - Execute task
+- `POST /api/v1/tasks` - Create task (disabled)
+- `PUT /api/v1/tasks/{id}` - Update task (disabled)
+- `DELETE /api/v1/tasks/{id}` - Delete task (disabled)
 
 ## API Reference
 

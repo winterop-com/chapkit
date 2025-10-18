@@ -1,12 +1,4 @@
-"""Tests for python_task_execution_api example with Python function execution.
-
-This example demonstrates Python task execution via TaskRegistry:
-- Register Python functions using @TaskRegistry.register()
-- Tasks can be Python functions (not just shell commands)
-- Execution supports both sync and async functions
-- Results captured in artifacts with result/error structure
-- Handles exceptions gracefully in artifacts
-"""
+"""Tests for python_task_execution_api example with Python function execution."""
 
 from __future__ import annotations
 

@@ -17,19 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 async def validate_and_disable_orphaned_tasks(app: FastAPI) -> int:
-    """Validate Python tasks and disable orphaned ones.
-
-    Checks all Python tasks against the TaskRegistry and disables any tasks
-    that reference functions no longer registered. Logs warnings for each
-    orphaned task found.
-
-    Args:
-        app: FastAPI application instance
-
-    Returns:
-        Number of tasks disabled
-
-    """
+    """Validate Python tasks and disable orphaned ones that reference missing functions."""
     database: Database | None = getattr(app.state, "database", None)
     if database is None:
         logger.debug("No database configured, skipping task validation")

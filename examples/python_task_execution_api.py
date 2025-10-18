@@ -59,12 +59,7 @@ async def failing_task(should_fail: bool = True) -> dict:
 
 @TaskRegistry.register("query_task_count")
 async def query_task_count(session: AsyncSession) -> dict:
-    """Example task using dependency injection to query database.
-
-    Demonstrates type-based injection:
-    - session: AsyncSession is injected by framework (no user parameter needed)
-    - Function can perform database queries within injected session
-    """
+    """Query total task count using injected database session."""
     from sqlalchemy import func, select
 
     from chapkit.modules.task.models import Task

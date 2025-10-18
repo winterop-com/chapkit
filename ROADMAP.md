@@ -3,13 +3,13 @@
 > **Vision:** Build the most productive async Python framework for ML/data services with FastAPI integration
 
 ## Priority Legend
-- 🔥 **High Priority** - Next 1-2 releases (actively working or immediate next)
-- 📌 **Medium Priority** - Next 3-6 releases (planned, design in progress)
-- 💡 **Future** - Under consideration (evaluate demand/feasibility)
+- **High Priority** - Next 1-2 releases (actively working or immediate next)
+- **Medium Priority** - Next 3-6 releases (planned, design in progress)
+- **Future** - Under consideration (evaluate demand/feasibility)
 
 ---
 
-## 🔥 High Priority (Next 1-2 Releases)
+## High Priority (Next 1-2 Releases)
 
 ### Task Execution
 - [ ] **Task scheduling (Phase 2)** - Cron, interval, and one-off scheduling with in-memory storage
@@ -39,7 +39,7 @@
 
 ---
 
-## 📌 Medium Priority (Next 3-6 Releases)
+## Medium Priority (Next 3-6 Releases)
 
 ### Task Execution Enhancements
 - [ ] **Retry policies** - Automatic retry with exponential backoff for failed tasks
@@ -66,7 +66,7 @@
 
 ---
 
-## 💡 Future Considerations
+## Future Considerations
 
 ### Advanced Task Features
 - [ ] **Registry namespacing** - Module-scoped registries to avoid collisions
@@ -116,17 +116,17 @@
 
 ---
 
-## Recently Completed ✅
+## Recently Completed
 
 ### v0.x (Current)
-- ✅ **Python task execution** - TaskRegistry with decorator-based registration
-- ✅ **Type-based dependency injection** - Automatic injection of framework services
-- ✅ **Enable/disable controls** - Task execution controls
-- ✅ **Orphaned task validation** - Auto-disable tasks with missing functions
-- ✅ **App hosting system** - Host static web apps alongside API
-- ✅ **Health check SSE streaming** - Server-sent events for health monitoring
-- ✅ **Comprehensive testing** - 683 tests passing with extensive coverage
-- ✅ **ML service builder** - Specialized builder for ML workflows
+- **Python task execution** - TaskRegistry with decorator-based registration
+- **Type-based dependency injection** - Automatic injection of framework services
+- **Enable/disable controls** - Task execution controls
+- **Orphaned task validation** - Auto-disable tasks with missing functions
+- **App hosting system** - Host static web apps alongside API
+- **Health check SSE streaming** - Server-sent events for health monitoring
+- **Comprehensive testing** - 683 tests passing with extensive coverage
+- **ML service builder** - Specialized builder for ML workflows
 
 ---
 

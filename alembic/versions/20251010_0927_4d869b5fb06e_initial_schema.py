@@ -1,10 +1,4 @@
-"""initial_schema
-
-Revision ID: 4d869b5fb06e
-Revises:
-Create Date: 2025-10-10 09:27:01.866482+00:00
-
-"""
+"""Initial database schema migration."""
 
 import sqlalchemy as sa
 
