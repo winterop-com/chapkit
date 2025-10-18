@@ -87,8 +87,8 @@ def _serialize_with_metadata(value: Any) -> Any:
     return _create_serialization_metadata(value, is_full_object=True)
 
 
-SerializableDict = Annotated[
+JsonSafe = Annotated[
     Any,
     PlainSerializer(_serialize_with_metadata, return_type=Any),
 ]
-"""Pydantic type that serializes dicts, replacing non-JSON-serializable values with metadata."""
+"""Pydantic type for JSON-safe serialization with graceful handling of non-serializable values."""

@@ -1,5 +1,6 @@
 """Tests for TaskRouter error handling."""
 
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, Mock
 
 from fastapi import FastAPI
@@ -96,3 +97,170 @@ def test_execute_task_with_valid_ulid() -> None:
     data = response.json()
     assert data["job_id"] == str(job_id)
     assert "submitted for execution" in data["message"]
+
+
+def test_list_tasks_with_enabled_filter_true() -> None:
+    """Test GET /tasks?enabled=true returns only enabled tasks."""
+    # Create mock manager
+    mock_manager = Mock(spec=TaskManager)
+
+    now = datetime.now(timezone.utc)
+
+    enabled_task1 = TaskOut(
+        id=ULID(),
+        command="echo enabled1",
+        task_type="shell",
+        parameters=None,
+        enabled=True,
+        created_at=now,
+        updated_at=now,
+    )
+    enabled_task2 = TaskOut(
+        id=ULID(),
+        command="echo enabled2",
+        task_type="shell",
+        parameters=None,
+        enabled=True,
+        created_at=now,
+        updated_at=now,
+    )
+
+    mock_manager.find_all = AsyncMock(return_value=[enabled_task1, enabled_task2])
+
+    def manager_factory() -> TaskManager:
+        return mock_manager
+
+    # Create app with router
+    app = FastAPI()
+    router = TaskRouter.create(
+        prefix="/api/v1/tasks",
+        tags=["Tasks"],
+        entity_in_type=TaskIn,
+        entity_out_type=TaskOut,
+        manager_factory=manager_factory,
+    )
+    app.include_router(router)
+
+    client = TestClient(app)
+
+    response = client.get("/api/v1/tasks?enabled=true")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert all(task["enabled"] for task in data)
+    # Verify find_all was called with enabled=True
+    mock_manager.find_all.assert_called_once()
+    call_kwargs = mock_manager.find_all.call_args.kwargs
+    assert call_kwargs.get("enabled") is True
+
+
+def test_list_tasks_with_enabled_filter_false() -> None:
+    """Test GET /tasks?enabled=false returns only disabled tasks."""
+    # Create mock manager
+    mock_manager = Mock(spec=TaskManager)
+
+    now = datetime.now(timezone.utc)
+
+    disabled_task1 = TaskOut(
+        id=ULID(),
+        command="echo disabled1",
+        task_type="shell",
+        parameters=None,
+        enabled=False,
+        created_at=now,
+        updated_at=now,
+    )
+    disabled_task2 = TaskOut(
+        id=ULID(),
+        command="echo disabled2",
+        task_type="shell",
+        parameters=None,
+        enabled=False,
+        created_at=now,
+        updated_at=now,
+    )
+
+    mock_manager.find_all = AsyncMock(return_value=[disabled_task1, disabled_task2])
+
+    def manager_factory() -> TaskManager:
+        return mock_manager
+
+    # Create app with router
+    app = FastAPI()
+    router = TaskRouter.create(
+        prefix="/api/v1/tasks",
+        tags=["Tasks"],
+        entity_in_type=TaskIn,
+        entity_out_type=TaskOut,
+        manager_factory=manager_factory,
+    )
+    app.include_router(router)
+
+    client = TestClient(app)
+
+    response = client.get("/api/v1/tasks?enabled=false")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert all(not task["enabled"] for task in data)
+    # Verify find_all was called with enabled=False
+    mock_manager.find_all.assert_called_once()
+    call_kwargs = mock_manager.find_all.call_args.kwargs
+    assert call_kwargs.get("enabled") is False
+
+
+def test_list_tasks_without_enabled_filter() -> None:
+    """Test GET /tasks returns all tasks when enabled parameter not provided."""
+    # Create mock manager
+    mock_manager = Mock(spec=TaskManager)
+
+    now = datetime.now(timezone.utc)
+
+    task1 = TaskOut(
+        id=ULID(),
+        command="echo enabled",
+        task_type="shell",
+        parameters=None,
+        enabled=True,
+        created_at=now,
+        updated_at=now,
+    )
+    task2 = TaskOut(
+        id=ULID(),
+        command="echo disabled",
+        task_type="shell",
+        parameters=None,
+        enabled=False,
+        created_at=now,
+        updated_at=now,
+    )
+
+    mock_manager.find_all = AsyncMock(return_value=[task1, task2])
+
+    def manager_factory() -> TaskManager:
+        return mock_manager
+
+    # Create app with router
+    app = FastAPI()
+    router = TaskRouter.create(
+        prefix="/api/v1/tasks",
+        tags=["Tasks"],
+        entity_in_type=TaskIn,
+        entity_out_type=TaskOut,
+        manager_factory=manager_factory,
+    )
+    app.include_router(router)
+
+    client = TestClient(app)
+
+    response = client.get("/api/v1/tasks")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    # Verify find_all was called with enabled=None
+    mock_manager.find_all.assert_called_once()
+    call_kwargs = mock_manager.find_all.call_args.kwargs
+    assert call_kwargs.get("enabled") is None

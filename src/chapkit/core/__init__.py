@@ -30,7 +30,7 @@ from .schemas import (
     PaginatedResponse,
     ProblemDetail,
 )
-from .types import SerializableDict, ULIDType
+from .types import JsonSafe, ULIDType
 
 __all__ = [
     # Base infrastructure
@@ -46,7 +46,7 @@ __all__ = [
     "Base",
     "Entity",
     "ULIDType",
-    "SerializableDict",
+    "JsonSafe",
     # Schemas
     "EntityIn",
     "EntityOut",
