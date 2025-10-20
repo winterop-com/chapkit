@@ -54,6 +54,8 @@ class MLServiceInfo(ServiceInfo):
     organization: str | None = None
     organization_logo_url: HttpUrl | None = None
     citation_info: str | None = None
+    allow_free_additional_continuous_covariates: bool = False
+    required_covariates: List[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)
