@@ -122,6 +122,11 @@ class ShellModelRunner(BaseModelRunner):
             config_file = temp_dir / "config.json"
             config_file.write_text(json.dumps(config.model_dump(), indent=2))
 
+            # Write config to YAML
+            config_file_yaml = temp_dir / "config.yaml"
+            config_file_yaml.write_text(config.model_dump_yaml())
+
+
             # Write training data to CSV
             data_file = temp_dir / "data.csv"
             data.to_csv(data_file, index=False)
@@ -137,7 +142,7 @@ class ShellModelRunner(BaseModelRunner):
 
             # Substitute variables in command
             command = self.train_command.format(
-                config_file=str(config_file),
+                config_file=str(config_file_yaml),
                 data_file=str(data_file),
                 model_file=str(model_file),
                 geo_file=str(geo_file) if geo_file else "",
@@ -194,6 +199,9 @@ class ShellModelRunner(BaseModelRunner):
             config_file = temp_dir / "config.json"
             config_file.write_text(json.dumps(config.model_dump(), indent=2))
 
+            config_file_yaml = temp_dir / "config.yaml"
+            config_file_yaml.write_text(config.model_dump_yaml())
+
             # Write model to file
             model_file = temp_dir / f"model.{self.model_format}"
             with open(model_file, "wb") as f:
@@ -220,7 +228,7 @@ class ShellModelRunner(BaseModelRunner):
 
             # Substitute variables in command
             command = self.predict_command.format(
-                config_file=str(config_file),
+                config_file=str(config_file_yaml),
                 model_file=str(model_file),
                 historic_file=str(historic_file) if historic_file else "",
                 future_file=str(future_file),
